@@ -1,0 +1,18 @@
+<div class="card">
+  <div class="card__image">
+    @if (car.imageUrl) {
+      <img [src]="car.imageUrl" [alt]="car.brand + ' ' + car.model" />
+    } @else {
+      <div class="card__placeholder">🚗</div>
+    }
+  </div>
+  <div class="card__body">
+    <h3 class="card__title">{{ car.brand }} {{ car.model }}</h3>
+    <span class="card__type">{{ car.type }}</span>
+    <p class="card__desc">{{ car.description }}</p>
+    <div class="card__footer">
+      <span class="card__price">${{ car.pricePerDay }}/day</span>
+      <a class="card__btn" [routerLink]="['/cars', car.id]">View Details</a>
+    </div>
+  </div>
+</div>

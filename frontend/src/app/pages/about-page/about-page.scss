@@ -1,0 +1,155 @@
+/* ── Navbar ── */
+.navbar {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+  }
+
+  &__logo {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+
+  &__links {
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__link {
+    text-decoration: none;
+    color: #555;
+    font-size: 0.92rem;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: #f0f0f0;
+      color: #1a1a2e;
+    }
+
+    &--active {
+      color: #4361ee;
+      font-weight: 600;
+    }
+
+    &--cta {
+      background: #4361ee;
+      color: #fff;
+      &:hover {
+        background: #3a0ca3;
+        color: #fff;
+      }
+    }
+  }
+}
+
+/* ── About Section ── */
+.about {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 24px 72px;
+
+  &__title {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 40px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  &__card {
+    background: #f4f4f5;
+    border-radius: 12px;
+    padding: 32px 28px;
+  }
+
+  &__card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 14px;
+  }
+
+  &__card-text {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  &__contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+
+    a {
+      color: #4361ee;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 0.85rem;
+  color: #888;
+  background: #fff;
+  border-top: 1px solid #e9ecef;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .about__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar__inner {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .navbar__links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .about__title {
+    font-size: 1.6rem;
+  }
+}

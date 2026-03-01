@@ -1,0 +1,93 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar__inner">
+    <span class="navbar__logo">🚗 CarRental</span>
+    <ul class="navbar__links">
+      <li><a routerLink="/home" class="navbar__link">Home</a></li>
+      <li><a routerLink="/cars" class="navbar__link navbar__link--active">Cars</a></li>
+      <li><a routerLink="/about" class="navbar__link">About</a></li>
+      <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
+      <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- Sidebar Filters -->
+  <aside class="filters">
+    <div class="filters__card">
+      <h3 class="filters__title">Filters</h3>
+
+      <label class="filters__label">Brand</label>
+      <select class="filters__select" [(ngModel)]="filters.brand">
+        <option [ngValue]="undefined">All Brands</option>
+        @for (b of brands; track b) {
+          <option [value]="b">{{ b }}</option>
+        }
+      </select>
+
+      <label class="filters__label">Type</label>
+      <select class="filters__select" [(ngModel)]="filters.type">
+        <option [ngValue]="undefined">All Types</option>
+        @for (t of types; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+
+      <label class="filters__label">Min Price ($/day)</label>
+      <input
+        class="filters__input"
+        type="number"
+        placeholder="0"
+        [(ngModel)]="filters.minPrice"
+        min="0"
+      />
+
+      <label class="filters__label">Max Price ($/day)</label>
+      <input
+        class="filters__input"
+        type="number"
+        placeholder="Any"
+        [(ngModel)]="filters.maxPrice"
+        min="0"
+      />
+
+      <button class="filters__btn filters__btn--apply" (click)="applyFilters()">
+        Apply Filters
+      </button>
+      <button class="filters__btn filters__btn--clear" (click)="clearFilters()">
+        Clear
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    @if (loading) {
+      <div class="state">
+        <p class="state__text">Loading cars...</p>
+      </div>
+    } @else if (error) {
+      <div class="state state--error">
+        <p class="state__text">{{ error }}</p>
+        <button class="state__retry" (click)="loadCars()">Retry</button>
+      </div>
+    } @else if (cars.length === 0) {
+      <div class="state">
+        <p class="state__text">No cars found matching your filters.</p>
+        <button class="state__retry" (click)="clearFilters()">Clear Filters</button>
+      </div>
+    } @else {
+      <div class="grid">
+        @for (car of cars; track car.id) {
+          <app-car-card [car]="car"></app-car-card>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+</footer>

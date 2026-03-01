@@ -1,0 +1,40 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar__inner">
+    <span class="navbar__logo">🚗 CarRental</span>
+    <ul class="navbar__links">
+      <li><a routerLink="/home" class="navbar__link navbar__link--active">Home</a></li>
+      <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
+      <li><a routerLink="/about" class="navbar__link">About</a></li>
+      <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
+      <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero__content">
+    <h1 class="hero__title">Find Your Perfect Rental Car</h1>
+    <p class="hero__subtitle">
+      Browse our wide selection of vehicles and book the one that fits
+      your journey — fast, easy, and affordable.
+    </p>
+  </div>
+  <div class="hero__graphic"></div>
+</section>
+
+<!-- Popular Cars -->
+<section class="popular">
+  <h2 class="popular__heading">Popular Rental Choices</h2>
+  <div class="popular__grid">
+    @for (car of popularCars; track car.id) {
+      <app-car-card [car]="car"></app-car-card>
+    }
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+</footer>

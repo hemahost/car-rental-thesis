@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { User, AuthResponse } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +39,43 @@ export class AuthService {
 
   register(name: string, email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, { name, email, password });
+  }
+
+  updateProfile(data: { name: string; email: string; phone?: string; address?: string }): Observable<User> {
+    return this.http.put<{ success: boolean; user: User }>(`${this.apiUrl}/profile`, data).pipe(
+      tap((res) => {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+        this.currentUserSubject.next(res.user);
+      }),
+      map((res) => res.user)
+    );
+  }
+
+  uploadAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return this.http.post<{ success: boolean; user: User }>(`${this.apiUrl}/avatar`, formData).pipe(
+      tap((res) => {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+        this.currentUserSubject.next(res.user);
+      }),
+      map((res) => res.user)
+    );
+  }
+
+  removeAvatar(): Observable<User> {
+    return this.http.delete<{ success: boolean; user: User }>(`${this.apiUrl}/avatar`).pipe(
+      tap((res) => {
+        localStorage.setItem(this.USER_KEY, JSON.stringify(res.user));
+        this.currentUserSubject.next(res.user);
+      }),
+      map((res) => res.user)
+    );
+  }
+
+  getAvatarFullUrl(avatarUrl?: string): string {
+    if (!avatarUrl) return '';
+    return `http://localhost:3000${avatarUrl}`;
   }
 
   logout(): void {

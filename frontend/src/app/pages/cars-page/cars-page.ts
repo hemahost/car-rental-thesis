@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { CarCard } from '../../components/car-card/car-card';
 import { CarService, CarFilters } from '../../services/car.service';
 import { Car } from '../../models/car.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-cars-page',
@@ -22,7 +23,7 @@ export class CarsPage implements OnInit {
 
   filters: CarFilters = {};
 
-  constructor(private carService: CarService, private cdr: ChangeDetectorRef) {}
+  constructor(public auth: AuthService, private carService: CarService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadCars();

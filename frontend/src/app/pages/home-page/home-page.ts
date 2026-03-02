@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CarCard } from '../../components/car-card/car-card';
 import { Car } from '../../models/car.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home-page',
@@ -10,6 +11,8 @@ import { Car } from '../../models/car.model';
   styleUrl: './home-page.scss',
 })
 export class HomePage {
+  constructor(public auth: AuthService) {}
+
   popularCars: Car[] = [
     {
       id: '1',

@@ -1,0 +1,331 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar__inner">
+    <span class="navbar__logo">🚗 CarRental</span>
+    <ul class="navbar__links">
+      <li><a routerLink="/home" class="navbar__link">Home</a></li>
+      <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
+      <li><a routerLink="/about" class="navbar__link">About</a></li>
+      <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
+      <li><a routerLink="/profile" class="navbar__link navbar__link--active navbar__link--cta">My Profile</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="profile-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <!-- Avatar Card -->
+    <div class="sidebar__avatar-card">
+      <div class="avatar" (click)="triggerAvatarUpload()" [class.avatar--uploading]="uploadingAvatar">
+        @if (hasAvatar) {
+          <img [src]="avatarUrl" alt="Profile picture" class="avatar__img" />
+        } @else {
+          <span class="avatar__initials">{{ userInitials }}</span>
+        }
+        <div class="avatar__overlay">
+          <span class="avatar__overlay-icon">📷</span>
+        </div>
+        @if (uploadingAvatar) {
+          <div class="avatar__spinner"></div>
+        }
+      </div>
+      <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" hidden />
+
+      <h2 class="sidebar__name">{{ user?.name }}</h2>
+      <p class="sidebar__email">{{ user?.email }}</p>
+      <span class="sidebar__role">{{ user?.role }}</span>
+
+      <div class="sidebar__avatar-actions">
+        <button class="sidebar__btn sidebar__btn--upload" (click)="triggerAvatarUpload()" [disabled]="uploadingAvatar">
+          Change Photo
+        </button>
+        @if (hasAvatar) {
+          <button class="sidebar__btn sidebar__btn--remove" (click)="removeAvatar()" [disabled]="uploadingAvatar">
+            Remove
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar__nav">
+      <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'overview'"
+              (click)="switchSection('overview')">
+        <span class="sidebar__nav-icon">📊</span> Overview
+      </button>
+      <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'personal'"
+              (click)="switchSection('personal')">
+        <span class="sidebar__nav-icon">👤</span> Personal Info
+      </button>
+      <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'bookings'"
+              (click)="switchSection('bookings')">
+        <span class="sidebar__nav-icon">📋</span> My Bookings
+      </button>
+      <button class="sidebar__nav-item sidebar__nav-item--danger" (click)="logout()">
+        <span class="sidebar__nav-icon">🚪</span> Logout
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Alerts -->
+    @if (successMessage) {
+      <div class="alert alert--success">
+        <span class="alert__icon">✅</span>
+        <span>{{ successMessage }}</span>
+      </div>
+    }
+    @if (errorMessage) {
+      <div class="alert alert--error">
+        <span class="alert__icon">❌</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+    }
+
+    <!-- Overview Section -->
+    @if (activeSection === 'overview') {
+      <section class="section">
+        <h1 class="section__title">Profile Overview</h1>
+        <p class="section__subtitle">Welcome back, {{ user?.name }}! Here's a summary of your account.</p>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card stat-card--blue">
+            <div class="stat-card__icon">🚗</div>
+            <div class="stat-card__data">
+              <span class="stat-card__value">{{ totalBookings }}</span>
+              <span class="stat-card__label">Total Bookings</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--green">
+            <div class="stat-card__icon">✅</div>
+            <div class="stat-card__data">
+              <span class="stat-card__value">{{ activeBookings }}</span>
+              <span class="stat-card__label">Active</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--red">
+            <div class="stat-card__icon">❌</div>
+            <div class="stat-card__data">
+              <span class="stat-card__value">{{ cancelledBookings }}</span>
+              <span class="stat-card__label">Cancelled</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--purple">
+            <div class="stat-card__icon">💰</div>
+            <div class="stat-card__data">
+              <span class="stat-card__value">${{ totalSpent | number:'1.0-0' }}</span>
+              <span class="stat-card__label">Total Spent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="info-card">
+          <h3 class="info-card__title">Account Details</h3>
+          <div class="info-card__grid">
+            <div class="info-card__item">
+              <span class="info-card__label">Full Name</span>
+              <span class="info-card__value">{{ user?.name }}</span>
+            </div>
+            <div class="info-card__item">
+              <span class="info-card__label">Email</span>
+              <span class="info-card__value">{{ user?.email }}</span>
+            </div>
+            <div class="info-card__item">
+              <span class="info-card__label">Phone</span>
+              <span class="info-card__value">{{ user?.phone || 'Not set' }}</span>
+            </div>
+            <div class="info-card__item">
+              <span class="info-card__label">Address</span>
+              <span class="info-card__value">{{ user?.address || 'Not set' }}</span>
+            </div>
+            <div class="info-card__item">
+              <span class="info-card__label">Role</span>
+              <span class="info-card__value info-card__value--badge">{{ user?.role }}</span>
+            </div>
+            <div class="info-card__item">
+              <span class="info-card__label">Member Since</span>
+              <span class="info-card__value">{{ memberSince }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Bookings Preview -->
+        @if (bookings.length > 0) {
+          <div class="info-card">
+            <div class="info-card__header">
+              <h3 class="info-card__title">Recent Bookings</h3>
+              <button class="info-card__link" (click)="switchSection('bookings')">View All →</button>
+            </div>
+            <div class="booking-list">
+              @for (booking of bookings.slice(0, 3); track booking.id) {
+                <div class="booking-item">
+                  <div class="booking-item__left">
+                    <span class="booking-item__car">
+                      {{ booking.car ? booking.car.brand + ' ' + booking.car.model : 'Car #' + booking.carId }}
+                    </span>
+                    <span class="booking-item__dates">
+                      {{ booking.startDate | date:'mediumDate' }} → {{ booking.endDate | date:'mediumDate' }}
+                    </span>
+                  </div>
+                  <div class="booking-item__right">
+                    <span class="booking-status"
+                          [class.booking-status--confirmed]="booking.status === 'CONFIRMED'"
+                          [class.booking-status--cancelled]="booking.status === 'CANCELLED'">
+                      {{ booking.status }}
+                    </span>
+                    <span class="booking-item__price">${{ booking.totalPrice }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Personal Info Section -->
+    @if (activeSection === 'personal') {
+      <section class="section">
+        <div class="section__header">
+          <div>
+            <h1 class="section__title">Personal Information</h1>
+            <p class="section__subtitle">Manage your personal details and contact information.</p>
+          </div>
+          @if (!editingPersonal) {
+            <button class="btn btn--primary" (click)="startEditingPersonal()">✏️ Edit</button>
+          }
+        </div>
+
+        @if (!editingPersonal) {
+          <div class="info-card">
+            <div class="info-card__grid info-card__grid--2col">
+              <div class="info-card__item">
+                <span class="info-card__label">Full Name</span>
+                <span class="info-card__value">{{ user?.name }}</span>
+              </div>
+              <div class="info-card__item">
+                <span class="info-card__label">Email Address</span>
+                <span class="info-card__value">{{ user?.email }}</span>
+              </div>
+              <div class="info-card__item">
+                <span class="info-card__label">Phone Number</span>
+                <span class="info-card__value">{{ user?.phone || 'Not provided' }}</span>
+              </div>
+              <div class="info-card__item">
+                <span class="info-card__label">Address</span>
+                <span class="info-card__value">{{ user?.address || 'Not provided' }}</span>
+              </div>
+              <div class="info-card__item">
+                <span class="info-card__label">Account Role</span>
+                <span class="info-card__value info-card__value--badge">{{ user?.role }}</span>
+              </div>
+              <div class="info-card__item">
+                <span class="info-card__label">Member Since</span>
+                <span class="info-card__value">{{ memberSince }}</span>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="info-card">
+            <h3 class="info-card__title">Edit Your Information</h3>
+            <div class="form">
+              <div class="form__row">
+                <div class="form__group">
+                  <label class="form__label">Full Name *</label>
+                  <input class="form__input" type="text" [(ngModel)]="editName" placeholder="John Doe" />
+                </div>
+                <div class="form__group">
+                  <label class="form__label">Email Address *</label>
+                  <input class="form__input" type="email" [(ngModel)]="editEmail" placeholder="john@example.com" />
+                </div>
+              </div>
+              <div class="form__row">
+                <div class="form__group">
+                  <label class="form__label">Phone Number</label>
+                  <input class="form__input" type="tel" [(ngModel)]="editPhone" placeholder="+1 (555) 123-4567" />
+                </div>
+                <div class="form__group">
+                  <label class="form__label">Address</label>
+                  <input class="form__input" type="text" [(ngModel)]="editAddress" placeholder="123 Main St, City" />
+                </div>
+              </div>
+              <div class="form__actions">
+                <button class="btn btn--primary" (click)="savePersonalInfo()" [disabled]="saving">
+                  {{ saving ? 'Saving...' : 'Save Changes' }}
+                </button>
+                <button class="btn btn--secondary" (click)="cancelEditingPersonal()" [disabled]="saving">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Bookings Section -->
+    @if (activeSection === 'bookings') {
+      <section class="section">
+        <h1 class="section__title">My Bookings</h1>
+        <p class="section__subtitle">View and manage all your car rental bookings.</p>
+
+        @if (bookingsLoading) {
+          <div class="empty-state">
+            <p>Loading bookings...</p>
+          </div>
+        } @else if (bookings.length === 0) {
+          <div class="empty-state">
+            <span class="empty-state__icon">📋</span>
+            <h3>No Bookings Yet</h3>
+            <p>You haven't made any bookings. Start by browsing our cars!</p>
+            <a routerLink="/cars" class="btn btn--primary">Browse Cars</a>
+          </div>
+        } @else {
+          <div class="bookings-table">
+            <div class="bookings-table__header">
+              <span>Car</span>
+              <span>Dates</span>
+              <span>Status</span>
+              <span>Price</span>
+              <span>Actions</span>
+            </div>
+            @for (booking of bookings; track booking.id) {
+              <div class="bookings-table__row">
+                <span class="bookings-table__car">
+                  {{ booking.car ? booking.car.brand + ' ' + booking.car.model : 'Car #' + booking.carId }}
+                </span>
+                <span class="bookings-table__dates">
+                  {{ booking.startDate | date:'shortDate' }} → {{ booking.endDate | date:'shortDate' }}
+                </span>
+                <span>
+                  <span class="booking-status"
+                        [class.booking-status--confirmed]="booking.status === 'CONFIRMED'"
+                        [class.booking-status--cancelled]="booking.status === 'CANCELLED'">
+                    {{ booking.status }}
+                  </span>
+                </span>
+                <span class="bookings-table__price">${{ booking.totalPrice }}</span>
+                <span>
+                  @if (booking.status === 'CONFIRMED') {
+                    <button class="btn btn--danger btn--sm" (click)="cancelBooking(booking.id)">Cancel</button>
+                  } @else {
+                    <span class="bookings-table__na">—</span>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  </main>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+</footer>

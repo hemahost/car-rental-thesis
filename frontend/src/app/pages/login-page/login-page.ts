@@ -53,12 +53,12 @@ export class LoginPage {
     this.authService.login(this.loginEmail, this.loginPassword).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/home']);
         this.cdr.markForCheck();
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.error || 'Login failed. Please try again.';
+        this.errorMessage = err.error?.error?.message || 'Login failed. Please try again.';
         this.cdr.markForCheck();
       },
     });
@@ -106,7 +106,7 @@ export class LoginPage {
         error: (err) => {
           this.loading = false;
           this.errorMessage =
-            err.error?.error || 'Registration failed. Please try again.';
+            err.error?.error?.message || 'Registration failed. Please try again.';
           this.cdr.markForCheck();
         },
       });

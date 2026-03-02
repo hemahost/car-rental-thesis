@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CarService } from '../../services/car.service';
 import { Car } from '../../models/car.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-car-detail-page',
@@ -16,6 +17,7 @@ export class CarDetailPage implements OnInit {
   error = '';
 
   constructor(
+    public auth: AuthService,
     private route: ActivatedRoute,
     private carService: CarService,
     private cdr: ChangeDetectorRef

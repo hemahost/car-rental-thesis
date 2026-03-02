@@ -13,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:4200" }));
 
+// Serve uploaded files
+import path from "path";
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 app.get("/api/health", (_req, res) => {
   res.json({ success: true, message: "Backend running" });
 });

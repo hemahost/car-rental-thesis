@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-about-page',
@@ -7,4 +8,6 @@ import { RouterLink } from '@angular/router';
   templateUrl: './about-page.html',
   styleUrl: './about-page.scss',
 })
-export class AboutPage {}
+export class AboutPage {
+  constructor(public auth: AuthService) {}
+}

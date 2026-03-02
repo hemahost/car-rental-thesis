@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/dashboard-page/dashboard-page';
 import { CarDetailPage } from './pages/car-detail-page/car-detail-page';
 import { LoginPage } from './pages/login-page/login-page';
 import { authGuard } from './guards/auth.guard';
+import { ProfilePage } from './pages/profile-page/profile-page';
 
 export const routes: Routes = [
   { path: '', component: LandingPage },
@@ -15,5 +16,6 @@ export const routes: Routes = [
   { path: 'cars', component: CarsPage },
   { path: 'cars/:id', component: CarDetailPage },
   { path: 'about', component: AboutPage },
+  { path: 'profile', component: ProfilePage, canActivate: [authGuard] },
   { path: 'dashboard', component: DashboardPage, canActivate: [authGuard] },
 ];

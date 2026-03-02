@@ -7,7 +7,11 @@
       <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
       <li><a routerLink="/about" class="navbar__link navbar__link--active">About</a></li>
       <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
-      <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
+      @if (auth.isLoggedIn) {
+        <li><a routerLink="/profile" class="navbar__link navbar__link--cta">My Profile</a></li>
+      } @else {
+        <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
+      }
     </ul>
   </div>
 </nav>

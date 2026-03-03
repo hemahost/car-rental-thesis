@@ -56,7 +56,88 @@
         color: #fff;
       }
     }
+
+    &--admin {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+
+      &:hover {
+        background: linear-gradient(135deg, #d97706, #b45309);
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+      }
+    }
   }
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+
+  &--admin {
+    background: linear-gradient(135deg, #0f0f23, #1a1a3e);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(245, 158, 11, 0.05);
+    border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+
+    .navbar__logo {
+      color: #f5f5f5;
+    }
+
+    .navbar__link {
+      color: #b0b0cc;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+
+      &--active {
+        color: #f59e0b;
+        font-weight: 600;
+      }
+
+      &--cta {
+        background: rgba(255, 255, 255, 0.1);
+        color: #f5f5f5;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.18);
+          color: #fff;
+        }
+      }
+
+      &--admin {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        border: none;
+
+        &:hover {
+          background: linear-gradient(135deg, #d97706, #b45309);
+          box-shadow: 0 4px 16px rgba(245, 158, 11, 0.5);
+        }
+      }
+    }
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
 }
 
 /* ── About Section ── */

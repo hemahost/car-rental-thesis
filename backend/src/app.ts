@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import carRoutes from "./routes/cars";
 import bookingRoutes from "./routes/bookings";
+import adminRoutes from "./routes/admin.routes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

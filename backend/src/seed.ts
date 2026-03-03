@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import bcrypt from "bcrypt";
 import prisma from "./db/prisma";
 
 const cars = [
@@ -10,7 +11,7 @@ const cars = [
     type: "SUV",
     pricePerDay: 65,
     description: "A reliable and spacious SUV perfect for family trips.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/9615358/pexels-photo-9615358.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "Toyota",
@@ -18,7 +19,7 @@ const cars = [
     type: "Sedan",
     pricePerDay: 45,
     description: "Fuel-efficient sedan with a smooth and comfortable ride.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/17075678/pexels-photo-17075678.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "BMW",
@@ -26,7 +27,7 @@ const cars = [
     type: "SUV",
     pricePerDay: 120,
     description: "Premium luxury SUV with powerful performance.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/7154531/pexels-photo-7154531.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "BMW",
@@ -34,7 +35,7 @@ const cars = [
     type: "Sedan",
     pricePerDay: 95,
     description: "Sporty sedan with elegant design and cutting-edge tech.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/19892485/pexels-photo-19892485.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "Audi",
@@ -42,7 +43,7 @@ const cars = [
     type: "Hatchback",
     pricePerDay: 70,
     description: "Compact hatchback with premium interior and agile handling.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/27810414/pexels-photo-27810414.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "Audi",
@@ -50,7 +51,7 @@ const cars = [
     type: "SUV",
     pricePerDay: 130,
     description: "Full-size luxury SUV with three-row seating.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/14487752/pexels-photo-14487752.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "Tesla",
@@ -58,7 +59,7 @@ const cars = [
     type: "Electric",
     pricePerDay: 90,
     description: "All-electric sedan with autopilot and impressive range.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/10029878/pexels-photo-10029878.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
   {
     brand: "Tesla",
@@ -66,7 +67,7 @@ const cars = [
     type: "Electric",
     pricePerDay: 110,
     description: "Electric crossover SUV with spacious cargo and fast charging.",
-    imageUrl: null,
+    imageUrl: "https://images.pexels.com/photos/15089585/pexels-photo-15089585.jpeg?auto=compress&cs=tinysrgb&w=800",
   },
 ];
 
@@ -76,6 +77,7 @@ async function main() {
   // Clear existing data
   await prisma.booking.deleteMany();
   await prisma.car.deleteMany();
+  await prisma.user.deleteMany();
 
   // Insert cars
   for (const car of cars) {
@@ -83,6 +85,19 @@ async function main() {
   }
 
   console.log(`Inserted ${cars.length} cars.`);
+
+  // Create admin user
+  const adminHash = await bcrypt.hash("admin123", 10);
+  await prisma.user.create({
+    data: {
+      name: "Admin",
+      email: "admin@test.com",
+      passwordHash: adminHash,
+      role: "ADMIN",
+    },
+  });
+
+  console.log("Created admin user: admin@test.com / admin123");
 }
 
 main()

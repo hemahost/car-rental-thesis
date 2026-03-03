@@ -1,12 +1,21 @@
 <!-- Navbar -->
-<nav class="navbar">
+<nav class="navbar" [class.navbar--admin]="auth.currentUser?.role === 'ADMIN'">
   <div class="navbar__inner">
-    <span class="navbar__logo">🚗 CarRental</span>
+    <span class="navbar__logo">
+      @if (auth.currentUser?.role === 'ADMIN') {
+        👑 CarRental <span class="navbar__badge">ADMIN</span>
+      } @else {
+        🚗 CarRental
+      }
+    </span>
     <ul class="navbar__links">
       <li><a routerLink="/home" class="navbar__link">Home</a></li>
       <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
       <li><a routerLink="/about" class="navbar__link">About</a></li>
       <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
+      @if (auth.currentUser?.role === 'ADMIN') {
+        <li><a routerLink="/admin" class="navbar__link navbar__link--admin">⚙️ Dashboard</a></li>
+      }
       @if (auth.isLoggedIn) {
         <li><a routerLink="/profile" class="navbar__link navbar__link--cta">My Profile</a></li>
       } @else {
@@ -67,8 +76,111 @@
           </div>
         </div>
 
-        <button class="detail__book-btn" routerLink="/login">Book Now</button>
+        @if (auth.isLoggedIn) {
+          <button class="detail__book-btn" (click)="scrollToBooking()">Book Now</button>
+        } @else {
+          <button class="detail__book-btn" routerLink="/login">Book Now</button>
+        }
       </div>
+    </div>
+
+    <!-- Booking Section -->
+    <div class="booking-section" id="booking-section">
+      <h2 class="booking-section__title">📅 Book This Car</h2>
+
+      @if (!auth.isLoggedIn) {
+        <div class="booking-section__login">
+          <p>Please log in to book this car.</p>
+          <a routerLink="/login" class="booking-section__login-btn">Login / Register</a>
+        </div>
+      } @else {
+        <div class="booking-form">
+          <div class="booking-form__dates">
+            <div class="booking-form__field">
+              <label for="startDate">Pick-up Date</label>
+              <input
+                type="date"
+                id="startDate"
+                [(ngModel)]="startDate"
+                [min]="todayStr"
+                (change)="onDateChange()"
+              />
+            </div>
+            <div class="booking-form__field">
+              <label for="endDate">Return Date</label>
+              <input
+                type="date"
+                id="endDate"
+                [(ngModel)]="endDate"
+                [min]="minEndDate"
+                (change)="onDateChange()"
+              />
+            </div>
+          </div>
+
+          @if (totalDays > 0) {
+            <div class="booking-form__summary">
+              <div class="booking-form__summary-row">
+                <span>Duration</span>
+                <span>{{ totalDays }} day{{ totalDays > 1 ? 's' : '' }}</span>
+              </div>
+              <div class="booking-form__summary-row">
+                <span>Price per day</span>
+                <span>${{ car!.pricePerDay }}</span>
+              </div>
+              <div class="booking-form__summary-row booking-form__summary-row--total">
+                <span>Total Price</span>
+                <span>${{ totalPrice }}</span>
+              </div>
+            </div>
+          }
+
+          @if (availabilityStatus === 'idle' && totalDays > 0) {
+            <button class="booking-form__check-btn" (click)="checkAvailability()">
+              Check Availability
+            </button>
+          }
+
+          @if (availabilityStatus === 'checking') {
+            <div class="booking-form__status booking-form__status--checking">
+              Checking availability...
+            </div>
+          }
+
+          @if (availabilityStatus === 'available') {
+            <div class="booking-form__status booking-form__status--available">
+              ✅ Car is available for your selected dates!
+            </div>
+            @if (!bookingSuccess) {
+              <button
+                class="booking-form__confirm-btn"
+                (click)="confirmBooking()"
+                [disabled]="bookingLoading"
+              >
+                {{ bookingLoading ? 'Confirming...' : 'Confirm Booking' }}
+              </button>
+            }
+          }
+
+          @if (availabilityStatus === 'unavailable') {
+            <div class="booking-form__status booking-form__status--unavailable">
+              ❌ Car is not available for the selected dates. Please choose different dates.
+            </div>
+          }
+
+          @if (bookingError) {
+            <div class="booking-form__status booking-form__status--error">
+              {{ bookingError }}
+            </div>
+          }
+
+          @if (bookingSuccess) {
+            <div class="booking-form__status booking-form__status--success">
+              {{ bookingMessage }}
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

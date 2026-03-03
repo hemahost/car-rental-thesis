@@ -1,0 +1,234 @@
+<!-- Admin Navbar -->
+<nav class="admin-nav">
+  <div class="admin-nav__inner">
+    <span class="admin-nav__logo">👑 CarRental <span class="admin-nav__badge">ADMIN</span></span>
+    <ul class="admin-nav__links">
+      <li><a routerLink="/home" class="admin-nav__link">Home</a></li>
+      <li><a routerLink="/cars" class="admin-nav__link">Cars</a></li>
+      <li><a routerLink="/about" class="admin-nav__link">About</a></li>
+      <li><a routerLink="/admin" class="admin-nav__link admin-nav__link--active">⚙️ Dashboard</a></li>
+      <li><a routerLink="/profile" class="admin-nav__link admin-nav__link--profile">My Profile</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Admin Hero Banner -->
+<div class="admin-hero">
+  <div class="admin-hero__inner">
+    <div class="admin-hero__text">
+      <h1 class="admin-hero__title">Welcome back, {{ auth.currentUser?.name || 'Admin' }}</h1>
+      <p class="admin-hero__subtitle">Manage your fleet, bookings, and keep everything running smoothly.</p>
+    </div>
+    <div class="admin-hero__stats">
+      <div class="admin-hero__stat">
+        <span class="admin-hero__stat-icon">🚗</span>
+        <span class="admin-hero__stat-value">{{ cars.length }}</span>
+        <span class="admin-hero__stat-label">Total Cars</span>
+      </div>
+      <div class="admin-hero__stat">
+        <span class="admin-hero__stat-icon">📋</span>
+        <span class="admin-hero__stat-value">{{ bookings.length }}</span>
+        <span class="admin-hero__stat-label">Bookings</span>
+      </div>
+      <div class="admin-hero__stat">
+        <span class="admin-hero__stat-icon">✅</span>
+        <span class="admin-hero__stat-value">{{ confirmedCount }}</span>
+        <span class="admin-hero__stat-label">Confirmed</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Dashboard -->
+<div class="admin">
+  <!-- Tabs -->
+  <div class="admin__tabs">
+    <button
+      class="admin__tab"
+      [class.admin__tab--active]="activeTab === 'cars'"
+      (click)="activeTab = 'cars'"
+    >
+      <span class="admin__tab-icon">🚗</span> Manage Cars
+    </button>
+    <button
+      class="admin__tab"
+      [class.admin__tab--active]="activeTab === 'bookings'"
+      (click)="activeTab = 'bookings'"
+    >
+      <span class="admin__tab-icon">📋</span> Manage Bookings
+    </button>
+  </div>
+
+  <!-- ═══ Cars Tab ═══ -->
+  @if (activeTab === 'cars') {
+    <section class="admin__section">
+      <div class="admin__section-header">
+        <h2>Cars</h2>
+        <button class="btn btn--primary" (click)="openAddCar()">+ Add New Car</button>
+      </div>
+
+      <!-- Car Form -->
+      @if (showCarForm) {
+        <div class="car-form">
+          <h3>{{ editingCar ? 'Edit Car' : 'Add New Car' }}</h3>
+
+          @if (carFormError) {
+            <div class="alert alert--error">{{ carFormError }}</div>
+          }
+          @if (carFormSuccess) {
+            <div class="alert alert--success">{{ carFormSuccess }}</div>
+          }
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Brand</label>
+              <input type="text" [(ngModel)]="carForm.brand" placeholder="e.g. Toyota" />
+            </div>
+            <div class="form-group">
+              <label>Model</label>
+              <input type="text" [(ngModel)]="carForm.model" placeholder="e.g. RAV4" />
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <input type="text" [(ngModel)]="carForm.type" placeholder="e.g. SUV" />
+            </div>
+            <div class="form-group">
+              <label>Price / Day ($)</label>
+              <input type="number" [(ngModel)]="carForm.pricePerDay" min="1" />
+            </div>
+            <div class="form-group form-group--full">
+              <label>Image URL (optional)</label>
+              <input type="text" [(ngModel)]="carForm.imageUrl" placeholder="https://..." />
+            </div>
+            <div class="form-group form-group--full">
+              <label>Description</label>
+              <textarea rows="3" [(ngModel)]="carForm.description" placeholder="Describe the car..."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn--primary" (click)="submitCarForm()" [disabled]="carFormLoading">
+              {{ carFormLoading ? 'Saving...' : (editingCar ? 'Update Car' : 'Create Car') }}
+            </button>
+            <button class="btn btn--secondary" (click)="cancelCarForm()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Loading / Error -->
+      @if (carsLoading) {
+        <div class="loading">Loading cars...</div>
+      }
+      @if (carsError) {
+        <div class="alert alert--error">{{ carsError }}</div>
+      }
+
+      <!-- Cars Table -->
+      @if (!carsLoading && cars.length > 0) {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Model</th>
+                <th>Type</th>
+                <th>Price/Day</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (car of cars; track car.id) {
+                <tr>
+                  <td>{{ car.brand }}</td>
+                  <td>{{ car.model }}</td>
+                  <td>{{ car.type }}</td>
+                  <td>${{ car.pricePerDay }}</td>
+                  <td class="actions">
+                    <button class="btn btn--small btn--outline" (click)="openEditCar(car)">Edit</button>
+                    <button class="btn btn--small btn--danger" (click)="deleteCar(car)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!carsLoading && cars.length === 0 && !carsError) {
+        <p class="empty">No cars found. Add one above!</p>
+      }
+    </section>
+  }
+
+  <!-- ═══ Bookings Tab ═══ -->
+  @if (activeTab === 'bookings') {
+    <section class="admin__section">
+      <div class="admin__section-header">
+        <h2>Bookings</h2>
+        <select [(ngModel)]="bookingsFilter" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">All</option>
+          <option value="CONFIRMED">Confirmed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
+
+      @if (bookingsLoading) {
+        <div class="loading">Loading bookings...</div>
+      }
+      @if (bookingsError) {
+        <div class="alert alert--error">{{ bookingsError }}</div>
+      }
+
+      @if (!bookingsLoading && bookings.length > 0) {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Car</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (b of bookings; track b.id) {
+                <tr>
+                  <td>{{ b.user?.email }}</td>
+                  <td>{{ b.car?.brand }} {{ b.car?.model }}</td>
+                  <td>{{ b.startDate | date:'mediumDate' }}</td>
+                  <td>{{ b.endDate | date:'mediumDate' }}</td>
+                  <td>${{ b.totalPrice }}</td>
+                  <td>
+                    <span class="badge" [class.badge--confirmed]="b.status === 'CONFIRMED'" [class.badge--cancelled]="b.status === 'CANCELLED'">
+                      {{ b.status }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    @if (b.status !== 'CONFIRMED') {
+                      <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'CONFIRMED')">Confirm</button>
+                    }
+                    @if (b.status !== 'CANCELLED') {
+                      <button class="btn btn--small btn--danger" (click)="setBookingStatus(b, 'CANCELLED')">Cancel</button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!bookingsLoading && bookings.length === 0 && !bookingsError) {
+        <p class="empty">No bookings found.</p>
+      }
+    </section>
+  }
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+</footer>

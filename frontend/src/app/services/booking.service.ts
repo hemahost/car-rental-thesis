@@ -22,6 +22,41 @@ export class BookingService {
       .pipe(map((res) => res.bookings));
   }
 
+  checkAvailability(
+    carId: string,
+    startDate: string,
+    endDate: string
+  ): Observable<{ available: boolean; conflictingBookings: number }> {
+    return this.http
+      .get<{
+        success: boolean;
+        available: boolean;
+        conflictingBookings: number;
+      }>(
+        `${this.apiUrl}/availability?carId=${carId}&startDate=${startDate}&endDate=${endDate}`
+      )
+      .pipe(
+        map((res) => ({
+          available: res.available,
+          conflictingBookings: res.conflictingBookings,
+        }))
+      );
+  }
+
+  createBooking(
+    carId: string,
+    startDate: string,
+    endDate: string
+  ): Observable<Booking> {
+    return this.http
+      .post<{ success: boolean; booking: Booking }>(
+        this.apiUrl,
+        { carId, startDate, endDate },
+        { headers: this.authHeaders() }
+      )
+      .pipe(map((res) => res.booking));
+  }
+
   cancelBooking(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, {
       headers: this.authHeaders(),

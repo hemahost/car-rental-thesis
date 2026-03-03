@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CarCard } from '../../components/car-card/car-card';
 import { Car } from '../../models/car.model';
 import { AuthService } from '../../services/auth.service';
+import { CarService } from '../../services/car.service';
 
 @Component({
   selector: 'app-home-page',
@@ -10,33 +11,24 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
 })
-export class HomePage {
-  constructor(public auth: AuthService) {}
+export class HomePage implements OnInit {
+  popularCars: Car[] = [];
 
-  popularCars: Car[] = [
-    {
-      id: '1',
-      brand: 'Toyota',
-      model: 'RAV4',
-      type: 'SUV',
-      pricePerDay: 65,
-      description: 'A reliable and spacious SUV perfect for family trips.',
-    },
-    {
-      id: '2',
-      brand: 'Tesla',
-      model: 'Model 3',
-      type: 'Electric',
-      pricePerDay: 90,
-      description: 'All-electric sedan with autopilot and impressive range.',
-    },
-    {
-      id: '3',
-      brand: 'BMW',
-      model: '3 Series',
-      type: 'Sedan',
-      pricePerDay: 95,
-      description: 'Sporty sedan with elegant design and cutting-edge tech.',
-    },
-  ];
+  constructor(
+    public auth: AuthService,
+    private carService: CarService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.carService.getCars().subscribe({
+      next: (cars) => {
+        this.popularCars = cars.slice(0, 3);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load popular cars:', err);
+      },
+    });
+  }
 }

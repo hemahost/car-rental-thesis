@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -35,7 +35,7 @@ export class AdminDashboardPage implements OnInit {
   bookingsError = '';
   bookingsFilter = '';
 
-  constructor(public auth: AuthService, private adminService: AdminService) {}
+  constructor(public auth: AuthService, private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
   get confirmedCount(): number {
     return this.bookings.filter(b => b.status === 'CONFIRMED').length;
@@ -53,10 +53,10 @@ export class AdminDashboardPage implements OnInit {
     this.carsError = '';
     this.adminService
       .getAdminCars()
-      .pipe(finalize(() => (this.carsLoading = false)))
+      .pipe(finalize(() => { this.carsLoading = false; this.cdr.detectChanges(); }))
       .subscribe({
-        next: (cars) => (this.cars = cars),
-        error: () => (this.carsError = 'Failed to load cars'),
+        next: (cars) => { this.cars = cars; this.cdr.detectChanges(); },
+        error: () => { this.carsError = 'Failed to load cars'; this.cdr.detectChanges(); },
       });
   }
 
@@ -135,10 +135,10 @@ export class AdminDashboardPage implements OnInit {
     this.bookingsError = '';
     this.adminService
       .getAdminBookings(this.bookingsFilter || undefined)
-      .pipe(finalize(() => (this.bookingsLoading = false)))
+      .pipe(finalize(() => { this.bookingsLoading = false; this.cdr.detectChanges(); }))
       .subscribe({
-        next: (bookings) => (this.bookings = bookings),
-        error: () => (this.bookingsError = 'Failed to load bookings'),
+        next: (bookings) => { this.bookings = bookings; this.cdr.detectChanges(); },
+        error: () => { this.bookingsError = 'Failed to load bookings'; this.cdr.detectChanges(); },
       });
   }
 

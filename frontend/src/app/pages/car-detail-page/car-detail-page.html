@@ -50,7 +50,14 @@
 
       <!-- Info -->
       <div class="detail__info">
-        <h1 class="detail__title">{{ car.brand }} {{ car.model }}</h1>
+        <div class="detail__title-row">
+          <h1 class="detail__title">{{ car.brand }} {{ car.model }}</h1>
+          @if (auth.isLoggedIn) {
+            <button class="detail__like-btn" [class.detail__like-btn--active]="isLiked" (click)="toggleLike()">
+              {{ isLiked ? '❤️' : '🤍' }}
+            </button>
+          }
+        </div>
         <span class="detail__type">{{ car.type }}</span>
 
         <div class="detail__price">${{ car.pricePerDay }} <span>/ day</span></div>

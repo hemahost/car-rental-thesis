@@ -19,11 +19,40 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    position: relative;
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+  }
+
+  &__like {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 2;
+
+    &:hover {
+      transform: scale(1.15);
+      background: #fff;
+    }
+
+    &--active {
+      animation: heartPop 0.3s ease;
     }
   }
 
@@ -96,4 +125,10 @@
       background: #3a0ca3;
     }
   }
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }

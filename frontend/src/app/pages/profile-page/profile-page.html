@@ -71,6 +71,17 @@
               (click)="switchSection('bookings')">
         <span class="sidebar__nav-icon">📋</span> My Bookings
       </button>
+      <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'favorites'"
+              (click)="switchSection('favorites')">
+        <span class="sidebar__nav-icon">❤️</span> Liked Cars
+        @if (favoritesCount > 0) {
+          <span class="sidebar__nav-badge">{{ favoritesCount }}</span>
+        }
+      </button>
+      <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'security'"
+              (click)="switchSection('security')">
+        <span class="sidebar__nav-icon">🔒</span> Change Password
+      </button>
       <button class="sidebar__nav-item sidebar__nav-item--danger" (click)="logout()">
         <span class="sidebar__nav-icon">🚪</span> Logout
       </button>
@@ -127,6 +138,13 @@
             <div class="stat-card__data">
               <span class="stat-card__value">${{ totalSpent | number:'1.0-0' }}</span>
               <span class="stat-card__label">Total Spent</span>
+            </div>
+          </div>
+          <div class="stat-card stat-card--pink" (click)="switchSection('favorites')" style="cursor: pointer;">
+            <div class="stat-card__icon">❤️</div>
+            <div class="stat-card__data">
+              <span class="stat-card__value">{{ favoritesCount }}</span>
+              <span class="stat-card__label">Liked Cars</span>
             </div>
           </div>
         </div>
@@ -329,6 +347,90 @@
             }
           </div>
         }
+      </section>
+    }
+
+    <!-- Favorites Section -->
+    @if (activeSection === 'favorites') {
+      <section class="section">
+        <h1 class="section__title">Liked Cars</h1>
+        <p class="section__subtitle">Cars you've saved to your favorites.</p>
+
+        @if (favoritesLoading) {
+          <div class="empty-state">
+            <p>Loading favorites...</p>
+          </div>
+        } @else if (favorites.length === 0) {
+          <div class="empty-state">
+            <span class="empty-state__icon">❤️</span>
+            <h3>No Liked Cars Yet</h3>
+            <p>Browse our collection and tap the heart to save your favorite cars!</p>
+            <a routerLink="/cars" class="btn btn--primary">Browse Cars</a>
+          </div>
+        } @else {
+          <div class="favorites-grid">
+            @for (fav of favorites; track fav.id) {
+              @if (fav.car) {
+                <div class="fav-card">
+                  <div class="fav-card__image">
+                    @if (fav.car.imageUrl) {
+                      <img [src]="fav.car.imageUrl" [alt]="fav.car.brand + ' ' + fav.car.model" />
+                    } @else {
+                      <div class="fav-card__placeholder">🚗</div>
+                    }
+                    <button class="fav-card__remove" (click)="removeFavorite(fav.carId)" title="Remove from favorites">
+                      ❤️
+                    </button>
+                  </div>
+                  <div class="fav-card__body">
+                    <h3 class="fav-card__title">{{ fav.car.brand }} {{ fav.car.model }}</h3>
+                    <span class="fav-card__type">{{ fav.car.type }}</span>
+                    <div class="fav-card__footer">
+                      <span class="fav-card__price">${{ fav.car.pricePerDay }}/day</span>
+                      <a class="fav-card__btn" [routerLink]="['/cars', fav.car.id]">View Details</a>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Security / Change Password Section -->
+    @if (activeSection === 'security') {
+      <section class="section">
+        <h1 class="section__title">Change Password</h1>
+        <p class="section__subtitle">Update your password to keep your account secure.</p>
+
+        <div class="info-card">
+          <h3 class="info-card__title">Set a New Password</h3>
+          <div class="form">
+            <div class="form__group">
+              <label class="form__label">Current Password *</label>
+              <input class="form__input" type="password" [(ngModel)]="currentPassword"
+                     placeholder="Enter your current password" autocomplete="current-password" />
+            </div>
+            <div class="form__row">
+              <div class="form__group">
+                <label class="form__label">New Password *</label>
+                <input class="form__input" type="password" [(ngModel)]="newPassword"
+                       placeholder="Min. 6 characters" autocomplete="new-password" />
+              </div>
+              <div class="form__group">
+                <label class="form__label">Confirm New Password *</label>
+                <input class="form__input" type="password" [(ngModel)]="confirmNewPassword"
+                       placeholder="Re-enter new password" autocomplete="new-password" />
+              </div>
+            </div>
+            <div class="form__actions">
+              <button class="btn btn--primary" (click)="onChangePassword()" [disabled]="changingPassword">
+                {{ changingPassword ? 'Updating...' : 'Update Password' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
     }
   </main>

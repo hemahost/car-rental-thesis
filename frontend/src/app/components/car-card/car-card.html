@@ -5,6 +5,11 @@
     } @else {
       <div class="card__placeholder">🚗</div>
     }
+    @if (auth.isLoggedIn) {
+      <button class="card__like" [class.card__like--active]="isLiked" (click)="toggleLike($event)" title="Like this car">
+        {{ isLiked ? '❤️' : '🤍' }}
+      </button>
+    }
   </div>
   <div class="card__body">
     <h3 class="card__title">{{ car.brand }} {{ car.model }}</h3>

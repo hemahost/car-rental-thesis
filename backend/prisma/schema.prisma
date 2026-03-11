@@ -8,28 +8,31 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           String     @id @default(cuid())
   name         String
-  email        String    @unique
+  email        String     @unique
   passwordHash String
-  phone        String?   @default("")
-  address      String?   @default("")
-  avatarUrl    String?   @default("")
-  role         String    @default("USER")
-  createdAt    DateTime  @default(now())
-  bookings     Booking[]
+  phone        String?    @default("")
+  address      String?    @default("")
+  avatarUrl    String?    @default("")
+  role         String     @default("USER")
+  createdAt    DateTime   @default(now())
+  bookings       Booking[]
+  favorites      Favorite[]
+  passwordResets PasswordReset[]
 }
 
 model Car {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   brand       String
   model       String
   type        String
   pricePerDay Float
   imageUrl    String?
   description String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
   bookings    Booking[]
+  favorites   Favorite[]
 }
 
 model Booking {
@@ -43,4 +46,25 @@ model Booking {
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
   car        Car      @relation(fields: [carId], references: [id])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  carId     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, carId])
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }

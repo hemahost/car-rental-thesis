@@ -194,6 +194,38 @@
     margin: 0 0 8px;
   }
 
+  &__title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  &__like-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+      transform: scale(1.15);
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    &--active {
+      animation: heartPop 0.3s ease;
+    }
+  }
+
   &__type {
     display: inline-block;
     font-size: 0.78rem;
@@ -508,6 +540,12 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
 /* ── Responsive ── */

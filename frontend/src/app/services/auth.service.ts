@@ -73,6 +73,24 @@ export class AuthService {
     );
   }
 
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/forgot-password`, { email }
+    ).pipe(map((res) => ({ message: res.message })));
+  }
+
+  resetPassword(email: string, token: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${this.apiUrl}/reset-password`, { email, token, newPassword }
+    ).pipe(map((res) => ({ message: res.message })));
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.put<{ success: boolean; message: string }>(
+      `${this.apiUrl}/change-password`, { currentPassword, newPassword }
+    ).pipe(map((res) => ({ message: res.message })));
+  }
+
   getAvatarFullUrl(avatarUrl?: string): string {
     if (!avatarUrl) return '';
     return `http://localhost:3000${avatarUrl}`;

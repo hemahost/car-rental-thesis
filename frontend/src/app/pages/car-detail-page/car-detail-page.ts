@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CarService } from '../../services/car.service';
 import { BookingService } from '../../services/booking.service';
+import { FavoriteService } from '../../services/favorite.service';
 import { Car } from '../../models/car.model';
 import { AuthService } from '../../services/auth.service';
 
@@ -35,6 +36,7 @@ export class CarDetailPage implements OnInit {
     private router: Router,
     private carService: CarService,
     private bookingService: BookingService,
+    public favoriteService: FavoriteService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -126,6 +128,17 @@ export class CarDetailPage implements OnInit {
           this.cdr.detectChanges();
         },
       });
+  }
+
+  get isLiked(): boolean {
+    return this.car ? this.favoriteService.isLiked(this.car.id) : false;
+  }
+
+  toggleLike(): void {
+    if (!this.car || !this.auth.isLoggedIn) return;
+    this.favoriteService.toggleFavorite(this.car.id).subscribe({
+      next: () => this.cdr.detectChanges(),
+    });
   }
 
   scrollToBooking(): void {

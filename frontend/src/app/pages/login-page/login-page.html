@@ -35,7 +35,7 @@
     <!-- Login Form -->
     <form
       class="auth-form"
-      *ngIf="activeTab === 'login'"
+      *ngIf="activeTab === 'login' && forgotMode === 'hidden'"
       (ngSubmit)="onLogin()"
     >
       <div class="form-group">
@@ -62,10 +62,89 @@
         />
       </div>
 
+      <div class="forgot-link">
+        <a (click)="showForgotPassword()">Forgot Password?</a>
+      </div>
+
       <button type="submit" class="submit-btn" [disabled]="loading">
         {{ loading ? 'Signing in...' : 'Sign In' }}
       </button>
     </form>
+
+    <!-- Forgot Password: Step 1 - Enter Email -->
+    <div class="auth-form" *ngIf="activeTab === 'login' && forgotMode === 'email'">
+      <h3 class="forgot-title">Reset Your Password</h3>
+      <p class="forgot-subtitle">Enter the email address associated with your account.</p>
+
+      <div class="form-group">
+        <label for="forgotEmail">Email</label>
+        <input
+          type="email"
+          id="forgotEmail"
+          [(ngModel)]="forgotEmail"
+          name="forgotEmail"
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+      </div>
+
+      <button type="button" class="submit-btn" [disabled]="loading" (click)="onForgotSubmitEmail()">
+        {{ loading ? 'Sending...' : 'Send Reset Code' }}
+      </button>
+      <button type="button" class="back-btn" (click)="cancelForgotPassword()">
+        ← Back to Login
+      </button>
+    </div>
+
+    <!-- Forgot Password: Step 2 - Enter Code & New Password -->
+    <div class="auth-form" *ngIf="activeTab === 'login' && forgotMode === 'code'">
+      <h3 class="forgot-title">Enter Reset Code</h3>
+      <p class="forgot-subtitle">We sent a 6-digit code to your email. Enter it below with your new password.</p>
+
+      <div class="form-group">
+        <label for="resetCode">Reset Code</label>
+        <input
+          type="text"
+          id="resetCode"
+          [(ngModel)]="resetCode"
+          name="resetCode"
+          placeholder="Enter 6-digit code"
+          maxlength="6"
+          autocomplete="one-time-code"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="newPassword">New Password</label>
+        <input
+          type="password"
+          id="newPassword"
+          [(ngModel)]="newPassword"
+          name="newPassword"
+          placeholder="Min. 6 characters"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmNewPassword">Confirm New Password</label>
+        <input
+          type="password"
+          id="confirmNewPassword"
+          [(ngModel)]="confirmNewPassword"
+          name="confirmNewPassword"
+          placeholder="Re-enter your password"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <button type="button" class="submit-btn" [disabled]="loading" (click)="onResetPassword()">
+        {{ loading ? 'Resetting...' : 'Reset Password' }}
+      </button>
+      <button type="button" class="back-btn" (click)="cancelForgotPassword()">
+        ← Back to Login
+      </button>
+    </div>
 
     <!-- Register Form -->
     <form

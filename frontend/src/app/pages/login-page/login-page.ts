@@ -24,6 +24,13 @@ export class LoginPage {
   registerPassword = '';
   registerConfirmPassword = '';
 
+  // Forgot password fields
+  forgotMode: 'hidden' | 'email' | 'code' = 'hidden';
+  forgotEmail = '';
+  resetCode = '';
+  newPassword = '';
+  confirmNewPassword = '';
+
   loading = false;
   errorMessage = '';
   successMessage = '';
@@ -38,6 +45,7 @@ export class LoginPage {
     this.activeTab = tab;
     this.errorMessage = '';
     this.successMessage = '';
+    this.forgotMode = 'hidden';
   }
 
   onLogin(): void {
@@ -110,5 +118,81 @@ export class LoginPage {
           this.cdr.markForCheck();
         },
       });
+  }
+
+  // ── Forgot Password ──
+  showForgotPassword(): void {
+    this.forgotMode = 'email';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.forgotEmail = this.loginEmail;
+  }
+
+  cancelForgotPassword(): void {
+    this.forgotMode = 'hidden';
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.resetCode = '';
+    this.newPassword = '';
+    this.confirmNewPassword = '';
+  }
+
+  onForgotSubmitEmail(): void {
+    this.errorMessage = '';
+    if (!this.forgotEmail) {
+      this.errorMessage = 'Please enter your email address.';
+      return;
+    }
+
+    this.loading = true;
+    this.authService.forgotPassword(this.forgotEmail).subscribe({
+      next: () => {
+        this.loading = false;
+        this.forgotMode = 'code';
+        this.successMessage = 'A reset code has been sent to your email.';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.error?.message || 'Failed to send reset code.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  onResetPassword(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.resetCode || !this.newPassword || !this.confirmNewPassword) {
+      this.errorMessage = 'Please fill in all fields.';
+      return;
+    }
+
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.errorMessage = 'Passwords do not match.';
+      return;
+    }
+
+    if (this.newPassword.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters.';
+      return;
+    }
+
+    this.loading = true;
+    this.authService.resetPassword(this.forgotEmail, this.resetCode, this.newPassword).subscribe({
+      next: () => {
+        this.loading = false;
+        this.successMessage = 'Password reset successfully! You can now log in.';
+        this.cancelForgotPassword();
+        this.successMessage = 'Password reset successfully! You can now log in.';
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.error?.message || 'Failed to reset password.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

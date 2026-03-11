@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { BookingService } from '../../services/booking.service';
+import { FavoriteService, Favorite } from '../../services/favorite.service';
 import { Booking } from '../../models/booking.model';
 import { User } from '../../models/user.model';
 
@@ -22,7 +23,7 @@ export class ProfilePage implements OnInit {
   bookingsLoading = false;
 
   // Active section
-  activeSection: 'overview' | 'personal' | 'bookings' | 'security' = 'overview';
+  activeSection: 'overview' | 'personal' | 'bookings' | 'favorites' | 'security' = 'overview';
 
   // Edit personal info
   editingPersonal = false;
@@ -48,12 +49,14 @@ export class ProfilePage implements OnInit {
   constructor(
     public auth: AuthService,
     private bookingService: BookingService,
+    private favoriteService: FavoriteService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.user = this.auth.currentUser;
     this.loadBookings();
+    this.loadFavorites();
   }
 
   get avatarUrl(): string {
@@ -115,7 +118,7 @@ export class ProfilePage implements OnInit {
   }
 
   // ── Section switching ──
-  switchSection(section: 'overview' | 'personal' | 'bookings' | 'security'): void {
+  switchSection(section: 'overview' | 'personal' | 'bookings' | 'favorites' | 'security'): void {
     this.activeSection = section;
     this.clearMessages();
   }
@@ -225,6 +228,38 @@ export class ProfilePage implements OnInit {
     });
   }
 
+  // ── Favorites ──
+  favorites: Favorite[] = [];
+  favoritesLoading = false;
+
+  loadFavorites(): void {
+    this.favoritesLoading = true;
+    this.favoriteService.getFavorites().subscribe({
+      next: (favorites) => {
+        this.favorites = favorites;
+        this.favoritesLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.favoritesLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  removeFavorite(carId: string): void {
+    this.favoriteService.toggleFavorite(carId).subscribe({
+      next: () => {
+        this.favorites = this.favorites.filter((f) => f.carId !== carId);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  get favoritesCount(): number {
+    return this.favorites.length;
+  }
+
   // ── Helpers ──
   showSuccess(msg: string): void {
     this.successMessage = msg;
@@ -256,6 +291,43 @@ export class ProfilePage implements OnInit {
       },
       error: () => {
         this.showError('Failed to cancel booking.');
+      },
+    });
+  }
+
+  // ── Change Password ──
+  onChangePassword(): void {
+    this.clearMessages();
+
+    if (!this.currentPassword || !this.newPassword || !this.confirmNewPassword) {
+      this.showError('Please fill in all password fields.');
+      return;
+    }
+
+    if (this.newPassword.length < 6) {
+      this.showError('New password must be at least 6 characters.');
+      return;
+    }
+
+    if (this.newPassword !== this.confirmNewPassword) {
+      this.showError('New passwords do not match.');
+      return;
+    }
+
+    this.changingPassword = true;
+    this.auth.changePassword(this.currentPassword, this.newPassword).subscribe({
+      next: () => {
+        this.changingPassword = false;
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmNewPassword = '';
+        this.showSuccess('Password changed successfully!');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.changingPassword = false;
+        this.showError(err.error?.error?.message || 'Failed to change password.');
+        this.cdr.markForCheck();
       },
     });
   }

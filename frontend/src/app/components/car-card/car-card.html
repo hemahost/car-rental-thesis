@@ -3,7 +3,7 @@
     @if (car.imageUrl) {
       <img [src]="car.imageUrl" [alt]="car.brand + ' ' + car.model" />
     } @else {
-      <div class="card__placeholder">🚗</div>
+      <div class="card__placeholder">No Image</div>
     }
     @if (auth.isLoggedIn) {
       <button class="card__like" [class.card__like--active]="isLiked" (click)="toggleLike($event)" title="Like this car">

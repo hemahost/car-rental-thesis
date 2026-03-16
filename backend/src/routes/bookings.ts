@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
+import { sendBookingConfirmationEmail } from "../utils/email";
 
 const router = Router();
 
@@ -45,11 +46,11 @@ router.get("/availability", async (req, res) => {
       return sendError(res, "Start date must be before end date", 400);
     }
 
-    // Find overlapping confirmed bookings
+    // Find overlapping pending/confirmed/active bookings
     const conflicting = await prisma.booking.findMany({
       where: {
         carId: carId as string,
-        status: "CONFIRMED",
+        status: { in: ["PENDING", "CONFIRMED", "ACTIVE"] },
         startDate: { lt: end },
         endDate: { gt: start },
       },
@@ -96,11 +97,11 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "Car not found", 404);
     }
 
-    // Check availability (no overlapping confirmed bookings)
+    // Check availability (no overlapping confirmed/active bookings)
     const conflicting = await prisma.booking.findMany({
       where: {
         carId,
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "ACTIVE", "PENDING"] },
         startDate: { lt: end },
         endDate: { gt: start },
       },
@@ -121,7 +122,7 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
         startDate: start,
         endDate: end,
         totalPrice,
-        status: "CONFIRMED",
+        status: "PENDING",
       },
       include: {
         car: {
@@ -129,6 +130,20 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
         },
       },
     });
+
+    // Send confirmation email (non-blocking)
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, name: true } });
+    if (user) {
+      sendBookingConfirmationEmail(
+        user.email,
+        user.name,
+        `${car.brand} ${car.model}`,
+        start.toLocaleDateString(),
+        end.toLocaleDateString(),
+        days,
+        totalPrice
+      ).catch((err) => console.error("Failed to send booking email:", err));
+    }
 
     return sendSuccess(res, { booking }, 201);
   } catch (err) {

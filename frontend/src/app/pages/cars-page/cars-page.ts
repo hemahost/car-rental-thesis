@@ -6,6 +6,7 @@ import { CarCard } from '../../components/car-card/car-card';
 import { CarService, CarFilters } from '../../services/car.service';
 import { Car } from '../../models/car.model';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-cars-page',
@@ -23,7 +24,7 @@ export class CarsPage implements OnInit {
 
   filters: CarFilters = {};
 
-  constructor(public auth: AuthService, private carService: CarService, private cdr: ChangeDetectorRef) {}
+  constructor(public auth: AuthService, public theme: ThemeService, private carService: CarService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadCars();

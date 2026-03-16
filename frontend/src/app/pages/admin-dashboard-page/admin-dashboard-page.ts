@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AdminService, AdminBooking } from '../../services/admin.service';
 import { Car } from '../../models/car.model';
+import { ThemeService } from '../../services/theme.service';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -35,10 +36,14 @@ export class AdminDashboardPage implements OnInit {
   bookingsError = '';
   bookingsFilter = '';
 
-  constructor(public auth: AuthService, private adminService: AdminService, private cdr: ChangeDetectorRef) {}
+  constructor(public auth: AuthService, public theme: ThemeService, private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
   get confirmedCount(): number {
     return this.bookings.filter(b => b.status === 'CONFIRMED').length;
+  }
+
+  get pendingCount(): number {
+    return this.bookings.filter(b => b.status === 'PENDING').length;
   }
 
   ngOnInit(): void {

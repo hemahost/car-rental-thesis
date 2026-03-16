@@ -1,8 +1,11 @@
 <div class="landing">
   <!-- Top Bar -->
   <header class="topbar">
-    <div class="topbar__logo">🚗 CarRental</div>
-    <a routerLink="/login" class="topbar__login">Login</a>
+    <a class="topbar__logo" routerLink="/home">CarRental</a>
+    <div class="topbar__actions">
+      <button class="theme-toggle" (click)="theme.toggleTheme()">{{ theme.isDarkMode ? '☀️' : '🌙' }}</button>
+      <a routerLink="/login" class="topbar__login">Login</a>
+    </div>
   </header>
 
   <!-- Hero -->

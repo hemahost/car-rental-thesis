@@ -9,7 +9,8 @@ export async function getAdminBookings(req: AuthRequest, res: Response) {
     const { status } = req.query;
 
     const where: any = {};
-    if (status && (status === "CONFIRMED" || status === "CANCELLED")) {
+    const validStatuses = ["PENDING", "CONFIRMED", "ACTIVE", "COMPLETED", "CANCELLED"];
+    if (status && validStatuses.includes(status as string)) {
       where.status = status as string;
     }
 
@@ -35,8 +36,9 @@ export async function updateBookingStatus(req: AuthRequest, res: Response) {
     const id = req.params.id as string;
     const { status } = req.body;
 
-    if (!status || !["CONFIRMED", "CANCELLED"].includes(status)) {
-      return sendError(res, "Status must be CONFIRMED or CANCELLED");
+    const validStatuses = ["PENDING", "CONFIRMED", "ACTIVE", "COMPLETED", "CANCELLED"];
+    if (!status || !validStatuses.includes(status)) {
+      return sendError(res, "Status must be one of: PENDING, CONFIRMED, ACTIVE, COMPLETED, CANCELLED");
     }
 
     const existing = await prisma.booking.findUnique({ where: { id } });

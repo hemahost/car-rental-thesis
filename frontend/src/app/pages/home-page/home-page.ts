@@ -4,6 +4,7 @@ import { CarCard } from '../../components/car-card/car-card';
 import { Car } from '../../models/car.model';
 import { AuthService } from '../../services/auth.service';
 import { CarService } from '../../services/car.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-home-page',
@@ -16,6 +17,7 @@ export class HomePage implements OnInit {
 
   constructor(
     public auth: AuthService,
+    public theme: ThemeService,
     private carService: CarService,
     private cdr: ChangeDetectorRef
   ) {}

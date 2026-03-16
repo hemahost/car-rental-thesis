@@ -7,6 +7,7 @@ import { BookingService } from '../../services/booking.service';
 import { FavoriteService, Favorite } from '../../services/favorite.service';
 import { Booking } from '../../models/booking.model';
 import { User } from '../../models/user.model';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -48,6 +49,7 @@ export class ProfilePage implements OnInit {
 
   constructor(
     public auth: AuthService,
+    public theme: ThemeService,
     private bookingService: BookingService,
     private favoriteService: FavoriteService,
     private cdr: ChangeDetectorRef

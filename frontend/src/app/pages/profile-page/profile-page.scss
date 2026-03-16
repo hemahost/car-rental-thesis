@@ -20,6 +20,7 @@
     font-weight: 700;
     letter-spacing: 0.5px;
     color: #1a1a2e;
+    text-decoration: none;
   }
 
   &__links {
@@ -595,9 +596,24 @@
   background: #eee;
   color: #888;
 
+  &--pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+  }
+
   &--confirmed {
     background: rgba(46, 204, 113, 0.12);
     color: #27ae60;
+  }
+
+  &--active {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+  }
+
+  &--completed {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0284c7;
   }
 
   &--cancelled {

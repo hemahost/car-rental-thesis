@@ -20,6 +20,7 @@ model User {
   bookings       Booking[]
   favorites      Favorite[]
   passwordResets PasswordReset[]
+  reviews        Review[]
 }
 
 model Car {
@@ -33,6 +34,7 @@ model Car {
   createdAt   DateTime   @default(now())
   bookings    Booking[]
   favorites   Favorite[]
+  reviews     Review[]
 }
 
 model Booking {
@@ -67,4 +69,17 @@ model PasswordReset {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  carId     String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, carId])
 }

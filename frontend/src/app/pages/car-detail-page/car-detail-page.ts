@@ -5,8 +5,11 @@ import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CarService } from '../../services/car.service';
 import { BookingService } from '../../services/booking.service';
 import { FavoriteService } from '../../services/favorite.service';
+import { ReviewService } from '../../services/review.service';
 import { Car } from '../../models/car.model';
+import { Review } from '../../models/review.model';
 import { AuthService } from '../../services/auth.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-car-detail-page',
@@ -30,13 +33,25 @@ export class CarDetailPage implements OnInit {
   bookingLoading = false;
   bookingSuccess = false;
 
+  // Reviews
+  reviews: Review[] = [];
+  avgRating = 0;
+  totalReviews = 0;
+  reviewRating = 0;
+  reviewComment = '';
+  reviewError = '';
+  reviewSuccess = '';
+  hoverRating = 0;
+
   constructor(
     public auth: AuthService,
+    public theme: ThemeService,
     private route: ActivatedRoute,
     private router: Router,
     private carService: CarService,
     private bookingService: BookingService,
     public favoriteService: FavoriteService,
+    private reviewService: ReviewService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -52,6 +67,7 @@ export class CarDetailPage implements OnInit {
       next: (car) => {
         this.car = car;
         this.loading = false;
+        this.loadReviews(id);
         this.cdr.markForCheck();
       },
       error: () => {
@@ -158,7 +174,7 @@ export class CarDetailPage implements OnInit {
         next: () => {
           this.bookingLoading = false;
           this.bookingSuccess = true;
-          this.bookingMessage = 'Booking confirmed! Redirecting to dashboard...';
+          this.bookingMessage = 'Booking submitted! Awaiting confirmation. Redirecting to dashboard...';
           this.cdr.detectChanges();
           setTimeout(() => this.router.navigate(['/profile']), 2500);
         },
@@ -169,5 +185,55 @@ export class CarDetailPage implements OnInit {
           this.cdr.detectChanges();
         },
       });
+  }
+
+  // ── Reviews ──
+  loadReviews(carId: string): void {
+    this.reviewService.getReviews(carId).subscribe({
+      next: (data) => {
+        this.reviews = data.reviews;
+        this.avgRating = data.avgRating;
+        this.totalReviews = data.totalReviews;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  setRating(star: number): void {
+    this.reviewRating = star;
+  }
+
+  submitReview(): void {
+    if (!this.car || !this.reviewRating || !this.reviewComment.trim()) return;
+    this.reviewError = '';
+    this.reviewSuccess = '';
+
+    this.reviewService
+      .submitReview(this.car.id, this.reviewRating, this.reviewComment)
+      .subscribe({
+        next: () => {
+          this.reviewSuccess = 'Review submitted successfully!';
+          this.reviewRating = 0;
+          this.reviewComment = '';
+          this.loadReviews(this.car!.id);
+        },
+        error: (err) => {
+          this.reviewError =
+            err.error?.error?.message || 'Failed to submit review.';
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  deleteReview(reviewId: string): void {
+    this.reviewService.deleteReview(reviewId).subscribe({
+      next: () => {
+        this.loadReviews(this.car!.id);
+      },
+    });
+  }
+
+  getStars(rating: number): number[] {
+    return [1, 2, 3, 4, 5].map((i) => (i <= Math.round(rating) ? 1 : 0));
   }
 }

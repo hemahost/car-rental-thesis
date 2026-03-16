@@ -1,13 +1,14 @@
 <!-- Admin Navbar -->
 <nav class="admin-nav">
   <div class="admin-nav__inner">
-    <span class="admin-nav__logo">👑 CarRental <span class="admin-nav__badge">ADMIN</span></span>
+    <a class="admin-nav__logo" routerLink="/home">CarRental <span class="admin-nav__badge">ADMIN</span></a>
     <ul class="admin-nav__links">
       <li><a routerLink="/home" class="admin-nav__link">Home</a></li>
       <li><a routerLink="/cars" class="admin-nav__link">Cars</a></li>
       <li><a routerLink="/about" class="admin-nav__link">About</a></li>
       <li><a routerLink="/admin" class="admin-nav__link admin-nav__link--active">⚙️ Dashboard</a></li>
       <li><a routerLink="/profile" class="admin-nav__link admin-nav__link--profile">My Profile</a></li>
+      <li><button class="theme-toggle" (click)="theme.toggleTheme()">{{ theme.isDarkMode ? '☀️' : '🌙' }}</button></li>
     </ul>
   </div>
 </nav>
@@ -34,6 +35,11 @@
         <span class="admin-hero__stat-icon">✅</span>
         <span class="admin-hero__stat-value">{{ confirmedCount }}</span>
         <span class="admin-hero__stat-label">Confirmed</span>
+      </div>
+      <div class="admin-hero__stat">
+        <span class="admin-hero__stat-icon">⏳</span>
+        <span class="admin-hero__stat-value">{{ pendingCount }}</span>
+        <span class="admin-hero__stat-label">Pending</span>
       </div>
     </div>
   </div>
@@ -167,7 +173,10 @@
         <h2>Bookings</h2>
         <select [(ngModel)]="bookingsFilter" (ngModelChange)="onFilterChange()" class="filter-select">
           <option value="">All</option>
+          <option value="PENDING">Pending</option>
           <option value="CONFIRMED">Confirmed</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
@@ -202,15 +211,26 @@
                   <td>{{ b.endDate | date:'mediumDate' }}</td>
                   <td>${{ b.totalPrice }}</td>
                   <td>
-                    <span class="badge" [class.badge--confirmed]="b.status === 'CONFIRMED'" [class.badge--cancelled]="b.status === 'CANCELLED'">
+                    <span class="badge"
+                      [class.badge--pending]="b.status === 'PENDING'"
+                      [class.badge--confirmed]="b.status === 'CONFIRMED'"
+                      [class.badge--active]="b.status === 'ACTIVE'"
+                      [class.badge--completed]="b.status === 'COMPLETED'"
+                      [class.badge--cancelled]="b.status === 'CANCELLED'">
                       {{ b.status }}
                     </span>
                   </td>
                   <td class="actions">
-                    @if (b.status !== 'CONFIRMED') {
+                    @if (b.status === 'PENDING') {
                       <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'CONFIRMED')">Confirm</button>
                     }
-                    @if (b.status !== 'CANCELLED') {
+                    @if (b.status === 'CONFIRMED') {
+                      <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'ACTIVE')">Activate</button>
+                    }
+                    @if (b.status === 'ACTIVE') {
+                      <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'COMPLETED')">Complete</button>
+                    }
+                    @if (b.status !== 'CANCELLED' && b.status !== 'COMPLETED') {
                       <button class="btn btn--small btn--danger" (click)="setBookingStatus(b, 'CANCELLED')">Cancel</button>
                     }
                   </td>

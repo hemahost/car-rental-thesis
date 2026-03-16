@@ -31,6 +31,7 @@
     font-weight: 800;
     letter-spacing: 0.5px;
     color: #f5f5f5;
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 4px;
@@ -507,10 +508,28 @@
   text-transform: uppercase;
   letter-spacing: 0.8px;
 
+  &--pending {
+    background: linear-gradient(135deg, #fff3cd, #ffeeba);
+    color: #856404;
+    box-shadow: 0 2px 8px rgba(133, 100, 4, 0.1);
+  }
+
   &--confirmed {
     background: linear-gradient(135deg, #d4edda, #b7e4c7);
     color: #155724;
     box-shadow: 0 2px 8px rgba(21, 87, 36, 0.1);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, #cce5ff, #b8daff);
+    color: #004085;
+    box-shadow: 0 2px 8px rgba(0, 64, 133, 0.1);
+  }
+
+  &--completed {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+    box-shadow: 0 2px 8px rgba(12, 84, 96, 0.1);
   }
 
   &--cancelled {

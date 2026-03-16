@@ -1,26 +1,27 @@
 <!-- Navbar -->
 <nav class="navbar" [class.navbar--admin]="auth.currentUser?.role === 'ADMIN'">
   <div class="navbar__inner">
-    <span class="navbar__logo">
+    <a class="navbar__logo" routerLink="/home">
       @if (auth.currentUser?.role === 'ADMIN') {
-        👑 CarRental <span class="navbar__badge">ADMIN</span>
+        CarRental <span class="navbar__badge">ADMIN</span>
       } @else {
-        🚗 CarRental
+        CarRental
       }
-    </span>
+    </a>
     <ul class="navbar__links">
       <li><a routerLink="/home" class="navbar__link">Home</a></li>
       <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
       <li><a routerLink="/about" class="navbar__link navbar__link--active">About</a></li>
       <li><a routerLink="/ai" class="navbar__link">AI Assistant</a></li>
       @if (auth.currentUser?.role === 'ADMIN') {
-        <li><a routerLink="/admin" class="navbar__link navbar__link--admin">⚙️ Dashboard</a></li>
+        <li><a routerLink="/admin" class="navbar__link navbar__link--admin">Dashboard</a></li>
       }
       @if (auth.isLoggedIn) {
         <li><a routerLink="/profile" class="navbar__link navbar__link--cta">My Profile</a></li>
       } @else {
         <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
       }
+      <li><button class="theme-toggle" (click)="theme.toggleTheme()">{{ theme.isDarkMode ? '☀️' : '🌙' }}</button></li>
     </ul>
   </div>
 </nav>

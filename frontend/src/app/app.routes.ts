@@ -9,6 +9,7 @@ import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { ProfilePage } from './pages/profile-page/profile-page';
 import { AdminDashboardPage } from './pages/admin-dashboard-page/admin-dashboard-page';
+import { AIAssistantPage } from './pages/ai-assistant-page/ai-assistant-page';
 
 export const routes: Routes = [
   { path: '', component: LandingPage },
@@ -17,6 +18,7 @@ export const routes: Routes = [
   { path: 'cars', component: CarsPage },
   { path: 'cars/:id', component: CarDetailPage },
   { path: 'about', component: AboutPage },
+  { path: 'ai', component: AIAssistantPage },
   { path: 'profile', component: ProfilePage, canActivate: [authGuard] },
   { path: 'dashboard', redirectTo: 'profile', pathMatch: 'full' },
   { path: 'admin', component: AdminDashboardPage, canActivate: [authGuard, adminGuard] },

@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.0",
     "nodemailer": "^8.0.2",
+    "openai": "^4.79.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

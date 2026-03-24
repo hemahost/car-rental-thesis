@@ -8,6 +8,7 @@ import bookingRoutes from "./routes/bookings";
 import favoriteRoutes from "./routes/favorites";
 import adminRoutes from "./routes/admin.routes";
 import reviewRoutes from "./routes/reviews";
+import chatbotRoutes from "./routes/chatbot.routes";
 import { setupSwagger } from "./docs/swagger";
 
 dotenv.config();
@@ -32,6 +33,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -21,6 +21,7 @@ model User {
   favorites      Favorite[]
   passwordResets PasswordReset[]
   reviews        Review[]
+  conversations  ChatConversation[]
 }
 
 model Car {
@@ -82,4 +83,15 @@ model Review {
   car       Car      @relation(fields: [carId], references: [id], onDelete: Cascade)
 
   @@unique([userId, carId])
+}
+
+model ChatConversation {
+  id               String   @id @default(cuid())
+  userId           String?
+  message          String
+  extractedFilters Json
+  recommendations  Json
+  aiResponse       String
+  createdAt        DateTime @default(now())
+  user             User?    @relation(fields: [userId], references: [id])
 }

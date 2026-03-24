@@ -1,0 +1,101 @@
+<nav class="navbar" [class.navbar--admin]="auth.currentUser?.role === 'ADMIN'">
+  <div class="navbar__inner">
+    <a class="navbar__logo" routerLink="/home">
+      @if (auth.currentUser?.role === 'ADMIN') {
+        CarRental <span class="navbar__badge">ADMIN</span>
+      } @else {
+        CarRental
+      }
+    </a>
+    <ul class="navbar__links">
+      <li><a routerLink="/home" class="navbar__link">Home</a></li>
+      <li><a routerLink="/cars" class="navbar__link">Cars</a></li>
+      <li><a routerLink="/about" class="navbar__link">About</a></li>
+      <li><a routerLink="/ai" class="navbar__link navbar__link--active">AI Assistant</a></li>
+      @if (auth.currentUser?.role === 'ADMIN') {
+        <li><a routerLink="/admin" class="navbar__link navbar__link--admin">Dashboard</a></li>
+      }
+      @if (auth.isLoggedIn) {
+        <li><a routerLink="/profile" class="navbar__link navbar__link--cta">My Profile</a></li>
+      } @else {
+        <li><a routerLink="/login" class="navbar__link navbar__link--cta">Login / Register</a></li>
+      }
+      <li><button class="theme-toggle" (click)="theme.toggleTheme()">{{ theme.isDarkMode ? '☀️' : '🌙' }}</button></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="assistant">
+  <div class="assistant__panel">
+    <h1 class="assistant__title">AI Rental Assistant</h1>
+    <p class="assistant__subtitle">
+      Describe your needs in plain language. Example: "I need an electric car under 90 dollars per day for 3 days".
+    </p>
+
+    <label class="assistant__label" for="message">Your request</label>
+    <textarea
+      id="message"
+      class="assistant__input"
+      [(ngModel)]="message"
+      placeholder="Tell the assistant what car you need..."
+      rows="5"
+    ></textarea>
+
+    <div class="assistant__actions">
+      <button class="assistant__btn assistant__btn--primary" (click)="submit()" [disabled]="loading">
+        {{ loading ? 'Finding cars...' : 'Get Recommendations' }}
+      </button>
+      <button class="assistant__btn assistant__btn--ghost" (click)="clear()" [disabled]="loading">Clear</button>
+    </div>
+
+    @if (error) {
+      <p class="assistant__error">{{ error }}</p>
+    }
+  </div>
+
+  <div class="assistant__result">
+    <h2 class="assistant__result-title">Assistant Response</h2>
+
+    @if (loading) {
+      <p class="assistant__loading">Analyzing your request and checking availability...</p>
+    } @else if (aiResponse) {
+      <div class="assistant__response-box">
+        <p>{{ aiResponse }}</p>
+      </div>
+
+      @if (filters) {
+        <div class="assistant__filters">
+          <h3>Extracted Filters</h3>
+          <p><strong>Type:</strong> {{ filters.carType || 'Any' }}</p>
+          <p><strong>Min Price:</strong> {{ filters.minPrice ?? 'Any' }}</p>
+          <p><strong>Max Price:</strong> {{ filters.maxPrice ?? 'Any' }}</p>
+          <p><strong>Duration (days):</strong> {{ filters.durationDays ?? 'Not specified' }}</p>
+          <p><strong>Features:</strong> {{ filters.features?.join(', ') || 'Not specified' }}</p>
+        </div>
+      }
+
+      <div class="assistant__cars">
+        <h3>Recommended Cars</h3>
+        @if (recommendations.length === 0) {
+          <p>No matching cars are currently available.</p>
+        } @else {
+          <div class="assistant__car-grid">
+            @for (car of recommendations; track car.id) {
+              <article class="assistant__car-card">
+                <h4>{{ car.brand }} {{ car.model }}</h4>
+                <p><strong>Type:</strong> {{ car.type }}</p>
+                <p><strong>Price:</strong> ${{ car.pricePerDay }} / day</p>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="assistant__placeholder">Your recommendations will appear here.</p>
+    }
+  </div>
+</section>
+
+<footer class="footer">
+  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+</footer>

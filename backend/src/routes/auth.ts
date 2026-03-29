@@ -4,7 +4,11 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import path from "path";
 import multer from "multer";
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
 import prisma from "../db/prisma";
+
+
 import { sendSuccess, sendError } from "../utils/response";
 import { sendResetCodeEmail } from "../utils/email";
 import { authenticate, AuthRequest } from "../middleware/auth";
@@ -77,17 +81,28 @@ router.post("/login", async (req, res: Response) => {
       return sendError(res, "Invalid email or password", 401);
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) {
+    const valid = await bcrypt.compare(password, user.passwordHash ?? "");
+    if (!valid || !user.passwordHash) {
       return sendError(res, "Invalid email or password", 401);
     }
 
     const secret = process.env.JWT_SECRET || "fallback-secret";
+
+    // If 2FA is enabled, issue a short-lived pending token instead of a full JWT
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const tempToken = jwt.sign(
+        { userId: user.id, twoFactorPending: true },
+        secret,
+        { expiresIn: "5m" }
+      );
+      return sendSuccess(res, { requires2FA: true, tempToken });
+    }
+
     const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: "1d" });
 
     return sendSuccess(res, {
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, address: user.address, avatarUrl: user.avatarUrl },
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, address: user.address, avatarUrl: user.avatarUrl, twoFactorEnabled: user.twoFactorEnabled },
     });
   } catch (err) {
     console.error(err);
@@ -100,7 +115,7 @@ router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, name: true, email: true, role: true, phone: true, address: true, avatarUrl: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, phone: true, address: true, avatarUrl: true, createdAt: true, twoFactorEnabled: true },
     });
 
     if (!user) {
@@ -295,6 +310,10 @@ router.put("/change-password", authenticate, async (req: AuthRequest, res: Respo
       return sendError(res, "User not found", 404);
     }
 
+    if (!user.passwordHash) {
+      return sendError(res, "This account uses social login. Password change is not available.", 400);
+    }
+
     const valid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!valid) {
       return sendError(res, "Current password is incorrect", 401);
@@ -311,6 +330,135 @@ router.put("/change-password", authenticate, async (req: AuthRequest, res: Respo
   } catch (err) {
     console.error(err);
     return sendError(res, "Failed to change password", 500);
+  }
+});
+
+// POST /api/auth/2fa/setup — generate secret and QR code (authenticated)
+router.post("/2fa/setup", authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return sendError(res, "User not found", 404);
+
+    const secret = speakeasy.generateSecret({
+      name: `CarRental (${user.email})`,
+      length: 20,
+    });
+
+    // Store the unconfirmed secret so /2fa/enable can verify it
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { twoFactorSecret: secret.base32, twoFactorEnabled: false },
+    });
+
+    const qrCodeDataUrl = await qrcode.toDataURL(secret.otpauth_url!);
+    return sendSuccess(res, { qrCode: qrCodeDataUrl, secret: secret.base32 });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Failed to setup 2FA", 500);
+  }
+});
+
+// POST /api/auth/2fa/enable — verify TOTP code and activate 2FA (authenticated)
+router.post("/2fa/enable", authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { code } = req.body;
+    if (!code) return sendError(res, "Verification code is required");
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return sendError(res, "User not found", 404);
+    if (!user.twoFactorSecret) return sendError(res, "Please initiate 2FA setup first");
+
+    const valid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token: code,
+      window: 1,
+    });
+    if (!valid) return sendError(res, "Invalid verification code. Make sure your authenticator app is synced.", 401);
+
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { twoFactorEnabled: true },
+    });
+
+    return sendSuccess(res, { message: "Two-factor authentication enabled successfully." });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Failed to enable 2FA", 500);
+  }
+});
+
+// POST /api/auth/2fa/disable — verify TOTP then disable 2FA (authenticated)
+router.post("/2fa/disable", authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { code } = req.body;
+    if (!code) return sendError(res, "Verification code is required");
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return sendError(res, "User not found", 404);
+    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+      return sendError(res, "Two-factor authentication is not enabled");
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token: code,
+      window: 1,
+    });
+    if (!valid) return sendError(res, "Invalid authenticator code", 401);
+
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { twoFactorEnabled: false, twoFactorSecret: null },
+    });
+
+    return sendSuccess(res, { message: "Two-factor authentication disabled." });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Failed to disable 2FA", 500);
+  }
+});
+
+// POST /api/auth/2fa/verify — exchange temp token + TOTP for a full JWT
+router.post("/2fa/verify", async (req, res: Response) => {
+  try {
+    const { tempToken, code } = req.body;
+    if (!tempToken || !code) return sendError(res, "Temp token and code are required");
+
+    const secret = process.env.JWT_SECRET || "fallback-secret";
+    let payload: any;
+    try {
+      payload = jwt.verify(tempToken, secret);
+    } catch {
+      return sendError(res, "Invalid or expired session. Please log in again.", 401);
+    }
+
+    if (!payload.twoFactorPending) {
+      return sendError(res, "Invalid token type", 401);
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      return sendError(res, "Invalid session", 401);
+    }
+
+    const valid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token: code,
+      window: 1,
+    });
+    if (!valid) return sendError(res, "Invalid authenticator code", 401);
+
+    const token = jwt.sign({ userId: user.id, role: user.role }, secret, { expiresIn: "1d" });
+    return sendSuccess(res, {
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, phone: user.phone, address: user.address, avatarUrl: user.avatarUrl, twoFactorEnabled: user.twoFactorEnabled },
+    });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Verification failed", 500);
   }
 });
 

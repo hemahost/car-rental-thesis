@@ -33,8 +33,63 @@
       Browse our wide selection of vehicles and book the one that fits
       your journey — fast, easy, and affordable.
     </p>
+
+    <form class="quick-search" (ngSubmit)="quickSearchCars()">
+      <div class="quick-search__grid">
+        <select
+          class="quick-search__input"
+          [(ngModel)]="quickSearch.type"
+          name="type"
+        >
+          <option value="">All types</option>
+          @for (type of carTypes; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+        <input
+          class="quick-search__input"
+          type="date"
+          [(ngModel)]="quickSearch.pickupDate"
+          name="pickupDate"
+        />
+        <input
+          class="quick-search__input"
+          type="date"
+          [(ngModel)]="quickSearch.returnDate"
+          name="returnDate"
+        />
+      </div>
+      <button class="quick-search__btn" type="submit">Find Cars</button>
+    </form>
   </div>
-  <div class="hero__graphic"></div>
+  <div class="hero__graphic">
+    <img src="hero-car.svg" alt="Blue rental car illustration" loading="lazy" />
+  </div>
+</section>
+
+<section class="flow">
+  <h2 class="flow__heading">How It Works</h2>
+  <div class="flow__grid">
+    @for (step of howItWorks; track step.title; let i = $index) {
+      <article class="flow__card">
+        <span class="flow__step">0{{ i + 1 }}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="categories">
+  <h2 class="categories__heading">Browse By Category</h2>
+  <div class="categories__grid">
+    @for (category of featuredCategories; track category.title) {
+      <button class="categories__card" (click)="browseCategory(category.type)">
+        <h3>{{ category.title }}</h3>
+        <p>{{ category.description }}</p>
+      </button>
+    }
+  </div>
 </section>
 
 <!-- Popular Cars -->
@@ -47,7 +102,26 @@
   </div>
 </section>
 
+<section class="faq">
+  <h2 class="faq__heading">Frequently Asked Questions</h2>
+  <div class="faq__list">
+    @for (item of faqs; track item.question) {
+      <article class="faq__item">
+        <h3>{{ item.question }}</h3>
+        <p>{{ item.answer }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2 class="final-cta__title">Ready To Hit The Road?</h2>
+  <p class="final-cta__subtitle">Find the ideal rental for your next trip in just a few clicks.</p>
+  <a routerLink="/cars" class="final-cta__btn">Browse All Cars</a>
+</section>
+
 <!-- Footer -->
 <footer class="footer">
-  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+  <p>&copy; 2026 Car Rental. All rights reserved.</p>
 </footer>
+

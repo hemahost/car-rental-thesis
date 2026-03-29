@@ -81,7 +81,7 @@
       </button>
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'security'"
               (click)="switchSection('security')">
-        <span class="sidebar__nav-icon">🔒</span> Change Password
+        <span class="sidebar__nav-icon">🔒</span> Security
       </button>
       <button class="sidebar__nav-item sidebar__nav-item--danger" (click)="logout()">
         <span class="sidebar__nav-icon">🚪</span> Logout
@@ -408,9 +408,10 @@
     <!-- Security / Change Password Section -->
     @if (activeSection === 'security') {
       <section class="section">
-        <h1 class="section__title">Change Password</h1>
-        <p class="section__subtitle">Update your password to keep your account secure.</p>
+        <h1 class="section__title">Security</h1>
+        <p class="section__subtitle">Manage your password and two-factor authentication.</p>
 
+        <!-- Change Password -->
         <div class="info-card">
           <h3 class="info-card__title">Set a New Password</h3>
           <div class="form">
@@ -438,6 +439,102 @@
             </div>
           </div>
         </div>
+
+        <!-- Two-Factor Authentication -->
+        <div class="info-card">
+          <div class="info-card__header">
+            <div>
+              <h3 class="info-card__title">Two-Factor Authentication (2FA)</h3>
+              <p class="info-card__desc">
+                @if (is2FAEnabled) {
+                  <span class="badge badge--green">✅ Enabled</span> — Your account is protected with an authenticator app.
+                } @else {
+                  <span class="badge badge--gray">⚪ Disabled</span> — Add an extra layer of security to your account.
+                }
+              </p>
+            </div>
+          </div>
+
+          <!-- 2FA disabled — show Enable button or Setup flow -->
+          @if (!is2FAEnabled && !twoFASetupMode) {
+            <div class="form__actions">
+              <button class="btn btn--primary" (click)="start2FASetup()" [disabled]="twoFALoading">
+                {{ twoFALoading ? 'Loading...' : '🔐 Enable 2FA' }}
+              </button>
+            </div>
+          }
+
+          <!-- 2FA Setup: scan QR code + verify -->
+          @if (twoFASetupMode) {
+            <div class="twofa-setup">
+              <p class="twofa-setup__instructions">
+                <strong>Step 1:</strong> Scan this QR code with your authenticator app
+                (Google Authenticator, Authy, or similar).
+              </p>
+              <div class="twofa-setup__qr">
+                <img [src]="twoFAQrCode" alt="2FA QR Code" />
+              </div>
+              <p class="twofa-setup__instructions">
+                <strong>Step 2:</strong> Enter the 6-digit code shown in your app to confirm setup.
+              </p>
+              <div class="form__group">
+                <label class="form__label">Verification Code *</label>
+                <input class="form__input twofa-setup__code-input"
+                       type="text"
+                       [(ngModel)]="twoFAEnableCode"
+                       name="twoFAEnableCode"
+                       placeholder="Enter 6-digit code"
+                       maxlength="6"
+                       inputmode="numeric"
+                       autocomplete="one-time-code" />
+              </div>
+              <div class="form__actions">
+                <button class="btn btn--primary" (click)="confirmEnable2FA()" [disabled]="twoFALoading">
+                  {{ twoFALoading ? 'Enabling...' : 'Confirm & Enable' }}
+                </button>
+                <button class="btn btn--secondary" (click)="cancelSetup2FA()" [disabled]="twoFALoading">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- 2FA enabled — show Disable section -->
+          @if (is2FAEnabled && !twoFASetupMode) {
+            @if (!twoFADisableMode) {
+              <div class="form__actions">
+                <button class="btn btn--danger" (click)="twoFADisableMode = true">
+                  🔓 Disable 2FA
+                </button>
+              </div>
+            } @else {
+              <div class="twofa-setup">
+                <p class="twofa-setup__instructions">
+                  Enter the 6-digit code from your authenticator app to confirm disabling 2FA.
+                </p>
+                <div class="form__group">
+                  <label class="form__label">Authenticator Code *</label>
+                  <input class="form__input twofa-setup__code-input"
+                         type="text"
+                         [(ngModel)]="twoFADisableCode"
+                         name="twoFADisableCode"
+                         placeholder="Enter 6-digit code"
+                         maxlength="6"
+                         inputmode="numeric"
+                         autocomplete="one-time-code" />
+                </div>
+                <div class="form__actions">
+                  <button class="btn btn--danger" (click)="confirmDisable2FA()" [disabled]="twoFALoading">
+                    {{ twoFALoading ? 'Disabling...' : 'Confirm Disable' }}
+                  </button>
+                  <button class="btn btn--secondary" (click)="twoFADisableMode = false; twoFADisableCode = ''" [disabled]="twoFALoading">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
       </section>
     }
   </main>
@@ -445,5 +542,6 @@
 
 <!-- Footer -->
 <footer class="footer">
-  <p>&copy; 2023 Car Rental. All rights reserved.</p>
+  <p>&copy; 2026 Car Rental. All rights reserved.</p>
 </footer>
+

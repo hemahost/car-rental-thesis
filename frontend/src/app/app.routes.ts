@@ -10,11 +10,13 @@ import { adminGuard } from './guards/admin.guard';
 import { ProfilePage } from './pages/profile-page/profile-page';
 import { AdminDashboardPage } from './pages/admin-dashboard-page/admin-dashboard-page';
 import { AIAssistantPage } from './pages/ai-assistant-page/ai-assistant-page';
+import { OAuthCallbackPage } from './pages/oauth-callback-page/oauth-callback-page';
 
 export const routes: Routes = [
   { path: '', component: LandingPage },
   { path: 'home', component: HomePage },
   { path: 'login', component: LoginPage },
+  { path: 'oauth-callback', component: OAuthCallbackPage },
   { path: 'cars', component: CarsPage },
   { path: 'cars/:id', component: CarDetailPage },
   { path: 'about', component: AboutPage },

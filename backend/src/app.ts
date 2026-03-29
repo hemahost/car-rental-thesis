@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import passport from "passport";
 import authRoutes from "./routes/auth";
 import carRoutes from "./routes/cars";
 import bookingRoutes from "./routes/bookings";
@@ -9,6 +10,7 @@ import favoriteRoutes from "./routes/favorites";
 import adminRoutes from "./routes/admin.routes";
 import reviewRoutes from "./routes/reviews";
 import chatbotRoutes from "./routes/chatbot.routes";
+import oauthRoutes from "./routes/oauth.routes";
 import { setupSwagger } from "./docs/swagger";
 
 dotenv.config();
@@ -17,7 +19,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:4200" }));
+app.use(cors({
+  origin: ["http://localhost:4200"],
+  credentials: true,
+}));
+app.use(passport.initialize());
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
@@ -34,6 +40,7 @@ app.use("/api/favorites", favoriteRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/oauth", oauthRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

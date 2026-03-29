@@ -794,3 +794,92 @@
     padding: 20px;
   }
 }
+
+/* Restyle v2 */
+.detail-page {
+  padding-top: 42px;
+}
+
+.detail {
+  gap: 36px;
+
+  &__image {
+    border-radius: 22px;
+    border: 1px solid var(--border-light);
+    background: linear-gradient(145deg, rgba(59, 130, 246, 0.14), rgba(99, 102, 241, 0.12));
+    box-shadow: 0 28px 45px -34px var(--shadow-md);
+  }
+
+  &__title {
+    color: var(--text-primary);
+    font-family: 'Outfit', 'Manrope', sans-serif;
+  }
+
+  &__type {
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  &__price {
+    color: var(--text-primary);
+
+    span {
+      color: var(--text-muted);
+    }
+  }
+
+  &__description {
+    color: var(--text-secondary);
+  }
+
+  &__spec {
+    background: var(--bg-input);
+    border: 1px solid var(--border-light);
+  }
+
+  &__spec-value {
+    color: var(--text-primary);
+  }
+
+  &__book-btn {
+    background: var(--accent);
+    border-radius: 12px;
+
+    &:hover {
+      background: var(--accent-hover);
+    }
+  }
+}
+
+.back-link {
+  color: var(--accent);
+
+  &:hover {
+    color: var(--accent-hover);
+  }
+}
+
+.review-form,
+.review-card,
+.booking-section {
+  background: var(--bg-card);
+  border-color: var(--border-light);
+  box-shadow: 0 28px 40px -34px var(--shadow-md);
+}
+
+.review-form__textarea,
+.booking-form__field input[type='date'] {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.review-form__submit,
+.booking-section__login-btn,
+.booking-form__check-btn {
+  background: var(--accent);
+
+  &:hover {
+    background: var(--accent-hover);
+  }
+}

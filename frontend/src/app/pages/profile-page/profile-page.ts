@@ -40,6 +40,15 @@ export class ProfilePage implements OnInit {
   confirmNewPassword = '';
   changingPassword = false;
 
+  // 2FA
+  twoFASetupMode = false;
+  twoFAQrCode = '';
+  twoFASecret = '';
+  twoFAEnableCode = '';
+  twoFADisableCode = '';
+  twoFADisableMode = false;
+  twoFALoading = false;
+
   // Avatar
   uploadingAvatar = false;
 
@@ -56,7 +65,10 @@ export class ProfilePage implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.user = this.auth.currentUser;
+    this.auth.refreshUser();
+    this.auth.currentUser$.subscribe(u => {
+      if (u) { this.user = u; this.cdr.markForCheck(); }
+    });
     this.loadBookings();
     this.loadFavorites();
   }
@@ -336,5 +348,87 @@ export class ProfilePage implements OnInit {
 
   logout(): void {
     this.auth.logout();
+  }
+
+  // ── 2FA ──
+  get is2FAEnabled(): boolean {
+    return !!(this.user?.twoFactorEnabled);
+  }
+
+  start2FASetup(): void {
+    this.twoFALoading = true;
+    this.clearMessages();
+    this.auth.setup2FA().subscribe({
+      next: (res) => {
+        this.twoFAQrCode = res.qrCode;
+        this.twoFASecret = res.secret;
+        this.twoFASetupMode = true;
+        this.twoFALoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.twoFALoading = false;
+        this.showError(err.error?.error?.message || 'Failed to start 2FA setup.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  confirmEnable2FA(): void {
+    if (!this.twoFAEnableCode) {
+      this.showError('Please enter the 6-digit code from your authenticator app.');
+      return;
+    }
+    this.twoFALoading = true;
+    this.clearMessages();
+    this.auth.enable2FA(this.twoFAEnableCode).subscribe({
+      next: () => {
+        this.twoFALoading = false;
+        this.twoFASetupMode = false;
+        this.twoFAQrCode = '';
+        this.twoFASecret = '';
+        this.twoFAEnableCode = '';
+        if (this.user) this.user = { ...this.user, twoFactorEnabled: true };
+        this.showSuccess('Two-factor authentication enabled!');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.twoFALoading = false;
+        this.showError(err.error?.error?.message || 'Invalid code. Please try again.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  cancelSetup2FA(): void {
+    this.twoFASetupMode = false;
+    this.twoFAQrCode = '';
+    this.twoFASecret = '';
+    this.twoFAEnableCode = '';
+    this.clearMessages();
+  }
+
+  confirmDisable2FA(): void {
+    if (!this.twoFADisableCode) {
+      this.showError('Please enter the 6-digit code to confirm disabling 2FA.');
+      return;
+    }
+    this.twoFALoading = true;
+    this.clearMessages();
+    this.auth.disable2FA(this.twoFADisableCode).subscribe({
+      next: () => {
+        this.twoFALoading = false;
+        this.twoFADisableMode = false;
+        this.twoFADisableCode = '';
+        if (this.user) this.user = { ...this.user, twoFactorEnabled: false };
+        this.showSuccess('Two-factor authentication disabled.');
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.twoFALoading = false;
+        this.showError(err.error?.error?.message || 'Invalid code. Please try again.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

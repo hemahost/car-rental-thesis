@@ -2,9 +2,12 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Manrope', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background:
+    radial-gradient(700px 420px at 85% -10%, rgba(59, 130, 246, 0.2), transparent 60%),
+    radial-gradient(580px 360px at 10% 90%, rgba(37, 99, 235, 0.14), transparent 65%),
+    var(--bg-secondary);
 }
 
 /* ── Top Bar ── */
@@ -14,11 +17,13 @@
   align-items: center;
   padding: 16px 32px;
   background: var(--navbar-bg);
-  box-shadow: 0 2px 8px var(--shadow-sm);
+  box-shadow: 0 10px 24px -18px var(--shadow-md);
+  border-bottom: 1px solid var(--border-light);
 
   &__logo {
-    font-size: 1.4rem;
-    font-weight: 700;
+    font-family: 'Outfit', 'Manrope', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
     letter-spacing: 0.5px;
     color: var(--text-primary);
     text-decoration: none;
@@ -51,22 +56,22 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 48px 24px;
-  background: var(--bg-secondary);
+  padding: 64px 24px;
 
   &__title {
-    font-size: 2.6rem;
+    font-size: clamp(2.1rem, 4vw, 3.2rem);
     font-weight: 800;
     margin: 0 0 16px;
-    line-height: 1.2;
-    max-width: 680px;
+    line-height: 1.1;
+    max-width: 760px;
     color: var(--text-primary);
   }
 
   &__subtitle {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: var(--text-secondary);
-    margin: 0 0 40px;
+    margin: 0 0 34px;
+    max-width: 620px;
   }
 
   &__actions {
@@ -81,32 +86,35 @@
 .btn {
   display: inline-block;
   padding: 14px 36px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.22s;
 
   &--primary {
-    background: #4361ee;
+    background: var(--accent);
     color: #fff;
-    border: 2px solid #4361ee;
+    border: 2px solid var(--accent);
+    box-shadow: 0 16px 24px -20px rgba(29, 78, 216, 0.65);
 
     &:hover {
-      background: #3a0ca3;
-      border-color: #3a0ca3;
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      transform: translateY(-2px);
     }
   }
 
   &--outline {
     background: transparent;
-    color: #4361ee;
-    border: 2px solid #4361ee;
+    color: var(--accent);
+    border: 2px solid var(--accent);
 
     &:hover {
-      background: #4361ee;
+      background: var(--accent);
       color: #fff;
+      transform: translateY(-2px);
     }
   }
 }

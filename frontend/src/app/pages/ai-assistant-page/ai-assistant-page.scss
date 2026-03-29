@@ -1,7 +1,8 @@
 /* Navbar style is aligned with existing pages */
 .navbar {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: var(--navbar-bg);
+  box-shadow: 0 10px 24px -18px var(--shadow-md);
+  border-bottom: 1px solid var(--border-light);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -16,10 +17,11 @@
   }
 
   &__logo {
-    font-size: 1.35rem;
-    font-weight: 700;
+    font-size: 1.45rem;
+    font-weight: 800;
+    font-family: 'Outfit', 'Manrope', sans-serif;
     letter-spacing: 0.5px;
-    color: #1a1a2e;
+    color: var(--text-primary);
     text-decoration: none;
   }
 
@@ -135,22 +137,22 @@
 
   &__panel,
   &__result {
-    background: #fff;
-    border: 1px solid #e6e9f2;
-    border-radius: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
     padding: 22px;
-    box-shadow: 0 10px 24px rgba(20, 29, 66, 0.05);
+    box-shadow: 0 24px 38px -32px var(--shadow-md);
   }
 
   &__title {
     margin: 0 0 10px;
     font-size: 1.6rem;
-    color: #1a1a2e;
+    color: var(--text-primary);
   }
 
   &__subtitle {
     margin: 0 0 16px;
-    color: #5a6378;
+    color: var(--text-secondary);
     line-height: 1.5;
   }
 
@@ -159,13 +161,13 @@
     font-size: 0.9rem;
     font-weight: 600;
     margin-bottom: 8px;
-    color: #29314d;
+    color: var(--text-primary);
   }
 
   &__input {
     width: 100%;
     resize: vertical;
-    border: 1px solid #ccd3e3;
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 12px;
     font-size: 0.95rem;
@@ -173,8 +175,8 @@
     outline: none;
 
     &:focus {
-      border-color: #4361ee;
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg);
     }
   }
 
@@ -197,36 +199,36 @@
     }
 
     &--primary {
-      background: #4361ee;
+      background: var(--accent);
       color: #fff;
     }
 
     &--ghost {
-      background: #eef2ff;
-      color: #3044a0;
+      background: var(--bg-hover);
+      color: var(--text-primary);
     }
   }
 
   &__error {
     margin-top: 12px;
-    color: #d7263d;
+    color: var(--danger);
     font-weight: 500;
   }
 
   &__result-title {
     margin: 0 0 12px;
-    color: #1a1a2e;
+    color: var(--text-primary);
   }
 
   &__loading,
   &__placeholder {
-    color: #5f6780;
+    color: var(--text-secondary);
     margin: 8px 0;
   }
 
   &__response-box {
-    border-left: 4px solid #4361ee;
-    background: #f7f9ff;
+    border-left: 4px solid var(--accent);
+    background: color-mix(in srgb, var(--accent-bg) 45%, transparent);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 16px;
@@ -234,13 +236,13 @@
     p {
       margin: 0;
       line-height: 1.55;
-      color: #212941;
+      color: var(--text-primary);
     }
   }
 
   &__filters {
-    background: #fafbff;
-    border: 1px solid #e4e8f5;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 16px;
@@ -248,18 +250,18 @@
     h3 {
       margin: 0 0 8px;
       font-size: 1rem;
-      color: #1b2441;
+      color: var(--text-primary);
     }
 
     p {
       margin: 4px 0;
-      color: #3b4463;
+      color: var(--text-secondary);
     }
   }
 
   &__cars h3 {
     margin: 0 0 10px;
-    color: #1b2441;
+    color: var(--text-primary);
   }
 
   &__car-grid {
@@ -269,19 +271,19 @@
   }
 
   &__car-card {
-    border: 1px solid #e3e8f5;
-    background: #fff;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
     border-radius: 10px;
     padding: 12px;
 
     h4 {
       margin: 0 0 8px;
-      color: #1a1a2e;
+      color: var(--text-primary);
     }
 
     p {
       margin: 4px 0;
-      color: #495373;
+      color: var(--text-secondary);
       font-size: 0.92rem;
     }
   }

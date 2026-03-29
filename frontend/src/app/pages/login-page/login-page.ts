@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -11,8 +11,12 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login-page.html',
   styleUrls: ['./login-page.scss'],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   activeTab: 'login' | 'register' = 'login';
+
+  // OAuth providers availability
+  oauthGoogle = false;
+  oauthGithub = false;
 
   // Login fields
   loginEmail = '';
@@ -31,6 +35,11 @@ export class LoginPage {
   newPassword = '';
   confirmNewPassword = '';
 
+  // 2FA fields
+  twoFactorMode = false;
+  twoFactorToken = '';
+  totpCode = '';
+
   loading = false;
   errorMessage = '';
   successMessage = '';
@@ -41,11 +50,25 @@ export class LoginPage {
     private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+    this.authService.getOAuthProviders().subscribe({
+      next: (p) => {
+        this.oauthGoogle = p.google;
+        this.oauthGithub = p.github;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   switchTab(tab: 'login' | 'register'): void {
     this.activeTab = tab;
     this.errorMessage = '';
     this.successMessage = '';
     this.forgotMode = 'hidden';
+  }
+
+  loginWithOAuth(provider: 'google' | 'github'): void {
+    window.location.href = `http://localhost:3000/api/oauth/${provider}`;
   }
 
   onLogin(): void {
@@ -59,10 +82,16 @@ export class LoginPage {
 
     this.loading = true;
     this.authService.login(this.loginEmail, this.loginPassword).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading = false;
-        this.router.navigate(['/home']);
-        this.cdr.markForCheck();
+        if (res.requires2FA && res.tempToken) {
+          this.twoFactorToken = res.tempToken;
+          this.twoFactorMode = true;
+          this.cdr.markForCheck();
+        } else {
+          this.router.navigate(['/home']);
+          this.cdr.markForCheck();
+        }
       },
       error: (err) => {
         this.loading = false;
@@ -135,6 +164,35 @@ export class LoginPage {
     this.resetCode = '';
     this.newPassword = '';
     this.confirmNewPassword = '';
+  }
+
+  // ── 2FA ──
+  onVerify2FA(): void {
+    this.errorMessage = '';
+    if (!this.totpCode) {
+      this.errorMessage = 'Please enter the 6-digit code from your authenticator app.';
+      return;
+    }
+    this.loading = true;
+    this.authService.verify2FA(this.twoFactorToken, this.totpCode).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/home']);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.error?.message || 'Invalid code. Please try again.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  cancelTwoFactor(): void {
+    this.twoFactorMode = false;
+    this.twoFactorToken = '';
+    this.totpCode = '';
+    this.errorMessage = '';
   }
 
   onForgotSubmitEmail(): void {

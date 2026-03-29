@@ -898,6 +898,94 @@
   }
 
   &__btn {
+
+/* Restyle v2 */
+.profile-layout {
+  gap: 24px;
+  padding-top: 40px;
+}
+
+.sidebar__avatar-card,
+.sidebar__nav,
+.info-card,
+.stat-card,
+.bookings-table,
+.empty-state,
+.fav-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 28px 40px -34px var(--shadow-md);
+}
+
+.sidebar__name,
+.section__title,
+.info-card__title,
+.stat-card__value,
+.bookings-table__car,
+.fav-card__title,
+.fav-card__price {
+  color: var(--text-primary);
+}
+
+.sidebar__email,
+.section__subtitle,
+.stat-card__label,
+.bookings-table__dates,
+.info-card__label,
+.form__label,
+.fav-card__footer {
+  color: var(--text-secondary);
+}
+
+.sidebar__role,
+.info-card__value--badge,
+.fav-card__type {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.avatar {
+  background: linear-gradient(145deg, var(--accent), #2563eb);
+}
+
+.sidebar__btn--upload,
+.btn--primary,
+.fav-card__btn,
+.info-card__link {
+  background: var(--accent);
+  color: #fff;
+
+  &:hover {
+    background: var(--accent-hover);
+  }
+}
+
+.sidebar__nav-item--active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.form__input {
+  background: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+}
+
+.booking-status--pending {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1e40af;
+}
+
+.booking-status--active {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+}
     background: #4361ee;
     color: #fff;
     border: none;
@@ -967,4 +1055,70 @@
       gap: 8px;
     }
   }
+}
+
+/* ── 2FA ── */
+.info-card__desc {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 4px 0 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-right: 4px;
+
+  &--green {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &--gray {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+}
+
+.twofa-setup {
+  margin-top: 16px;
+
+  &__instructions {
+    font-size: 0.92rem;
+    color: #444;
+    margin: 0 0 12px;
+    line-height: 1.5;
+  }
+
+  &__qr {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+
+    img {
+      width: 180px;
+      height: 180px;
+      border-radius: 10px;
+      border: 3px solid #e5e7eb;
+    }
+  }
+
+  &__code-input {
+    max-width: 200px;
+    letter-spacing: 4px;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+}
+
+/* Dark theme 2FA */
+:host-context(.dark-theme) {
+  .badge--green { background: #064e3b; color: #6ee7b7; }
+  .badge--gray  { background: #374151; color: #9ca3af; }
+  .info-card__desc { color: var(--text-secondary); }
+  .twofa-setup__instructions { color: var(--text-secondary); }
+  .twofa-setup__qr img { border-color: var(--border-light); }
 }

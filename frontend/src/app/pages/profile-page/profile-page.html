@@ -34,7 +34,7 @@
           <span class="avatar__initials">{{ userInitials }}</span>
         }
         <div class="avatar__overlay">
-          <span class="avatar__overlay-icon">📷</span>
+          <span class="avatar__overlay-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
         </div>
         @if (uploadingAvatar) {
           <div class="avatar__spinner"></div>
@@ -62,29 +62,29 @@
     <nav class="sidebar__nav">
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'overview'"
               (click)="switchSection('overview')">
-        <span class="sidebar__nav-icon">📊</span> Overview
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span> Overview
       </button>
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'personal'"
               (click)="switchSection('personal')">
-        <span class="sidebar__nav-icon">👤</span> Personal Info
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Personal Info
       </button>
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'bookings'"
               (click)="switchSection('bookings')">
-        <span class="sidebar__nav-icon">📋</span> My Bookings
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> My Bookings
       </button>
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'favorites'"
               (click)="switchSection('favorites')">
-        <span class="sidebar__nav-icon">❤️</span> Liked Cars
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span> Liked Cars
         @if (favoritesCount > 0) {
           <span class="sidebar__nav-badge">{{ favoritesCount }}</span>
         }
       </button>
       <button class="sidebar__nav-item" [class.sidebar__nav-item--active]="activeSection === 'security'"
               (click)="switchSection('security')">
-        <span class="sidebar__nav-icon">🔒</span> Security
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Security
       </button>
       <button class="sidebar__nav-item sidebar__nav-item--danger" (click)="logout()">
-        <span class="sidebar__nav-icon">🚪</span> Logout
+        <span class="sidebar__nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Logout
       </button>
     </nav>
   </aside>
@@ -94,13 +94,13 @@
     <!-- Alerts -->
     @if (successMessage) {
       <div class="alert alert--success">
-        <span class="alert__icon">✅</span>
+        <span class="alert__icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
         <span>{{ successMessage }}</span>
       </div>
     }
     @if (errorMessage) {
       <div class="alert alert--error">
-        <span class="alert__icon">❌</span>
+        <span class="alert__icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
         <span>{{ errorMessage }}</span>
       </div>
     }
@@ -114,35 +114,35 @@
         <!-- Stats Grid -->
         <div class="stats-grid">
           <div class="stat-card stat-card--blue">
-            <div class="stat-card__icon">🚗</div>
+            <div class="stat-card__icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></div>
             <div class="stat-card__data">
               <span class="stat-card__value">{{ totalBookings }}</span>
               <span class="stat-card__label">Total Bookings</span>
             </div>
           </div>
           <div class="stat-card stat-card--green">
-            <div class="stat-card__icon">✅</div>
+            <div class="stat-card__icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
             <div class="stat-card__data">
               <span class="stat-card__value">{{ activeBookings }}</span>
               <span class="stat-card__label">Active</span>
             </div>
           </div>
           <div class="stat-card stat-card--red">
-            <div class="stat-card__icon">❌</div>
+            <div class="stat-card__icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
             <div class="stat-card__data">
               <span class="stat-card__value">{{ cancelledBookings }}</span>
               <span class="stat-card__label">Cancelled</span>
             </div>
           </div>
           <div class="stat-card stat-card--purple">
-            <div class="stat-card__icon">💰</div>
+            <div class="stat-card__icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
             <div class="stat-card__data">
               <span class="stat-card__value">${{ totalSpent | number:'1.0-0' }}</span>
               <span class="stat-card__label">Total Spent</span>
             </div>
           </div>
           <div class="stat-card stat-card--pink" (click)="switchSection('favorites')" style="cursor: pointer;">
-            <div class="stat-card__icon">❤️</div>
+            <div class="stat-card__icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
             <div class="stat-card__data">
               <span class="stat-card__value">{{ favoritesCount }}</span>
               <span class="stat-card__label">Liked Cars</span>
@@ -227,7 +227,7 @@
             <p class="section__subtitle">Manage your personal details and contact information.</p>
           </div>
           @if (!editingPersonal) {
-            <button class="btn btn--primary" (click)="startEditingPersonal()">✏️ Edit</button>
+            <button class="btn btn--primary" (click)="startEditingPersonal()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:middle"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
           }
         </div>
 

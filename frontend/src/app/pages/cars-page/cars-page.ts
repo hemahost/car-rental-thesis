@@ -21,6 +21,9 @@ export class CarsPage implements OnInit {
 
   brands = ['Toyota', 'BMW', 'Audi', 'Tesla', 'Mercedes', 'Volkswagen', 'Honda', 'Ford', 'Porsche'];
   types = ['SUV', 'Sedan', 'Hatchback', 'Coupe', 'Electric'];
+  transmissions = ['Manual', 'Automatic'];
+  fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid'];
+  seatOptions = [2, 4, 5, 7, 8];
 
   filters: CarFilters = {};
   searchTerm = '';

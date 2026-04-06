@@ -9,6 +9,9 @@ export interface CarFilters {
   type?: string;
   minPrice?: number;
   maxPrice?: number;
+  transmission?: string;
+  fuelType?: string;
+  seats?: number;
 }
 
 interface CarsResponse {
@@ -34,6 +37,9 @@ export class CarService {
     if (filters?.type) params = params.set('type', filters.type);
     if (filters?.minPrice != null) params = params.set('minPrice', filters.minPrice.toString());
     if (filters?.maxPrice != null) params = params.set('maxPrice', filters.maxPrice.toString());
+    if (filters?.transmission) params = params.set('transmission', filters.transmission);
+    if (filters?.fuelType) params = params.set('fuelType', filters.fuelType);
+    if (filters?.seats != null) params = params.set('seats', filters.seats.toString());
 
     return this.http.get<CarsResponse>(this.apiUrl, { params }).pipe(
       map((res) => res.cars)

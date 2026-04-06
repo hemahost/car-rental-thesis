@@ -1,6 +1,6 @@
 /* ── Navbar ── */
 .navbar {
-  background: #fff;
+  background: var(--navbar-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
@@ -144,16 +144,26 @@
 }
 
 .back-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-decoration: none;
-  color: #4361ee;
-  font-size: 0.92rem;
-  font-weight: 500;
-  margin-bottom: 24px;
-  transition: color 0.2s;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  padding: 10px 20px;
+  background: var(--accent-bg);
+  border-radius: 50px;
+  border: none;
+  letter-spacing: 0.2px;
+  transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
 
   &:hover {
-    color: #3a0ca3;
+    background: var(--accent);
+    color: #fff;
+    transform: translateX(-3px);
+    box-shadow: 0 6px 18px rgba(29, 78, 216, 0.22);
   }
 }
 
@@ -580,6 +590,15 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.9rem;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  &__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 
   &__name {

@@ -63,7 +63,7 @@
     </form>
   </div>
   <div class="hero__graphic">
-    <img src="hero-car.svg" alt="Blue rental car illustration" loading="lazy" />
+    <img src="hero-rental.png" alt="Car rental service illustration" loading="lazy" />
   </div>
 </section>
 
@@ -94,22 +94,10 @@
 
 <!-- Popular Cars -->
 <section class="popular">
-  <h2 class="popular__heading">Popular Rental Choices</h2>
+  <h2 class="popular__heading">What We Recommend</h2>
   <div class="popular__grid">
     @for (car of popularCars; track car.id) {
       <app-car-card [car]="car"></app-car-card>
-    }
-  </div>
-</section>
-
-<section class="faq">
-  <h2 class="faq__heading">Frequently Asked Questions</h2>
-  <div class="faq__list">
-    @for (item of faqs; track item.question) {
-      <article class="faq__item">
-        <h3>{{ item.question }}</h3>
-        <p>{{ item.answer }}</p>
-      </article>
     }
   </div>
 </section>

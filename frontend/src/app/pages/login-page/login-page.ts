@@ -27,6 +27,11 @@ export class LoginPage implements OnInit {
   registerEmail = '';
   registerPassword = '';
   registerConfirmPassword = '';
+  registerPhone = '';
+  registerAddress = '';
+  registerAgreeTerms = false;
+  showRegisterPassword = false;
+  showRegisterConfirmPassword = false;
 
   // Forgot password fields
   forgotMode: 'hidden' | 'email' | 'code' = 'hidden';
@@ -101,6 +106,20 @@ export class LoginPage implements OnInit {
     });
   }
 
+  get passwordStrength(): { label: string; level: number } {
+    const p = this.registerPassword;
+    if (!p) return { label: '', level: 0 };
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p)) score++;
+    if (/[0-9]/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    if (score <= 1) return { label: 'Weak', level: 1 };
+    if (score === 2) return { label: 'Fair', level: 2 };
+    if (score === 3) return { label: 'Good', level: 3 };
+    return { label: 'Strong', level: 4 };
+  }
+
   onRegister(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -111,7 +130,12 @@ export class LoginPage implements OnInit {
       !this.registerPassword ||
       !this.registerConfirmPassword
     ) {
-      this.errorMessage = 'Please fill in all fields.';
+      this.errorMessage = 'Please fill in all required fields.';
+      return;
+    }
+
+    if (!this.registerAgreeTerms) {
+      this.errorMessage = 'You must agree to the Terms & Conditions.';
       return;
     }
 
@@ -127,7 +151,7 @@ export class LoginPage implements OnInit {
 
     this.loading = true;
     this.authService
-      .register(this.registerName, this.registerEmail, this.registerPassword)
+      .register(this.registerName, this.registerEmail, this.registerPassword, this.registerPhone || undefined, this.registerAddress || undefined)
       .subscribe({
         next: () => {
           this.loading = false;
@@ -138,6 +162,9 @@ export class LoginPage implements OnInit {
           this.registerEmail = '';
           this.registerPassword = '';
           this.registerConfirmPassword = '';
+          this.registerPhone = '';
+          this.registerAddress = '';
+          this.registerAgreeTerms = false;
           this.cdr.markForCheck();
         },
         error: (err) => {

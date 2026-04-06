@@ -370,7 +370,13 @@
             <div class="review-card">
               <div class="review-card__header">
                 <div class="review-card__user">
-                  <div class="review-card__avatar">{{ review.user?.name?.charAt(0) || '?' }}</div>
+                  <div class="review-card__avatar">
+                  @if (review.user?.avatarUrl) {
+                    <img [src]="auth.getAvatarFullUrl(review.user?.avatarUrl)" [alt]="review.user?.name" class="review-card__avatar-img" />
+                  } @else {
+                    {{ review.user?.name?.charAt(0) || '?' }}
+                  }
+                </div>
                   <div>
                     <div class="review-card__name">{{ review.user?.name }}</div>
                     <div class="review-card__date">{{ review.createdAt | date: 'mediumDate' }}</div>

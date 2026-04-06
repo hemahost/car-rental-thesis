@@ -7,7 +7,7 @@ const router = Router();
 // GET /api/cars
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { brand, type, minPrice, maxPrice } = req.query;
+    const { brand, type, minPrice, maxPrice, transmission, fuelType, seats } = req.query;
 
     const where: any = {};
 
@@ -23,6 +23,18 @@ router.get("/", async (req: Request, res: Response) => {
       where.pricePerDay = {};
       if (minPrice) where.pricePerDay.gte = parseFloat(minPrice as string);
       if (maxPrice) where.pricePerDay.lte = parseFloat(maxPrice as string);
+    }
+
+    if (transmission) {
+      where.transmission = { equals: transmission as string, mode: "insensitive" };
+    }
+
+    if (fuelType) {
+      where.fuelType = { equals: fuelType as string, mode: "insensitive" };
+    }
+
+    if (seats) {
+      where.seats = parseInt(seats as string);
     }
 
     const carsRaw = await prisma.car.findMany({

@@ -71,6 +71,30 @@
         min="0"
       />
 
+      <label class="filters__label">Transmission</label>
+      <select class="filters__select" [(ngModel)]="filters.transmission">
+        <option [ngValue]="undefined">All</option>
+        @for (t of transmissions; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+
+      <label class="filters__label">Fuel Type</label>
+      <select class="filters__select" [(ngModel)]="filters.fuelType">
+        <option [ngValue]="undefined">All</option>
+        @for (f of fuelTypes; track f) {
+          <option [value]="f">{{ f }}</option>
+        }
+      </select>
+
+      <label class="filters__label">Seats</label>
+      <select class="filters__select" [(ngModel)]="filters.seats">
+        <option [ngValue]="undefined">Any</option>
+        @for (s of seatOptions; track s) {
+          <option [value]="s">{{ s }} seats</option>
+        }
+      </select>
+
       <button class="filters__btn filters__btn--apply" (click)="applyFilters()">
         Apply Filters
       </button>
@@ -99,9 +123,9 @@
       </div>
       <select class="toolbar__sort" [(ngModel)]="sortBy" (ngModelChange)="onSearchOrSortChange()">
         <option value="default">Sort: Default</option>
-        <option value="price-asc">Price: Low \u2192 High</option>
-        <option value="price-desc">Price: High \u2192 Low</option>
-        <option value="name-asc">Name: A \u2192 Z</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+        <option value="name-asc">Name: A → Z</option>
         <option value="rating">Top Rated</option>
       </select>
       <span class="toolbar__count">{{ filteredCars.length }} car{{ filteredCars.length !== 1 ? 's' : '' }}</span>

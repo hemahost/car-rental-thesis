@@ -69,6 +69,10 @@ export class AdminDashboardPage implements OnInit {
     return this.bookings.filter(b => b.status === 'PENDING').length;
   }
 
+  get completedCount(): number {
+    return this.bookings.filter(b => b.status === 'COMPLETED').length;
+  }
+
   ngOnInit(): void {
     this.loadStats();
     this.loadCars();
@@ -178,6 +182,7 @@ export class AdminDashboardPage implements OnInit {
     this.carFormError = '';
     this.carFormSuccess = '';
     this.showCarForm = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   cancelCarForm(): void {

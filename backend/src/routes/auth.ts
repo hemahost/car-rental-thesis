@@ -42,7 +42,7 @@ const router = Router();
 // POST /api/auth/register
 router.post("/register", async (req, res: Response) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     if (!name || !email || !password) {
       return sendError(res, "Name, email and password are required");
@@ -56,7 +56,13 @@ router.post("/register", async (req, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, passwordHash },
+      data: {
+        name,
+        email,
+        passwordHash,
+        phone: phone || null,
+        address: address || null,
+      },
       select: { id: true, name: true, email: true, role: true, phone: true, address: true, avatarUrl: true },
     });
 

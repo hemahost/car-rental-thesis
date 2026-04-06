@@ -30,8 +30,8 @@ export class HomePage implements OnInit {
       description: 'Browse categories and compare features to select the right vehicle for your trip.',
     },
     {
-      title: 'Pick Dates & Location',
-      description: 'Set your pickup and return details to instantly check real availability.',
+      title: 'Pick Your Dates',
+      description: 'Select your pickup and return dates — the car\'s pickup location is already set for you.',
     },
     {
       title: 'Book In Minutes',
@@ -44,25 +44,6 @@ export class HomePage implements OnInit {
     { title: 'Sedan', description: 'Smooth city rides with excellent efficiency.', type: 'Sedan' },
     { title: 'Electric', description: 'Modern, clean, and cost-efficient driving.', type: 'Electric' },
     { title: 'Hatchback', description: 'Compact and practical for daily mobility.', type: 'Hatchback' },
-  ];
-
-  readonly faqs = [
-    {
-      question: 'Can I cancel my booking?',
-      answer: 'Yes, cancellation options depend on the selected rental policy and timing.',
-    },
-    {
-      question: 'Do you require a deposit?',
-      answer: 'Some vehicles may require a refundable security deposit at pickup.',
-    },
-    {
-      question: 'Is insurance included?',
-      answer: 'Basic coverage is available, with optional upgrades for broader protection.',
-    },
-    {
-      question: 'What documents are required?',
-      answer: 'A valid driver license and identification are required for confirmation.',
-    },
   ];
 
   constructor(

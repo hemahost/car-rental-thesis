@@ -25,76 +25,99 @@
   </div>
 </nav>
 
-<section class="assistant">
-  <div class="assistant__panel">
-    <h1 class="assistant__title">AI Rental Assistant</h1>
-    <p class="assistant__subtitle">
-      Describe your needs in plain language. Example: "I need an electric car under 90 dollars per day for 3 days".
-    </p>
+<div class="chat-page">
 
-    <label class="assistant__label" for="message">Your request</label>
-    <textarea
-      id="message"
-      class="assistant__input"
-      [(ngModel)]="message"
-      placeholder="Tell the assistant what car you need..."
-      rows="5"
-    ></textarea>
-
-    <div class="assistant__actions">
-      <button class="assistant__btn assistant__btn--primary" (click)="submit()" [disabled]="loading">
-        {{ loading ? 'Finding cars...' : 'Get Recommendations' }}
-      </button>
-      <button class="assistant__btn assistant__btn--ghost" (click)="clear()" [disabled]="loading">Clear</button>
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header__avatar">🤖</div>
+    <div class="chat-header__info">
+      <span class="chat-header__name">AI Car Assistant</span>
+      <span class="chat-header__status">Online · Powered by GPT</span>
     </div>
-
-    @if (error) {
-      <p class="assistant__error">{{ error }}</p>
-    }
+    <button class="chat-header__clear" (click)="clearChat()" title="Clear chat">🗑</button>
   </div>
 
-  <div class="assistant__result">
-    <h2 class="assistant__result-title">Assistant Response</h2>
+  <!-- Messages -->
+  <div class="chat-body" #chatBody>
+    @for (msg of messages; track $index) {
 
-    @if (loading) {
-      <p class="assistant__loading">Analyzing your request and checking availability...</p>
-    } @else if (aiResponse) {
-      <div class="assistant__response-box">
-        <p>{{ aiResponse }}</p>
-      </div>
-
-      @if (filters) {
-        <div class="assistant__filters">
-          <h3>Extracted Filters</h3>
-          <p><strong>Type:</strong> {{ filters.carType || 'Any' }}</p>
-          <p><strong>Min Price:</strong> {{ filters.minPrice ?? 'Any' }}</p>
-          <p><strong>Max Price:</strong> {{ filters.maxPrice ?? 'Any' }}</p>
-          <p><strong>Duration (days):</strong> {{ filters.durationDays ?? 'Not specified' }}</p>
-          <p><strong>Features:</strong> {{ filters.features?.join(', ') || 'Not specified' }}</p>
+      @if (msg.role === 'bot') {
+        <div class="chat-msg chat-msg--bot">
+          <div class="chat-msg__avatar">🤖</div>
+          <div class="chat-msg__content">
+            @if (msg.isLoading) {
+              <div class="chat-msg__bubble">
+                <div class="chat-typing"><span></span><span></span><span></span></div>
+              </div>
+            } @else {
+              <div class="chat-msg__bubble">{{ msg.text }}</div>
+              @if (msg.cars && msg.cars.length > 0) {
+                <div class="chat-cars">
+                  @for (car of msg.cars; track car.id) {
+                    <a [routerLink]="['/cars', car.id]" class="chat-car-card">
+                      <div class="chat-car-card__image">
+                        @if (car.imageUrl) {
+                          <img [src]="car.imageUrl" [alt]="car.brand + ' ' + car.model" />
+                        } @else {
+                          <div class="chat-car-card__no-image">🚗</div>
+                        }
+                        <span class="chat-car-card__badge">✓ Available</span>
+                      </div>
+                      <div class="chat-car-card__body">
+                        <div class="chat-car-card__type">{{ car.type }}</div>
+                        <h4 class="chat-car-card__name">{{ car.brand }} {{ car.model }}</h4>
+                        <p class="chat-car-card__desc">{{ car.description }}</p>
+                        <div class="chat-car-card__footer">
+                          <span class="chat-car-card__price">${{ car.pricePerDay }}<span>/day</span></span>
+                          <span class="chat-car-card__btn">View Details →</span>
+                        </div>
+                      </div>
+                    </a>
+                  }
+                </div>
+              }
+            }
+          </div>
         </div>
       }
 
-      <div class="assistant__cars">
-        <h3>Recommended Cars</h3>
-        @if (recommendations.length === 0) {
-          <p>No matching cars are currently available.</p>
-        } @else {
-          <div class="assistant__car-grid">
-            @for (car of recommendations; track car.id) {
-              <article class="assistant__car-card">
-                <h4>{{ car.brand }} {{ car.model }}</h4>
-                <p><strong>Type:</strong> {{ car.type }}</p>
-                <p><strong>Price:</strong> ${{ car.pricePerDay }} / day</p>
-              </article>
-            }
-          </div>
-        }
-      </div>
-    } @else {
-      <p class="assistant__placeholder">Your recommendations will appear here.</p>
+      @if (msg.role === 'user') {
+        <div class="chat-msg chat-msg--user">
+          <div class="chat-msg__bubble">{{ msg.text }}</div>
+        </div>
+      }
+
     }
   </div>
-</section>
+
+  <!-- Footer -->
+  <div class="chat-footer">
+    <div class="chat-chips">
+      @for (chip of chips; track chip) {
+        <button class="chat-chip" (click)="sendChip(chip)" [disabled]="loading">{{ chip }}</button>
+      }
+    </div>
+    <div class="chat-input-row">
+      <input
+        class="chat-input"
+        type="text"
+        [(ngModel)]="message"
+        (keydown)="onEnter($event)"
+        placeholder="Type a message..."
+        [disabled]="loading"
+        autocomplete="off"
+      />
+      <button class="chat-send" (click)="submit()" [disabled]="loading || !message.trim()">
+        @if (loading) {
+          <span class="chat-send__spinner"></span>
+        } @else {
+          ➤
+        }
+      </button>
+    </div>
+  </div>
+
+</div>
 
 <footer class="footer">
   <p>&copy; 2026 Car Rental. All rights reserved.</p>

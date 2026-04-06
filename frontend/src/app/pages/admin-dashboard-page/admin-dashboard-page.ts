@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AdminService, AdminBooking } from '../../services/admin.service';
+import { AdminService, AdminBooking, AdminStats, AdminUser } from '../../services/admin.service';
 import { Car } from '../../models/car.model';
 import { ThemeService } from '../../services/theme.service';
 import { finalize } from 'rxjs';
@@ -16,7 +16,7 @@ import { finalize } from 'rxjs';
   styleUrls: ['./admin-dashboard-page.scss'],
 })
 export class AdminDashboardPage implements OnInit {
-  activeTab: 'cars' | 'bookings' = 'cars';
+  activeTab: 'stats' | 'cars' | 'bookings' | 'users' = 'stats';
 
   // ── Cars ──
   cars: Car[] = [];
@@ -25,7 +25,11 @@ export class AdminDashboardPage implements OnInit {
 
   showCarForm = false;
   editingCar: Car | null = null;
-  carForm = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '' };
+  carForm: {
+    brand: string; model: string; type: string; pricePerDay: number;
+    description: string; imageUrl: string; city: string;
+    seats: number | null; transmission: string; fuelType: string; year: number | null;
+  } = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', seats: null, transmission: '', fuelType: '', year: null };
   carFormLoading = false;
   carFormError = '';
   carFormSuccess = '';
@@ -35,6 +39,25 @@ export class AdminDashboardPage implements OnInit {
   bookingsLoading = false;
   bookingsError = '';
   bookingsFilter = '';
+
+  // ── Stats ──
+  stats: AdminStats | null = null;
+  statsLoading = false;
+  statsError = '';
+
+  // ── Users ──
+  users: AdminUser[] = [];
+  usersLoading = false;
+  usersError = '';
+
+  readonly statusOrder = ['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
+  readonly statusColors: Record<string, string> = {
+    PENDING: '#f59e0b',
+    CONFIRMED: '#3b82f6',
+    ACTIVE: '#8b5cf6',
+    COMPLETED: '#10b981',
+    CANCELLED: '#ef4444',
+  };
 
   constructor(public auth: AuthService, public theme: ThemeService, private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
@@ -47,8 +70,72 @@ export class AdminDashboardPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadStats();
     this.loadCars();
     this.loadBookings();
+    this.loadUsers();
+  }
+
+  // ── Stats ──
+
+  loadStats(): void {
+    this.statsLoading = true;
+    this.statsError = '';
+    this.adminService.getAdminStats()
+      .pipe(finalize(() => { this.statsLoading = false; this.cdr.detectChanges(); }))
+      .subscribe({
+        next: (stats) => { this.stats = stats; this.cdr.detectChanges(); },
+        error: () => { this.statsError = 'Failed to load stats'; this.cdr.detectChanges(); },
+      });
+  }
+
+  getBarHeight(count: number): number {
+    if (!this.stats) return 0;
+    const max = Math.max(...this.stats.dailyBookings.map((d) => d.count), 1);
+    return Math.round((count / max) * 100);
+  }
+
+  // ── Users ──
+
+  loadUsers(): void {
+    this.usersLoading = true;
+    this.usersError = '';
+    this.adminService.getAdminUsers()
+      .pipe(finalize(() => { this.usersLoading = false; this.cdr.detectChanges(); }))
+      .subscribe({
+        next: (users) => { this.users = users; this.cdr.detectChanges(); },
+        error: () => { this.usersError = 'Failed to load users'; this.cdr.detectChanges(); },
+      });
+  }
+
+  promoteUser(user: AdminUser): void {
+    const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    const label = newRole === 'ADMIN' ? 'promote to Admin' : 'demote to User';
+    if (!confirm(`Are you sure you want to ${label} "${user.name}"?`)) return;
+
+    this.adminService.updateUserRole(user.id, newRole).subscribe({
+      next: (updated) => {
+        const idx = this.users.findIndex((u) => u.id === updated.id);
+        if (idx !== -1) this.users[idx] = { ...this.users[idx], role: updated.role };
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.usersError = err?.error?.error?.message || 'Failed to update role';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  deleteUser(user: AdminUser): void {
+    if (!confirm(`Delete account "${user.name}" (${user.email})? This cannot be undone.`)) return;
+
+    this.adminService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.users = this.users.filter((u) => u.id !== user.id);
+        this.cdr.detectChanges();
+      },
+      error: () => { this.usersError = 'Failed to delete user'; this.cdr.detectChanges(); },
+    });
   }
 
   // ── Cars ──
@@ -67,7 +154,7 @@ export class AdminDashboardPage implements OnInit {
 
   openAddCar(): void {
     this.editingCar = null;
-    this.carForm = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '' };
+    this.carForm = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', seats: null, transmission: '', fuelType: '', year: null };
     this.carFormError = '';
     this.carFormSuccess = '';
     this.showCarForm = true;
@@ -82,6 +169,11 @@ export class AdminDashboardPage implements OnInit {
       pricePerDay: car.pricePerDay,
       description: car.description,
       imageUrl: car.imageUrl || '',
+      city: car.city || '',
+      seats: car.seats || null,
+      transmission: car.transmission || '',
+      fuelType: car.fuelType || '',
+      year: car.year || null,
     };
     this.carFormError = '';
     this.carFormSuccess = '';
@@ -107,6 +199,11 @@ export class AdminDashboardPage implements OnInit {
       pricePerDay: Number(this.carForm.pricePerDay),
       description: this.carForm.description,
       imageUrl: this.carForm.imageUrl || undefined,
+      city: this.carForm.city || undefined,
+      seats: this.carForm.seats || undefined,
+      transmission: this.carForm.transmission || undefined,
+      fuelType: this.carForm.fuelType || undefined,
+      year: this.carForm.year || undefined,
     };
 
     const obs = this.editingCar

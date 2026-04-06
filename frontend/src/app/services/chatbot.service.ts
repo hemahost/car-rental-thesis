@@ -16,6 +16,8 @@ export interface ChatbotRecommendation {
   model: string;
   type: string;
   pricePerDay: number;
+  imageUrl: string | null;
+  description: string;
 }
 
 interface ChatbotApiResponse {
@@ -27,13 +29,18 @@ interface ChatbotApiResponse {
   };
 }
 
+export interface ChatHistoryItem {
+  role: 'user' | 'bot';
+  text: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatbotService {
   private readonly apiUrl = 'http://localhost:3000/api/chatbot';
 
   constructor(private http: HttpClient) {}
 
-  sendMessage(message: string): Observable<ChatbotApiResponse> {
-    return this.http.post<ChatbotApiResponse>(this.apiUrl, { message });
+  sendMessage(message: string, history: ChatHistoryItem[] = []): Observable<ChatbotApiResponse> {
+    return this.http.post<ChatbotApiResponse>(this.apiUrl, { message, history });
   }
 }

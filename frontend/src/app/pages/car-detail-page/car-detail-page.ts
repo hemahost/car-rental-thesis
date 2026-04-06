@@ -10,10 +10,11 @@ import { Car } from '../../models/car.model';
 import { Review } from '../../models/review.model';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
+import { CarCard } from '../../components/car-card/car-card';
 
 @Component({
   selector: 'app-car-detail-page',
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, CarCard],
   templateUrl: './car-detail-page.html',
   styleUrl: './car-detail-page.scss',
 })
@@ -21,10 +22,12 @@ export class CarDetailPage implements OnInit {
   car: Car | null = null;
   loading = true;
   error = '';
-
+  similarCars: Car[] = [];
   // Booking form
   startDate = '';
   endDate = '';
+  pickupLocation = '';
+  dropoffLocation = '';
   availabilityStatus: 'idle' | 'checking' | 'available' | 'unavailable' = 'idle';
   totalDays = 0;
   totalPrice = 0;
@@ -56,33 +59,62 @@ export class CarDetailPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.error = 'No car ID provided.';
-      this.loading = false;
-      return;
-    }
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (!id) {
+        this.error = 'No car ID provided.';
+        this.loading = false;
+        return;
+      }
 
-    this.carService.getCarById(id).subscribe({
-      next: (car) => {
-        this.car = car;
-        this.loading = false;
-        this.loadReviews(id);
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.error = 'Car not found.';
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
+      // Reset state on each navigation
+      this.car = null;
+      this.loading = true;
+      this.error = '';
+      this.similarCars = [];
+      this.reviews = [];
+      this.avgRating = 0;
+      this.totalReviews = 0;
+      this.availabilityStatus = 'idle';
+      this.bookingSuccess = false;
+      this.bookingError = '';
+      this.bookingMessage = '';
+      this.pickupLocation = '';
+      this.dropoffLocation = '';
+
+      const today = new Date();
+      this.startDate = this.formatDate(today);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      this.endDate = this.formatDate(tomorrow);
+
+      // Scroll to top on navigation
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      this.carService.getCarById(id).subscribe({
+        next: (car) => {
+          this.car = car;
+          this.loading = false;
+          if (car.city) {
+            this.pickupLocation = car.city;
+            this.dropoffLocation = car.city;
+          }
+          this.loadReviews(id);
+          this.carService.getCars({ type: car.type }).subscribe({
+            next: (cars) => {
+              this.similarCars = cars.filter(c => c.id !== id).slice(0, 3);
+              this.cdr.detectChanges();
+            },
+          });
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.error = 'Car not found.';
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+      });
     });
-
-    // Set default start date to today
-    const today = new Date();
-    this.startDate = this.formatDate(today);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    this.endDate = this.formatDate(tomorrow);
   }
 
   get todayStr(): string {
@@ -169,7 +201,7 @@ export class CarDetailPage implements OnInit {
     this.cdr.detectChanges();
 
     this.bookingService
-      .createBooking(this.car.id, this.startDate, this.endDate)
+      .createBooking(this.car.id, this.startDate, this.endDate, this.pickupLocation || undefined, this.dropoffLocation || undefined)
       .subscribe({
         next: () => {
           this.bookingLoading = false;

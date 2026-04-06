@@ -2,6 +2,7 @@ import { Response } from "express";
 import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { AuthRequest } from "../middleware/auth";
+import { sendBookingStatusEmail } from "../utils/email";
 
 // GET /api/admin/bookings
 export async function getAdminBookings(req: AuthRequest, res: Response) {
@@ -54,6 +55,19 @@ export async function updateBookingStatus(req: AuthRequest, res: Response) {
         car: { select: { id: true, brand: true, model: true, type: true, pricePerDay: true } },
       },
     });
+
+    // Send status notification email (non-blocking)
+    if (booking.user && (status === "CONFIRMED" || status === "CANCELLED")) {
+      sendBookingStatusEmail(
+        booking.user.email,
+        booking.user.name,
+        `${booking.car.brand} ${booking.car.model}`,
+        status,
+        booking.startDate.toLocaleDateString(),
+        booking.endDate.toLocaleDateString(),
+        booking.totalPrice
+      ).catch((err) => console.error("Failed to send status email:", err));
+    }
 
     return sendSuccess(res, { booking });
   } catch (err) {

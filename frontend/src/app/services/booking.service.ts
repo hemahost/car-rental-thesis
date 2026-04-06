@@ -46,12 +46,14 @@ export class BookingService {
   createBooking(
     carId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    pickupLocation?: string,
+    dropoffLocation?: string
   ): Observable<Booking> {
     return this.http
       .post<{ success: boolean; booking: Booking }>(
         this.apiUrl,
-        { carId, startDate, endDate },
+        { carId, startDate, endDate, pickupLocation, dropoffLocation },
         { headers: this.authHeaders() }
       )
       .pipe(map((res) => res.booking));

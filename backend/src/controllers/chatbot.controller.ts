@@ -5,7 +5,7 @@ const chatbotService = new ChatbotService();
 
 export async function postChatbotMessage(req: Request, res: Response) {
   try {
-    const { message } = req.body as { message?: string };
+    const { message, history } = req.body as { message?: string; history?: unknown };
 
     if (!message || typeof message !== "string" || message.trim().length === 0) {
       return res.status(400).json({
@@ -14,8 +14,25 @@ export async function postChatbotMessage(req: Request, res: Response) {
       });
     }
 
+    const safeHistory: Array<{ role: 'user' | 'bot'; text: string }> = [];
+    if (Array.isArray(history)) {
+      for (const item of history) {
+        if (
+          item &&
+          typeof item === 'object' &&
+          (item as Record<string, unknown>).role === 'user' || (item as Record<string, unknown>).role === 'bot'
+        ) {
+          const h = item as Record<string, unknown>;
+          if (typeof h.text === 'string' && h.text.trim().length > 0) {
+            safeHistory.push({ role: h.role as 'user' | 'bot', text: h.text.trim() });
+          }
+        }
+      }
+    }
+
     const result = await chatbotService.handleChat({
       message: message.trim(),
+      history: safeHistory,
       authorizationHeader: req.headers.authorization,
     });
 

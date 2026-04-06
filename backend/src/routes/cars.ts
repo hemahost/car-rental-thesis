@@ -25,7 +25,17 @@ router.get("/", async (req: Request, res: Response) => {
       if (maxPrice) where.pricePerDay.lte = parseFloat(maxPrice as string);
     }
 
-    const cars = await prisma.car.findMany({ where, orderBy: { createdAt: "desc" } });
+    const carsRaw = await prisma.car.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: { reviews: { select: { rating: true } } },
+    });
+
+    const cars = carsRaw.map(({ reviews, ...car }) => ({
+      ...car,
+      avgRating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0,
+      reviewCount: reviews.length,
+    }));
 
     return sendSuccess(res, { cars });
   } catch (err) {
@@ -37,11 +47,21 @@ router.get("/", async (req: Request, res: Response) => {
 // GET /api/cars/:id
 router.get("/:id", async (req: Request, res: Response) => {
   try {
-    const car = await prisma.car.findUnique({ where: { id: req.params.id as string } });
+    const carRaw = await prisma.car.findUnique({
+      where: { id: req.params.id as string },
+      include: { reviews: { select: { rating: true } } },
+    });
 
-    if (!car) {
+    if (!carRaw) {
       return sendError(res, "Car not found", 404);
     }
+
+    const { reviews, ...carData } = carRaw;
+    const car = {
+      ...carData,
+      avgRating: reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0,
+      reviewCount: reviews.length,
+    };
 
     return sendSuccess(res, { car });
   } catch (err) {

@@ -6,6 +6,8 @@ export interface Booking {
   endDate: string;
   totalPrice: number;
   status: string;
+  pickupLocation?: string;
+  dropoffLocation?: string;
   createdAt: string;
   car?: {
     id: string;

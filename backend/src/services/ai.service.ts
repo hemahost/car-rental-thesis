@@ -3,6 +3,7 @@ import OpenAI from "openai";
 export type CarType = "suv" | "sedan" | "electric" | "hatchback";
 
 export interface ExtractedFilters {
+  isCarRentalQuery: boolean;
   carType: CarType | null;
   maxPrice: number | null;
   minPrice: number | null;
@@ -16,6 +17,8 @@ export interface ShortlistCar {
   model: string;
   type: string;
   pricePerDay: number;
+  imageUrl: string | null;
+  description: string;
 }
 
 const ALLOWED_CAR_TYPES: CarType[] = ["suv", "sedan", "electric", "hatchback"];
@@ -88,6 +91,7 @@ function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
   const durationDays = durationDaysValue != null && durationDaysValue > 0 ? Math.round(durationDaysValue) : null;
 
   return {
+    isCarRentalQuery: parsed.isCarRentalQuery === true,
     carType: normalizeCarType(parsed.carType),
     minPrice,
     maxPrice,
@@ -174,7 +178,10 @@ export class AIService {
     });
   }
 
-  async extractPreferences(message: string): Promise<ExtractedFilters> {
+  async extractPreferences(
+    message: string,
+    history?: Array<{ role: 'user' | 'bot'; text: string }>
+  ): Promise<ExtractedFilters> {
     const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
     const startedAt = Date.now();
 
@@ -182,6 +189,12 @@ export class AIService {
       model,
       messageLength: message.length,
     });
+
+    const historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> =
+      (history ?? []).slice(-6).map((h) => ({
+        role: h.role === 'bot' ? 'assistant' : 'user',
+        content: h.text,
+      }));
 
     const completion = await this.client.chat.completions.create({
       model,
@@ -191,8 +204,9 @@ export class AIService {
         {
           role: "system",
           content:
-            "Extract rental preferences for a car-rental website and return strict JSON only with keys: carType, maxPrice, minPrice, features, durationDays. carType must be one of SUV, Sedan, Electric, Hatchback. Use null for missing values. If the message is out of scope (general knowledge, politics, history, geography, coding, health, legal, etc.), return all fields as null. Return JSON only with no extra keys and no explanation.",
+            "Extract rental preferences for a car-rental website and return strict JSON only with these keys: isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays. isCarRentalQuery must be true ONLY when the message is genuinely about renting or finding a car (asking for car type, budget, duration, etc). Consider the conversation history — a short reply like 'yes' or 'sure' after a car-rental discussion counts as isCarRentalQuery true. Set isCarRentalQuery to false only for greetings, general chat, or anything clearly unrelated to renting a car. carType must be one of SUV, Sedan, Electric, Hatchback or null. Use null for all missing filter values. If isCarRentalQuery is false, all other fields must be null. Return JSON only with no extra keys and no explanation.",
         },
+        ...historyMessages,
         {
           role: "user",
           content: `Message: ${message}`,
@@ -220,6 +234,41 @@ export class AIService {
     }
 
     return normalizeExtractedFilters(parsed);
+  }
+
+  async generateConversationalResponse(
+    message: string,
+    history?: Array<{ role: 'user' | 'bot'; text: string }>
+  ): Promise<string> {
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+    const historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> =
+      (history ?? []).slice(-6).map((h) => ({
+        role: h.role === 'bot' ? 'assistant' : 'user',
+        content: h.text,
+      }));
+
+    const aiCall = this.client.chat.completions.create({
+      model,
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an AI assistant for a car rental website. Follow these rules strictly:\n1. DAILY SMALL-TALK (greetings, 'how are you', 'what's your name', simple pleasantries): Reply very briefly (one short sentence), then IMMEDIATELY redirect to car rentals. Do NOT say anything implying you are available for general chat or that the user can talk to you about anything. Example: 'Hey there! I specialize in helping you find the perfect rental car — what are you looking for?'\n2. OFF-TOPIC QUESTIONS (coding, math, history, science, medical, legal, politics, or any non-rental knowledge question): Do NOT answer. Respond only with: 'I\\'m only here to help with car rentals! Try asking me something like \"I need an SUV for 3 days under $100/day\".'\n3. CAR RENTAL topics: Help fully and enthusiastically.\nNEVER imply you can chat, talk, or help with anything outside car rentals. Always use conversation history so short replies like 'yes' or 'sure' are understood in context. Keep responses short (1-3 sentences).",
+        },
+        ...historyMessages,
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+
+    const completion = await withTimeout(aiCall, 3000, () => null);
+
+    const aiResponse = completion?.choices[0]?.message?.content?.trim();
+    return aiResponse || "I'm here to help! What kind of car are you looking for?";
   }
 
   async generateRecommendation(message: string, shortlist: ShortlistCar[], durationDays = 1): Promise<string> {

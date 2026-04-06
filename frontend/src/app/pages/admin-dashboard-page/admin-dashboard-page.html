@@ -49,41 +49,107 @@
 <div class="admin">
   <!-- Tabs -->
   <div class="admin__tabs">
-    <button
-      class="admin__tab"
-      [class.admin__tab--active]="activeTab === 'cars'"
-      (click)="activeTab = 'cars'"
-    >
-      <span class="admin__tab-icon">🚗</span> Manage Cars
+    <button class="admin__tab" [class.admin__tab--active]="activeTab === 'stats'" (click)="activeTab = 'stats'">
+      <span class="admin__tab-icon">📊</span><span class="admin__tab-label">Statistics</span>
     </button>
-    <button
-      class="admin__tab"
-      [class.admin__tab--active]="activeTab === 'bookings'"
-      (click)="activeTab = 'bookings'"
-    >
-      <span class="admin__tab-icon">📋</span> Manage Bookings
+    <button class="admin__tab" [class.admin__tab--active]="activeTab === 'cars'" (click)="activeTab = 'cars'">
+      <span class="admin__tab-icon">🚗</span><span class="admin__tab-label">Cars</span>
+    </button>
+    <button class="admin__tab" [class.admin__tab--active]="activeTab === 'bookings'" (click)="activeTab = 'bookings'">
+      <span class="admin__tab-icon">📋</span><span class="admin__tab-label">Bookings</span>
+    </button>
+    <button class="admin__tab" [class.admin__tab--active]="activeTab === 'users'" (click)="activeTab = 'users'">
+      <span class="admin__tab-icon">👥</span><span class="admin__tab-label">Users</span>
     </button>
   </div>
+
+  <!-- ═══ Stats Tab ═══ -->
+  @if (activeTab === 'stats') {
+    <section class="admin__section">
+      <div class="admin__section-header">
+        <h2>Overview Statistics</h2>
+        <button class="btn btn--ghost" (click)="loadStats()">↻ Refresh</button>
+      </div>
+
+      @if (statsLoading) { <div class="loading">Loading statistics...</div> }
+      @if (statsError) { <div class="alert alert--error">{{ statsError }}</div> }
+
+      @if (stats && !statsLoading) {
+        <div class="stats-kpis">
+          <div class="stats-kpi stats-kpi--blue">
+            <span class="stats-kpi__icon">👥</span>
+            <span class="stats-kpi__value">{{ stats.totalUsers }}</span>
+            <span class="stats-kpi__label">Total Users</span>
+          </div>
+          <div class="stats-kpi stats-kpi--purple">
+            <span class="stats-kpi__icon">🚗</span>
+            <span class="stats-kpi__value">{{ stats.totalCars }}</span>
+            <span class="stats-kpi__label">Total Cars</span>
+          </div>
+          <div class="stats-kpi stats-kpi--orange">
+            <span class="stats-kpi__icon">📋</span>
+            <span class="stats-kpi__value">{{ stats.totalBookings }}</span>
+            <span class="stats-kpi__label">Total Bookings</span>
+          </div>
+          <div class="stats-kpi stats-kpi--green">
+            <span class="stats-kpi__icon">💰</span>
+            <span class="stats-kpi__value">${{ stats.totalRevenue | number:'1.0-0' }}</span>
+            <span class="stats-kpi__label">Total Revenue</span>
+          </div>
+        </div>
+
+        <div class="stats-charts">
+          <div class="stats-card">
+            <h3 class="stats-card__title">Bookings by Status</h3>
+            <div class="status-bars">
+              @for (s of statusOrder; track s) {
+                <div class="status-bar-row">
+                  <span class="status-bar-label">{{ s }}</span>
+                  <div class="status-bar-track">
+                    <div class="status-bar-fill"
+                      [style.width.%]="stats.totalBookings > 0 ? (stats.bookingsByStatus[s] / stats.totalBookings) * 100 : 0"
+                      [style.background]="statusColors[s]">
+                    </div>
+                  </div>
+                  <span class="status-bar-count">{{ stats.bookingsByStatus[s] }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <h3 class="stats-card__title">Bookings — Last 7 Days</h3>
+            <div class="daily-chart">
+              @for (day of stats.dailyBookings; track day.date) {
+                <div class="daily-bar">
+                  <div class="daily-bar__fill-wrap">
+                    <div class="daily-bar__fill" [style.height.%]="getBarHeight(day.count)" [title]="day.count + ' bookings'"></div>
+                  </div>
+                  <span class="daily-bar__count">{{ day.count }}</span>
+                  <span class="daily-bar__label">{{ day.date }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+  }
 
   <!-- ═══ Cars Tab ═══ -->
   @if (activeTab === 'cars') {
     <section class="admin__section">
       <div class="admin__section-header">
-        <h2>Cars</h2>
+        <h2>Fleet Management</h2>
         <button class="btn btn--primary" (click)="openAddCar()">+ Add New Car</button>
       </div>
 
-      <!-- Car Form -->
       @if (showCarForm) {
         <div class="car-form">
-          <h3>{{ editingCar ? 'Edit Car' : 'Add New Car' }}</h3>
+          <h3>{{ editingCar ? '✏️ Edit Car' : '🚗 Add New Car' }}</h3>
 
-          @if (carFormError) {
-            <div class="alert alert--error">{{ carFormError }}</div>
-          }
-          @if (carFormSuccess) {
-            <div class="alert alert--success">{{ carFormSuccess }}</div>
-          }
+          @if (carFormError) { <div class="alert alert--error">{{ carFormError }}</div> }
+          @if (carFormSuccess) { <div class="alert alert--success">{{ carFormSuccess }}</div> }
 
           <div class="form-grid">
             <div class="form-group">
@@ -106,6 +172,36 @@
               <label>Image URL (optional)</label>
               <input type="text" [(ngModel)]="carForm.imageUrl" placeholder="https://..." />
             </div>
+            <div class="form-group">
+              <label>City / Location (optional)</label>
+              <input type="text" [(ngModel)]="carForm.city" placeholder="e.g. Budapest" />
+            </div>
+            <div class="form-group">
+              <label>Year (optional)</label>
+              <input type="number" [(ngModel)]="carForm.year" placeholder="e.g. 2022" min="1990" max="2030" />
+            </div>
+            <div class="form-group">
+              <label>Seats (optional)</label>
+              <input type="number" [(ngModel)]="carForm.seats" placeholder="e.g. 5" min="1" max="20" />
+            </div>
+            <div class="form-group">
+              <label>Transmission (optional)</label>
+              <select [(ngModel)]="carForm.transmission">
+                <option value="">-- Select --</option>
+                <option value="Manual">Manual</option>
+                <option value="Automatic">Automatic</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fuel Type (optional)</label>
+              <select [(ngModel)]="carForm.fuelType">
+                <option value="">-- Select --</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Electric">Electric</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
             <div class="form-group form-group--full">
               <label>Description</label>
               <textarea rows="3" [(ngModel)]="carForm.description" placeholder="Describe the car..."></textarea>
@@ -121,34 +217,39 @@
         </div>
       }
 
-      <!-- Loading / Error -->
-      @if (carsLoading) {
-        <div class="loading">Loading cars...</div>
-      }
-      @if (carsError) {
-        <div class="alert alert--error">{{ carsError }}</div>
-      }
+      @if (carsLoading) { <div class="loading">Loading cars...</div> }
+      @if (carsError) { <div class="alert alert--error">{{ carsError }}</div> }
 
-      <!-- Cars Table -->
       @if (!carsLoading && cars.length > 0) {
         <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
-                <th>Brand</th>
-                <th>Model</th>
+                <th>Car</th>
                 <th>Type</th>
+                <th>City</th>
                 <th>Price/Day</th>
-                <th>Actions</th>
+                <th class="th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
               @for (car of cars; track car.id) {
                 <tr>
-                  <td>{{ car.brand }}</td>
-                  <td>{{ car.model }}</td>
-                  <td>{{ car.type }}</td>
-                  <td>${{ car.pricePerDay }}</td>
+                  <td>
+                    <div class="cell-car">
+                      @if (car.imageUrl) {
+                        <img class="cell-car__img" [src]="car.imageUrl" [alt]="car.brand" />
+                      } @else {
+                        <div class="cell-car__placeholder">🚗</div>
+                      }
+                      <div>
+                        <div class="cell-car__name">{{ car.brand }} {{ car.model }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="tag">{{ car.type }}</span></td>
+                  <td class="cell-muted">{{ car.city || '—' }}</td>
+                  <td class="cell-price">${{ car.pricePerDay }}<span>/day</span></td>
                   <td class="actions">
                     <button class="btn btn--small btn--outline" (click)="openEditCar(car)">Edit</button>
                     <button class="btn btn--small btn--danger" (click)="deleteCar(car)">Delete</button>
@@ -161,7 +262,10 @@
       }
 
       @if (!carsLoading && cars.length === 0 && !carsError) {
-        <p class="empty">No cars found. Add one above!</p>
+        <div class="empty-state">
+          <span class="empty-state__icon">🚗</span>
+          <p>No cars yet. Add your first car above!</p>
+        </div>
       }
     </section>
   }
@@ -170,9 +274,9 @@
   @if (activeTab === 'bookings') {
     <section class="admin__section">
       <div class="admin__section-header">
-        <h2>Bookings</h2>
+        <h2>Booking Management</h2>
         <select [(ngModel)]="bookingsFilter" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option value="">All</option>
+          <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>
           <option value="CONFIRMED">Confirmed</option>
           <option value="ACTIVE">Active</option>
@@ -181,35 +285,41 @@
         </select>
       </div>
 
-      @if (bookingsLoading) {
-        <div class="loading">Loading bookings...</div>
-      }
-      @if (bookingsError) {
-        <div class="alert alert--error">{{ bookingsError }}</div>
-      }
+      @if (bookingsLoading) { <div class="loading">Loading bookings...</div> }
+      @if (bookingsError) { <div class="alert alert--error">{{ bookingsError }}</div> }
 
       @if (!bookingsLoading && bookings.length > 0) {
         <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
-                <th>User</th>
+                <th>Customer</th>
                 <th>Car</th>
-                <th>Start</th>
-                <th>End</th>
+                <th>Dates</th>
                 <th>Total</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th class="th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
               @for (b of bookings; track b.id) {
                 <tr>
-                  <td>{{ b.user?.email }}</td>
-                  <td>{{ b.car?.brand }} {{ b.car?.model }}</td>
-                  <td>{{ b.startDate | date:'mediumDate' }}</td>
-                  <td>{{ b.endDate | date:'mediumDate' }}</td>
-                  <td>${{ b.totalPrice }}</td>
+                  <td>
+                    <div class="cell-user">
+                      <div class="cell-user__avatar">{{ (b.user?.name || b.user?.email || '?')[0].toUpperCase() }}</div>
+                      <div>
+                        <div class="cell-user__name">{{ b.user?.name || '—' }}</div>
+                        <div class="cell-user__email">{{ b.user?.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="cell-bold">{{ b.car?.brand }} {{ b.car?.model }}</td>
+                  <td class="cell-dates">
+                    <span>{{ b.startDate | date:'MMM d' }}</span>
+                    <span class="cell-dates__sep">→</span>
+                    <span>{{ b.endDate | date:'MMM d, y' }}</span>
+                  </td>
+                  <td class="cell-price">${{ b.totalPrice }}<span></span></td>
                   <td>
                     <span class="badge"
                       [class.badge--pending]="b.status === 'PENDING'"
@@ -222,7 +332,7 @@
                   </td>
                   <td class="actions">
                     @if (b.status === 'PENDING') {
-                      <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'CONFIRMED')">Confirm</button>
+                      <button class="btn btn--small btn--success" (click)="setBookingStatus(b, 'CONFIRMED')">Confirm</button>
                     }
                     @if (b.status === 'CONFIRMED') {
                       <button class="btn btn--small btn--outline" (click)="setBookingStatus(b, 'ACTIVE')">Activate</button>
@@ -242,7 +352,96 @@
       }
 
       @if (!bookingsLoading && bookings.length === 0 && !bookingsError) {
-        <p class="empty">No bookings found.</p>
+        <div class="empty-state">
+          <span class="empty-state__icon">📋</span>
+          <p>No bookings found for this filter.</p>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- ═══ Users Tab ═══ -->
+  @if (activeTab === 'users') {
+    <section class="admin__section">
+      <div class="admin__section-header">
+        <h2>User Management</h2>
+        <button class="btn btn--ghost" (click)="loadUsers()">↻ Refresh</button>
+      </div>
+
+      @if (usersLoading) { <div class="loading">Loading users...</div> }
+      @if (usersError) { <div class="alert alert--error">{{ usersError }}</div> }
+
+      @if (!usersLoading && users.length > 0) {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Provider</th>
+                <th>Bookings</th>
+                <th>Joined</th>
+                <th>Role</th>
+                <th class="th-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of users; track u.id) {
+                <tr [class.row--self]="u.id === auth.currentUser?.id">
+                  <td>
+                    <div class="cell-user">
+                      <div class="cell-user__avatar" [class.cell-user__avatar--admin]="u.role === 'ADMIN'">
+                        {{ u.name[0].toUpperCase() }}
+                      </div>
+                      <div>
+                        <div class="cell-user__name">
+                          {{ u.name }}
+                          @if (u.id === auth.currentUser?.id) {
+                            <span class="you-badge">you</span>
+                          }
+                        </div>
+                        <div class="cell-user__email">{{ u.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="provider-badge provider-badge--{{ u.provider }}">
+                      @if (u.provider === 'google') { 🔵 }
+                      @else if (u.provider === 'github') { ⚫ }
+                      @else { 🔑 }
+                      {{ u.provider }}
+                    </span>
+                  </td>
+                  <td class="cell-center">
+                    <span class="count-pill">{{ u._count.bookings }}</span>
+                  </td>
+                  <td class="cell-muted">{{ u.createdAt | date:'MMM d, y' }}</td>
+                  <td>
+                    <span class="role-badge" [class.role-badge--admin]="u.role === 'ADMIN'" [class.role-badge--user]="u.role === 'USER'">
+                      {{ u.role }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    @if (u.id !== auth.currentUser?.id) {
+                      <button class="btn btn--small" [class.btn--warning]="u.role === 'ADMIN'" [class.btn--success]="u.role === 'USER'" (click)="promoteUser(u)">
+                        {{ u.role === 'ADMIN' ? 'Demote' : 'Make Admin' }}
+                      </button>
+                      <button class="btn btn--small btn--danger" (click)="deleteUser(u)">Delete</button>
+                    } @else {
+                      <span class="self-label">Your account</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!usersLoading && users.length === 0 && !usersError) {
+        <div class="empty-state">
+          <span class="empty-state__icon">👥</span>
+          <p>No users found.</p>
+        </div>
       }
     </section>
   }
@@ -252,4 +451,3 @@
 <footer class="footer">
   <p>&copy; 2026 Car Rental. All rights reserved.</p>
 </footer>
-

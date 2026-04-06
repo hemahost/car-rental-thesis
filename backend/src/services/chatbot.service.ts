@@ -6,6 +6,7 @@ import { AIService, ExtractedFilters, ShortlistCar } from "./ai.service";
 
 interface ChatbotInput {
   message: string;
+  history?: Array<{ role: 'user' | 'bot'; text: string }>;
   authorizationHeader?: string;
 }
 
@@ -23,6 +24,7 @@ function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
   const maxPrice = filters.maxPrice != null && filters.maxPrice >= 0 ? filters.maxPrice : null;
 
   return {
+    isCarRentalQuery: filters.isCarRentalQuery,
     carType: filters.carType && VALID_CAR_TYPES.has(filters.carType) ? filters.carType : null,
     minPrice,
     maxPrice,
@@ -123,8 +125,19 @@ export class ChatbotService {
     this.aiService = aiService || new AIService();
   }
 
-  async handleChat({ message, authorizationHeader }: ChatbotInput): Promise<ChatbotResult> {
-    const extracted = await this.aiService.extractPreferences(message);
+  async handleChat({ message, history, authorizationHeader }: ChatbotInput): Promise<ChatbotResult> {
+    const extracted = await this.aiService.extractPreferences(message, history);
+
+    if (!extracted.isCarRentalQuery) {
+      console.log("[chatbot] non-rental query detected, generating conversational response");
+      const aiResponse = await this.aiService.generateConversationalResponse(message, history);
+      return {
+        filters: normalizeFilters(extracted),
+        recommendations: [],
+        aiResponse,
+      };
+    }
+
     const filters = normalizeFilters(extracted);
 
     console.log("[chatbot] extracted filters:", filters);
@@ -181,6 +194,8 @@ export class ChatbotService {
       model: car.model,
       type: car.type,
       pricePerDay: car.pricePerDay,
+      imageUrl: car.imageUrl ?? null,
+      description: car.description ?? "",
     }));
 
     const aiResponse = await this.aiService.generateRecommendation(message, recommendations, durationDays);

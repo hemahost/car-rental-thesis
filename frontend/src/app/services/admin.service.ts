@@ -12,11 +12,45 @@ export interface AdminBooking extends Booking {
   };
 }
 
+export interface AdminStats {
+  totalUsers: number;
+  totalCars: number;
+  totalBookings: number;
+  totalRevenue: number;
+  bookingsByStatus: Record<string, number>;
+  dailyBookings: { date: string; count: number }[];
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  provider: string;
+  createdAt: string;
+  _count: { bookings: number };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly apiUrl = 'http://localhost:3000/api/admin';
 
   constructor(private http: HttpClient) {}
+
+  // ── Stats ──
+
+  getAdminStats(): Observable<AdminStats> {
+    return this.http
+      .get<{ success: boolean } & AdminStats>(`${this.apiUrl}/stats`)
+      .pipe(map((res) => ({
+        totalUsers: res.totalUsers,
+        totalCars: res.totalCars,
+        totalBookings: res.totalBookings,
+        totalRevenue: res.totalRevenue,
+        bookingsByStatus: res.bookingsByStatus,
+        dailyBookings: res.dailyBookings,
+      })));
+  }
 
   // ── Cars ──
 
@@ -58,5 +92,26 @@ export class AdminService {
     return this.http
       .patch<{ success: boolean; booking: AdminBooking }>(`${this.apiUrl}/bookings/${id}/status`, { status })
       .pipe(map((res) => res.booking));
+  }
+
+  // ── Users ──
+
+  getAdminUsers(): Observable<AdminUser[]> {
+    return this.http
+      .get<{ success: boolean; users: AdminUser[] }>(`${this.apiUrl}/users`)
+      .pipe(map((res) => res.users));
+  }
+
+  updateUserRole(id: string, role: string): Observable<{ id: string; name: string; email: string; role: string }> {
+    return this.http
+      .patch<{ success: boolean; user: { id: string; name: string; email: string; role: string } }>(
+        `${this.apiUrl}/users/${id}/role`,
+        { role }
+      )
+      .pipe(map((res) => res.user));
+  }
+
+  deleteUser(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/${id}`);
   }
 }

@@ -26,9 +26,14 @@
   </div>
 </nav>
 
+<!-- Mobile filter toggle -->
+<button class="filters-toggle" (click)="filtersOpen = !filtersOpen">
+  🎚 {{ filtersOpen ? 'Hide Filters' : 'Show Filters' }}
+</button>
+
 <div class="page">
   <!-- Sidebar Filters -->
-  <aside class="filters">
+  <aside class="filters" [class.filters--open]="filtersOpen">
     <div class="filters__card">
       <h3 class="filters__title">Filters</h3>
 
@@ -77,6 +82,30 @@
 
   <!-- Main Content -->
   <main class="content">
+    <!-- Search + Sort Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar__search">
+        <span class="toolbar__search-icon">🔍</span>
+        <input
+          class="toolbar__search-input"
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchOrSortChange()"
+          placeholder="Search by brand, model, city..."
+        />
+        @if (searchTerm) {
+          <button class="toolbar__clear-btn" (click)="searchTerm = ''; onSearchOrSortChange()">✕</button>
+        }
+      </div>
+      <select class="toolbar__sort" [(ngModel)]="sortBy" (ngModelChange)="onSearchOrSortChange()">
+        <option value="default">Sort: Default</option>
+        <option value="price-asc">Price: Low \u2192 High</option>
+        <option value="price-desc">Price: High \u2192 Low</option>
+        <option value="name-asc">Name: A \u2192 Z</option>
+        <option value="rating">Top Rated</option>
+      </select>
+      <span class="toolbar__count">{{ filteredCars.length }} car{{ filteredCars.length !== 1 ? 's' : '' }}</span>
+    </div>
     @if (loading) {
       <div class="state">
         <p class="state__text">Loading cars...</p>
@@ -91,12 +120,31 @@
         <p class="state__text">No cars found matching your filters.</p>
         <button class="state__retry" (click)="clearFilters()">Clear Filters</button>
       </div>
+    } @else if (filteredCars.length === 0) {
+      <div class="state">
+        <p class="state__text">No cars match "{{ searchTerm }}".</p>
+        <button class="state__retry" (click)="searchTerm = ''; onSearchOrSortChange()">Clear Search</button>
+      </div>
     } @else {
       <div class="grid">
-        @for (car of cars; track car.id) {
+        @for (car of paginatedCars; track car.id) {
           <app-car-card [car]="car"></app-car-card>
         }
       </div>
+
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button class="pagination__btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">&#8249; Prev</button>
+          @for (page of pageNumbers; track page) {
+            <button
+              class="pagination__page"
+              [class.pagination__page--active]="page === currentPage"
+              (click)="currentPage = page"
+            >{{ page }}</button>
+          }
+          <button class="pagination__btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">Next &#8250;</button>
+        </div>
+      }
     }
   </main>
 </div>

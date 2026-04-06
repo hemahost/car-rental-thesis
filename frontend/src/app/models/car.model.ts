@@ -6,4 +6,11 @@ export interface Car {
   pricePerDay: number;
   imageUrl?: string;
   description: string;
+  city?: string;
+  seats?: number;
+  transmission?: string;
+  fuelType?: string;
+  year?: number;
+  avgRating?: number;
+  reviewCount?: number;
 }

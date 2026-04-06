@@ -14,6 +14,17 @@
   <div class="card__body">
     <h3 class="card__title">{{ car.brand }} {{ car.model }}</h3>
     <span class="card__type">{{ car.type }}</span>
+    @if (car.avgRating && car.avgRating > 0) {
+      <div class="card__rating">
+        @for (i of [1,2,3,4,5]; track i) {
+          <span class="card__star" [class.card__star--filled]="i <= (car.avgRating || 0)">&#9733;</span>
+        }
+        <span class="card__rating-score">{{ car.avgRating.toFixed(1) }}</span>
+        <span class="card__review-count">({{ car.reviewCount }})</span>
+      </div>
+    } @else {
+      <div class="card__rating card__rating--empty">No reviews yet</div>
+    }
     <p class="card__desc">{{ car.description }}</p>
     <div class="card__footer">
       <span class="card__price">${{ car.pricePerDay }}/day</span>

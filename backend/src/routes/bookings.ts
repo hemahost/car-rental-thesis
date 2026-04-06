@@ -68,7 +68,7 @@ router.get("/availability", async (req, res) => {
 // POST /api/bookings
 router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const { carId, startDate, endDate } = req.body;
+    const { carId, startDate, endDate, pickupLocation, dropoffLocation } = req.body;
 
     if (!carId || !startDate || !endDate) {
       return sendError(res, "carId, startDate, and endDate are required", 400);
@@ -123,6 +123,8 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
         endDate: end,
         totalPrice,
         status: "PENDING",
+        pickupLocation: pickupLocation || null,
+        dropoffLocation: dropoffLocation || null,
       },
       include: {
         car: {

@@ -17,7 +17,7 @@ export async function getAdminCars(req: AuthRequest, res: Response) {
 // POST /api/admin/cars
 export async function createCar(req: AuthRequest, res: Response) {
   try {
-    const { brand, model, type, pricePerDay, description, imageUrl } = req.body;
+    const { brand, model, type, pricePerDay, description, imageUrl, city, seats, transmission, fuelType, year } = req.body;
 
     if (!brand || !model || !type || pricePerDay == null || !description) {
       return sendError(res, "brand, model, type, pricePerDay, and description are required");
@@ -28,7 +28,12 @@ export async function createCar(req: AuthRequest, res: Response) {
     }
 
     const car = await prisma.car.create({
-      data: { brand, model, type, pricePerDay, description, imageUrl: imageUrl || null },
+      data: {
+        brand, model, type, pricePerDay, description,
+        imageUrl: imageUrl || null, city: city || null,
+        seats: seats || null, transmission: transmission || null,
+        fuelType: fuelType || null, year: year || null,
+      },
     });
 
     return sendSuccess(res, { car }, 201);
@@ -42,7 +47,7 @@ export async function createCar(req: AuthRequest, res: Response) {
 export async function updateCar(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;
-    const { brand, model, type, pricePerDay, description, imageUrl } = req.body;
+    const { brand, model, type, pricePerDay, description, imageUrl, city, seats, transmission, fuelType, year } = req.body;
 
     if (!brand || !model || !type || pricePerDay == null || !description) {
       return sendError(res, "brand, model, type, pricePerDay, and description are required");
@@ -59,7 +64,12 @@ export async function updateCar(req: AuthRequest, res: Response) {
 
     const car = await prisma.car.update({
       where: { id },
-      data: { brand, model, type, pricePerDay, description, imageUrl: imageUrl || null },
+      data: {
+        brand, model, type, pricePerDay, description,
+        imageUrl: imageUrl || null, city: city || null,
+        seats: seats || null, transmission: transmission || null,
+        fuelType: fuelType || null, year: year || null,
+      },
     });
 
     return sendSuccess(res, { car });

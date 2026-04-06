@@ -3,7 +3,7 @@ import { authenticate, requireAdmin } from "../middleware/auth";
 import { getAdminCars, createCar, updateCar, deleteCar } from "../controllers/adminCars.controller";
 import { getAdminBookings, updateBookingStatus } from "../controllers/adminBookings.controller";
 import { getAdminStats } from "../controllers/adminStats.controller";
-import { getAdminUsers, updateUserRole, deleteUser } from "../controllers/adminUsers.controller";
+import { getAdminUsers, getUserDetail, updateUserRole, deleteUser } from "../controllers/adminUsers.controller";
 
 const router = Router();
 
@@ -15,6 +15,7 @@ router.get("/stats", getAdminStats);
 
 // Users
 router.get("/users", getAdminUsers);
+router.get("/users/:id", getUserDetail);
 router.patch("/users/:id/role", updateUserRole);
 router.delete("/users/:id", deleteUser);
 

@@ -49,7 +49,13 @@
 
     <div class="dash-sidebar-footer">
       <div class="dash-user">
-        <div class="dash-user-avatar">{{ auth.currentUser?.name?.[0]?.toUpperCase() ?? 'A' }}</div>
+        <div class="dash-user-avatar">
+          @if (auth.currentUser?.avatarUrl) {
+            <img [src]="auth.getAvatarFullUrl(auth.currentUser?.avatarUrl)" [alt]="auth.currentUser?.name" class="dash-user-avatar-img" />
+          } @else {
+            {{ auth.currentUser?.name?.[0]?.toUpperCase() ?? 'A' }}
+          }
+        </div>
         <div class="dash-user-info">
           <div class="dash-user-name">{{ auth.currentUser?.name }}</div>
           <div class="dash-user-role">Administrator</div>
@@ -259,12 +265,19 @@
                 <tbody>
                   @for (u of users; track u.id) {
                     <tr [class.row--self]="u.id === auth.currentUser?.id">
-                      <td><div class="cell-user"><div class="cell-user__avatar" [class.cell-user__avatar--admin]="u.role === 'ADMIN'">{{ u.name[0].toUpperCase() }}</div><div><div class="cell-user__name">{{ u.name }}@if (u.id === auth.currentUser?.id) {<span class="you-badge">you</span>}</div><div class="cell-user__email">{{ u.email }}</div></div></div></td>
+                      <td><div class="cell-user">
+                        @if (u.avatarUrl) {
+                          <img [src]="auth.getAvatarFullUrl(u.avatarUrl)" [alt]="u.name" class="cell-user__avatar cell-user__avatar--img" [class.cell-user__avatar--admin]="u.role === 'ADMIN'" />
+                        } @else {
+                          <div class="cell-user__avatar" [class.cell-user__avatar--admin]="u.role === 'ADMIN'">{{ u.name[0].toUpperCase() }}</div>
+                        }
+                        <div><div class="cell-user__name">{{ u.name }}@if (u.id === auth.currentUser?.id) {<span class="you-badge">you</span>}</div><div class="cell-user__email">{{ u.email }}</div></div></div></td>
                       <td><span class="provider-badge provider-badge--{{ u.provider }}">@if (u.provider === 'google') { &#128309; } @else if (u.provider === 'github') { &#9899; } @else { &#128273; }{{ u.provider }}</span></td>
                       <td class="cell-center"><span class="count-pill">{{ u._count.bookings }}</span></td>
                       <td class="cell-muted">{{ u.createdAt | date:'MMM d, y' }}</td>
                       <td><span class="role-badge" [class.role-badge--admin]="u.role === 'ADMIN'" [class.role-badge--user]="u.role === 'USER'">{{ u.role }}</span></td>
                       <td class="actions">
+                        <button class="btn btn--small btn--info" (click)="viewUser(u)">Details</button>
                         @if (u.id !== auth.currentUser?.id) {
                           <button class="btn btn--small" [class.btn--warning]="u.role === 'ADMIN'" [class.btn--success]="u.role === 'USER'" (click)="promoteUser(u)">{{ u.role === 'ADMIN' ? 'Demote' : 'Make Admin' }}</button>
                           <button class="btn btn--small btn--danger" (click)="deleteUser(u)">Delete</button>
@@ -280,6 +293,66 @@
           }
           @if (!usersLoading && users.length === 0 && !usersError) { <div class="empty-state"><span class="empty-state__icon">&#128101;</span><p>No users found.</p></div> }
         </section>
+
+        <!-- User Detail Modal -->
+        @if (showUserDetail) {
+          <div class="modal-backdrop" (click)="closeUserDetail()">
+            <div class="modal" (click)="$event.stopPropagation()">
+              <div class="modal-header">
+                <h3>User Details</h3>
+                <button class="modal-close" (click)="closeUserDetail()">&#x2715;</button>
+              </div>
+              <div class="modal-body">
+                @if (userDetailLoading) { <div class="loading">Loading...</div> }
+                @if (userDetailError) { <div class="alert alert--error">{{ userDetailError }}</div> }
+                @if (selectedUser && !userDetailLoading) {
+                  <div class="user-detail">
+                    <div class="user-detail__header">
+                      @if (selectedUser.avatarUrl) {
+                        <img class="cell-user__avatar cell-user__avatar--lg cell-user__avatar--img" [src]="auth.getAvatarFullUrl(selectedUser.avatarUrl)" [alt]="selectedUser.name" />
+                      } @else {
+                        <div class="cell-user__avatar cell-user__avatar--lg" [class.cell-user__avatar--admin]="selectedUser.role === 'ADMIN'">{{ selectedUser.name[0].toUpperCase() }}</div>
+                      }
+                      <div>
+                        <div class="user-detail__name">{{ selectedUser.name }}</div>
+                        <div class="user-detail__email">{{ selectedUser.email }}</div>
+                      </div>
+                    </div>
+                    <div class="user-detail__meta">
+                      <div class="user-detail__meta-item"><span class="label">Role</span><span class="role-badge" [class.role-badge--admin]="selectedUser.role === 'ADMIN'" [class.role-badge--user]="selectedUser.role === 'USER'">{{ selectedUser.role }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">Provider</span><span class="provider-badge provider-badge--{{ selectedUser.provider }}">{{ selectedUser.provider }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">2FA</span><span [class.badge--green]="selectedUser.twoFactorEnabled" [class.badge--grey]="!selectedUser.twoFactorEnabled" class="status-badge">{{ selectedUser.twoFactorEnabled ? 'Enabled' : 'Disabled' }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">Joined</span><span class="cell-muted">{{ selectedUser.createdAt | date:'MMM d, y' }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">Phone</span><span class="cell-muted">{{ selectedUser.phone || '—' }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">Address</span><span class="cell-muted">{{ selectedUser.address || '—' }}</span></div>
+                      <div class="user-detail__meta-item"><span class="label">Total Bookings</span><span class="count-pill">{{ selectedUser.bookings.length }}</span></div>
+                    </div>
+                    @if (selectedUser.bookings.length > 0) {
+                      <h4 class="user-detail__section-title">Booking History</h4>
+                      <div class="table-wrap">
+                        <table class="data-table">
+                          <thead><tr><th>Car</th><th>Dates</th><th>Total</th><th>Status</th></tr></thead>
+                          <tbody>
+                            @for (b of selectedUser.bookings; track b.id) {
+                              <tr>
+                                <td>{{ b.car.brand }} {{ b.car.model }}</td>
+                                <td class="cell-muted">{{ b.startDate | date:'MMM d' }} – {{ b.endDate | date:'MMM d, y' }}</td>
+                                <td>${{ b.totalPrice }}</td>
+                                <td><span class="status-dot" [style.background]="statusColors[b.status]"></span>{{ b.status }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    } @else {
+                      <p class="cell-muted" style="margin-top:1rem">No bookings yet.</p>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
       }
 
     </div><!-- /dash-body -->

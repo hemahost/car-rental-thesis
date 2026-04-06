@@ -255,7 +255,7 @@ export class AIService {
         {
           role: "system",
           content:
-            "You are an AI assistant for a car rental website. Follow these rules strictly:\n1. DAILY SMALL-TALK (greetings, 'how are you', 'what's your name', simple pleasantries): Reply very briefly (one short sentence), then IMMEDIATELY redirect to car rentals. Do NOT say anything implying you are available for general chat or that the user can talk to you about anything. Example: 'Hey there! I specialize in helping you find the perfect rental car — what are you looking for?'\n2. OFF-TOPIC QUESTIONS (coding, math, history, science, medical, legal, politics, or any non-rental knowledge question): Do NOT answer. Respond only with: 'I\\'m only here to help with car rentals! Try asking me something like \"I need an SUV for 3 days under $100/day\".'\n3. CAR RENTAL topics: Help fully and enthusiastically.\nNEVER imply you can chat, talk, or help with anything outside car rentals. Always use conversation history so short replies like 'yes' or 'sure' are understood in context. Keep responses short (1-3 sentences).",
+            "You are an AI assistant for a car rental website. Follow these rules strictly:\n1. GIBBERISH or UNRECOGNIZABLE INPUT (random characters, typos, nonsense): Do NOT redirect to car rentals. Simply ask the user to clarify what they mean, in a friendly way.\n2. DAILY SMALL-TALK (greetings, 'how are you', 'what's your name', simple pleasantries): Reply very briefly (one short sentence), then IMMEDIATELY redirect to car rentals. Do NOT say anything implying you are available for general chat or that the user can talk to you about anything. Example: 'Hey there! I specialize in helping you find the perfect rental car — what are you looking for?'\n3. OFF-TOPIC QUESTIONS (coding, math, history, science, medical, legal, politics, or any non-rental knowledge question): Do NOT answer. Respond only with: 'I\\'m only here to help with car rentals! Try asking me something like \"I need an SUV for 3 days under $100/day\".'\n4. CAR RENTAL topics: Help fully and enthusiastically.\nNEVER imply you can chat, talk, or help with anything outside car rentals. Always use conversation history so short replies like 'yes' or 'sure' are understood in context. Keep responses short (1-3 sentences).",
         },
         ...historyMessages,
         {
@@ -269,6 +269,40 @@ export class AIService {
 
     const aiResponse = completion?.choices[0]?.message?.content?.trim();
     return aiResponse || "I'm here to help! What kind of car are you looking for?";
+  }
+
+  async generateClarifyingQuestion(
+    message: string,
+    history?: Array<{ role: 'user' | 'bot'; text: string }>
+  ): Promise<string> {
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+    const historyMessages: Array<{ role: 'user' | 'assistant'; content: string }> =
+      (history ?? []).slice(-6).map((h) => ({
+        role: h.role === 'bot' ? 'assistant' : 'user',
+        content: h.text,
+      }));
+
+    const aiCall = this.client.chat.completions.create({
+      model,
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a car rental assistant. The user wants to rent a car but hasn't given enough details. Ask them 2-3 short, friendly clarifying questions to understand: car type (SUV, Sedan, Hatchback, Electric), daily budget, and rental duration. Do not recommend any car yet. Keep it conversational and brief.",
+        },
+        ...historyMessages,
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+    });
+
+    const completion = await withTimeout(aiCall, 3000, () => null);
+    const aiResponse = completion?.choices[0]?.message?.content?.trim();
+    return aiResponse || "What type of car are you looking for?";
   }
 
   async generateRecommendation(message: string, shortlist: ShortlistCar[], durationDays = 1): Promise<string> {

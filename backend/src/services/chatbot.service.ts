@@ -142,6 +142,23 @@ export class ChatbotService {
 
     console.log("[chatbot] extracted filters:", filters);
 
+    // If the user hasn't specified any preference, ask clarifying questions
+    const hasNoFilters =
+      filters.carType == null &&
+      filters.minPrice == null &&
+      filters.maxPrice == null &&
+      (filters.features == null || filters.features.length === 0) &&
+      filters.durationDays == null;
+
+    if (hasNoFilters) {
+      const aiResponse = await this.aiService.generateClarifyingQuestion(message, history);
+      return {
+        filters,
+        recommendations: [],
+        aiResponse,
+      };
+    }
+
     const where: Prisma.CarWhereInput = {};
 
     if (filters.carType) {
@@ -168,7 +185,7 @@ export class ChatbotService {
 
     const cars = await prisma.car.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { pricePerDay: "asc" },
       include: {
         bookings: {
           where: {
@@ -188,7 +205,7 @@ export class ChatbotService {
 
     console.log("[chatbot] DB results count:", availableCars.length);
 
-    const recommendations: ShortlistCar[] = availableCars.slice(0, 5).map((car) => ({
+    const recommendations: ShortlistCar[] = availableCars.slice(0, 3).map((car) => ({
       id: car.id,
       brand: car.brand,
       model: car.model,
@@ -202,6 +219,12 @@ export class ChatbotService {
 
     console.log("[chatbot] AI response:", aiResponse);
 
+    const aiResponseLower = aiResponse.toLowerCase();
+    const mentionedCars = recommendations.filter((car) =>
+      aiResponseLower.includes(`${car.brand.toLowerCase()} ${car.model.toLowerCase()}`)
+    );
+    const displayedRecommendations = mentionedCars.length > 0 ? mentionedCars : recommendations.slice(0, 1);
+
     const userId = getOptionalUserIdFromToken(authorizationHeader);
 
     // Don't block API response on logging write.
@@ -209,13 +232,13 @@ export class ChatbotService {
       userId,
       message,
       filters,
-      recommendations,
+      recommendations: displayedRecommendations,
       aiResponse,
     });
 
     return {
       filters,
-      recommendations,
+      recommendations: displayedRecommendations,
       aiResponse,
     };
   }

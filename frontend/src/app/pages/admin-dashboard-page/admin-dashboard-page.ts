@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AdminService, AdminBooking, AdminStats, AdminUser } from '../../services/admin.service';
+import { AdminService, AdminBooking, AdminStats, AdminUser, AdminUserDetail } from '../../services/admin.service';
 import { Car } from '../../models/car.model';
 import { ThemeService } from '../../services/theme.service';
 import { finalize } from 'rxjs';
@@ -49,6 +49,12 @@ export class AdminDashboardPage implements OnInit {
   users: AdminUser[] = [];
   usersLoading = false;
   usersError = '';
+
+  // ── User Detail Modal ──
+  selectedUser: AdminUserDetail | null = null;
+  userDetailLoading = false;
+  userDetailError = '';
+  showUserDetail = false;
 
   readonly statusOrder = ['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
   readonly statusColors: Record<string, string> = {
@@ -110,6 +116,23 @@ export class AdminDashboardPage implements OnInit {
         next: (users) => { this.users = users; this.cdr.detectChanges(); },
         error: () => { this.usersError = 'Failed to load users'; this.cdr.detectChanges(); },
       });
+  }
+
+  viewUser(user: AdminUser): void {
+    this.showUserDetail = true;
+    this.selectedUser = null;
+    this.userDetailLoading = true;
+    this.userDetailError = '';
+    this.adminService.getUserDetail(user.id).subscribe({
+      next: (detail) => { this.selectedUser = detail; this.userDetailLoading = false; this.cdr.detectChanges(); },
+      error: () => { this.userDetailError = 'Failed to load user details'; this.userDetailLoading = false; this.cdr.detectChanges(); },
+    });
+  }
+
+  closeUserDetail(): void {
+    this.showUserDetail = false;
+    this.selectedUser = null;
+    this.userDetailError = '';
   }
 
   promoteUser(user: AdminUser): void {

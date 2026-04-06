@@ -27,8 +27,32 @@ export interface AdminUser {
   email: string;
   role: string;
   provider: string;
+  avatarUrl: string | null;
   createdAt: string;
   _count: { bookings: number };
+}
+
+export interface AdminUserDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  avatarUrl: string | null;
+  role: string;
+  provider: string;
+  twoFactorEnabled: boolean;
+  createdAt: string;
+  bookings: {
+    id: string;
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+    status: string;
+    pickupLocation: string | null;
+    dropoffLocation: string | null;
+    car: { brand: string; model: string; imageUrl: string | null };
+  }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -113,5 +137,11 @@ export class AdminService {
 
   deleteUser(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/${id}`);
+  }
+
+  getUserDetail(id: string): Observable<AdminUserDetail> {
+    return this.http
+      .get<{ success: boolean; user: AdminUserDetail }>(`${this.apiUrl}/users/${id}`)
+      .pipe(map((res) => res.user));
   }
 }

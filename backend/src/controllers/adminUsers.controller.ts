@@ -3,6 +3,51 @@ import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { AuthRequest } from "../middleware/auth";
 
+// GET /api/admin/users/:id
+export async function getUserDetail(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params as { id: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        avatarUrl: true,
+        role: true,
+        provider: true,
+        twoFactorEnabled: true,
+        createdAt: true,
+        bookings: {
+          select: {
+            id: true,
+            startDate: true,
+            endDate: true,
+            totalPrice: true,
+            status: true,
+            pickupLocation: true,
+            dropoffLocation: true,
+            car: { select: { brand: true, model: true, imageUrl: true } },
+          },
+          orderBy: { startDate: "desc" },
+        },
+      },
+    });
+
+    if (!user) {
+      return sendError(res, "User not found", 404);
+    }
+
+    return sendSuccess(res, { user });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Failed to fetch user details", 500);
+  }
+}
+
 // GET /api/admin/users
 export async function getAdminUsers(req: AuthRequest, res: Response) {
   try {
@@ -13,6 +58,7 @@ export async function getAdminUsers(req: AuthRequest, res: Response) {
         email: true,
         role: true,
         provider: true,
+        avatarUrl: true,
         createdAt: true,
         _count: { select: { bookings: true } },
       },

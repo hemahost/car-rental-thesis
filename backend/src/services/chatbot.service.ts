@@ -30,6 +30,8 @@ function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
     maxPrice,
     features: filters.features,
     durationDays: filters.durationDays != null && filters.durationDays > 0 ? filters.durationDays : null,
+    sortByPrice: filters.sortByPrice ?? null,
+    location: filters.location ?? null,
   };
 }
 
@@ -148,7 +150,9 @@ export class ChatbotService {
       filters.minPrice == null &&
       filters.maxPrice == null &&
       (filters.features == null || filters.features.length === 0) &&
-      filters.durationDays == null;
+      filters.durationDays == null &&
+      filters.sortByPrice == null &&
+      filters.location == null;
 
     if (hasNoFilters) {
       const aiResponse = await this.aiService.generateClarifyingQuestion(message, history);
@@ -163,6 +167,10 @@ export class ChatbotService {
 
     if (filters.carType) {
       where.type = { equals: filters.carType, mode: "insensitive" };
+    }
+
+    if (filters.location) {
+      where.city = { contains: filters.location, mode: "insensitive" };
     }
 
     if (filters.minPrice != null || filters.maxPrice != null) {
@@ -185,7 +193,7 @@ export class ChatbotService {
 
     const cars = await prisma.car.findMany({
       where,
-      orderBy: { pricePerDay: "asc" },
+      orderBy: { pricePerDay: filters.sortByPrice === "desc" ? "desc" : "asc" },
       include: {
         bookings: {
           where: {

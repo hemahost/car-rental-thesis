@@ -9,6 +9,8 @@ export interface ExtractedFilters {
   minPrice: number | null;
   features: string[] | null;
   durationDays: number | null;
+  sortByPrice: "asc" | "desc" | null;
+  location: string | null;
 }
 
 export interface ShortlistCar {
@@ -90,6 +92,16 @@ function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
 
   const durationDays = durationDaysValue != null && durationDaysValue > 0 ? Math.round(durationDaysValue) : null;
 
+  function normalizeSortByPrice(value: unknown): "asc" | "desc" | null {
+    if (value === "asc" || value === "desc") return value;
+    return null;
+  }
+
+  function normalizeLocation(value: unknown): string | null {
+    if (typeof value === "string" && value.trim().length > 0) return value.trim();
+    return null;
+  }
+
   return {
     isCarRentalQuery: parsed.isCarRentalQuery === true,
     carType: normalizeCarType(parsed.carType),
@@ -97,6 +109,8 @@ function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
     maxPrice,
     features: normalizeFeatures(parsed.features),
     durationDays,
+    sortByPrice: normalizeSortByPrice(parsed.sortByPrice),
+    location: normalizeLocation(parsed.location),
   };
 }
 
@@ -109,9 +123,9 @@ function buildFastRecommendation(shortlist: ShortlistCar[], durationDays: number
     return "I couldn't find a matching car right now. Try widening your budget, changing car type, or reducing duration.";
   }
 
-  const sortedByPrice = [...shortlist].sort((a, b) => a.pricePerDay - b.pricePerDay);
-  const top = sortedByPrice[0];
-  const alternatives = sortedByPrice.slice(1, 3);
+  // Trust the order of shortlist as passed in (caller already sorted by DB orderBy)
+  const top = shortlist[0];
+  const alternatives = shortlist.slice(1, 3);
 
   const topTotal = top.pricePerDay * durationDays;
   const altText = alternatives
@@ -204,7 +218,7 @@ export class AIService {
         {
           role: "system",
           content:
-            "Extract rental preferences for a car-rental website and return strict JSON only with these keys: isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays. isCarRentalQuery must be true ONLY when the message is genuinely about renting or finding a car (asking for car type, budget, duration, etc). Consider the conversation history — a short reply like 'yes' or 'sure' after a car-rental discussion counts as isCarRentalQuery true. Set isCarRentalQuery to false only for greetings, general chat, or anything clearly unrelated to renting a car. carType must be one of SUV, Sedan, Electric, Hatchback or null. Use null for all missing filter values. If isCarRentalQuery is false, all other fields must be null. Return JSON only with no extra keys and no explanation.",
+            "Extract rental preferences for a car-rental website and return strict JSON only with these keys: isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays, sortByPrice, location. isCarRentalQuery must be true ONLY when the message is genuinely about renting or finding a car (asking for car type, budget, duration, etc). Consider the conversation history — a short reply like 'yes' or 'sure' after a car-rental discussion counts as isCarRentalQuery true. Set isCarRentalQuery to false only for greetings, general chat, or anything clearly unrelated to renting a car. carType must be one of SUV, Sedan, Electric, Hatchback or null. sortByPrice must be 'desc' when the user wants the most expensive, luxury, premium, highest-priced, or best car, OR when they say a specific luxury brand (Porsche, Ferrari, Lamborghini, Rolls-Royce, BMW, Mercedes, etc.) without a budget constraint; 'asc' when they want the cheapest, budget, or most affordable option; null otherwise. When the user says 'doesn't matter' about budget or price, treat it as no price constraint (null for minPrice/maxPrice) but keep any sortByPrice signal from context. location must be the city or location name the user mentions (e.g. 'Budapest', 'London', 'New York'); use null if no location is mentioned. Use null for all other missing filter values. If isCarRentalQuery is false, all other fields must be null. Return JSON only with no extra keys and no explanation.",
         },
         ...historyMessages,
         {

@@ -6,6 +6,8 @@ export interface Booking {
   endDate: string;
   totalPrice: number;
   status: string;
+  paymentIntentId?: string;
+  paymentStatus?: string;
   pickupLocation?: string;
   dropoffLocation?: string;
   createdAt: string;
@@ -15,5 +17,6 @@ export interface Booking {
     model: string;
     type: string;
     pricePerDay: number;
+    imageUrl?: string;
   };
 }

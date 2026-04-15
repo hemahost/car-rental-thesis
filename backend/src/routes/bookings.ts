@@ -2,7 +2,9 @@ import { Router, Response } from "express";
 import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
-import { sendBookingConfirmationEmail } from "../utils/email";
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const stripe = new (require("stripe"))(process.env.STRIPE_SECRET_KEY as string);
 
 const router = Router();
 
@@ -133,20 +135,7 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Send confirmation email (non-blocking)
-    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { email: true, name: true } });
-    if (user) {
-      sendBookingConfirmationEmail(
-        user.email,
-        user.name,
-        `${car.brand} ${car.model}`,
-        start.toLocaleDateString(),
-        end.toLocaleDateString(),
-        days,
-        totalPrice
-      ).catch((err) => console.error("Failed to send booking email:", err));
-    }
-
+    // Email is sent by the payment webhook on successful payment
     return sendSuccess(res, { booking }, 201);
   } catch (err) {
     console.error(err);
@@ -169,7 +158,26 @@ router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "Not authorized", 403);
     }
 
-    await prisma.booking.delete({ where: { id: booking.id } });
+    // If already paid, issue a Stripe refund
+    if (booking.paymentStatus === "PAID" && booking.paymentIntentId) {
+      try {
+        await stripe.refunds.create({ payment_intent: booking.paymentIntentId });
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: "CANCELLED", paymentStatus: "REFUNDED" },
+        });
+        return sendSuccess(res, { message: "Booking cancelled and payment refunded" });
+      } catch (refundErr) {
+        console.error("Stripe refund failed:", refundErr);
+        return sendError(res, "Failed to process refund", 500);
+      }
+    }
+
+    // Not paid yet — just cancel
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "CANCELLED" },
+    });
 
     return sendSuccess(res, { message: "Booking cancelled" });
   } catch (err) {

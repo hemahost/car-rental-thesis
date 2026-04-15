@@ -54,7 +54,9 @@ model Booking {
   startDate        DateTime
   endDate          DateTime
   totalPrice       Float
-  status           String   @default("CONFIRMED")
+  status           String   @default("PENDING")
+  paymentIntentId  String?
+  paymentStatus    String   @default("UNPAID")
   pickupLocation   String?
   dropoffLocation  String?
   createdAt        DateTime @default(now())

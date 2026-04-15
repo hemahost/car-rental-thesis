@@ -1,0 +1,174 @@
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar__inner">
+    <a class="navbar__logo" routerLink="/home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+        <rect x="9" y="11" width="14" height="10" rx="2"/>
+        <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+      </svg>
+      CarRental
+    </a>
+    <a routerLink="/cars" class="navbar__back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Cars
+    </a>
+  </div>
+</nav>
+
+<div class="payment-page">
+
+  @if (loading) {
+    <div class="payment-wrapper">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Preparing secure checkout...</p>
+      </div>
+    </div>
+  } @else if (success) {
+    <div class="payment-wrapper">
+      <div class="result-card result-card--success">
+        <div class="result-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h2>Payment Confirmed!</h2>
+        <p>Your booking for <strong>{{ carName }}</strong> is confirmed.</p>
+        <p class="result-card__sub">A confirmation email is on its way. Redirecting to your profile...</p>
+        <div class="result-card__dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  } @else if (error && !clientSecret) {
+    <div class="payment-wrapper">
+      <div class="result-card result-card--error">
+        <div class="result-card__icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </div>
+        <h2>Session Expired</h2>
+        <p>{{ error }}</p>
+        <a routerLink="/cars" class="back-btn">Browse Cars</a>
+      </div>
+    </div>
+  } @else {
+    <div class="payment-wrapper">
+
+      <!-- Left: Order summary -->
+      <div class="order-summary">
+        <div class="order-summary__brand">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+            <rect x="9" y="11" width="14" height="10" rx="2"/>
+            <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          </svg>
+          CarRental
+        </div>
+
+        <p class="order-summary__label">Total due</p>
+        <div class="order-summary__amount">${{ totalPrice }}</div>
+
+        @if (carName) {
+          <div class="order-summary__item">
+            <div class="order-summary__item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
+                <rect x="9" y="11" width="14" height="10" rx="2"/>
+                <circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+              </svg>
+            </div>
+            <div>
+              <p class="order-summary__item-name">{{ carName }}</p>
+              <p class="order-summary__item-sub">Car Rental</p>
+            </div>
+            <span class="order-summary__item-price">${{ totalPrice }}</span>
+          </div>
+        }
+
+        <div class="order-summary__divider"></div>
+
+        <div class="order-summary__total-row">
+          <span>Total</span>
+          <span>${{ totalPrice }}</span>
+        </div>
+
+        <div class="order-summary__badges">
+          <div class="trust-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            SSL Encrypted
+          </div>
+          <div class="trust-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Secure Checkout
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Card form -->
+      <div class="payment-form">
+        <div class="payment-form__header">
+          <h2>Pay with card</h2>
+          <div class="card-icons">
+            <span class="card-icon card-icon--visa">VISA</span>
+            <span class="card-icon card-icon--mc">MC</span>
+            <span class="card-icon card-icon--amex">AMEX</span>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label">Card information</label>
+          <div class="card-element-wrapper" #cardElement></div>
+        </div>
+
+        @if (error) {
+          <div class="form-error">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ error }}
+          </div>
+        }
+
+        <button
+          class="pay-btn"
+          (click)="confirmPayment()"
+          [disabled]="processing || !cardReady"
+        >
+          @if (processing) {
+            <span class="btn-spinner"></span>
+            Processing payment...
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Pay ${{ totalPrice }}
+          }
+        </button>
+
+        <p class="secure-note">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Your payment is secured by <strong>Stripe</strong>. We never store card details.
+        </p>
+
+        <div class="test-hint">
+          <span class="test-hint__label">Test mode</span>
+          Use card <code>4242 4242 4242 4242</code> · any future date · any CVC
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

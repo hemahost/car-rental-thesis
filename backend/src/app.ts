@@ -11,12 +11,16 @@ import adminRoutes from "./routes/admin.routes";
 import reviewRoutes from "./routes/reviews";
 import chatbotRoutes from "./routes/chatbot.routes";
 import oauthRoutes from "./routes/oauth.routes";
+import paymentRoutes from "./routes/payments";
 import { setupSwagger } from "./docs/swagger";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Stripe webhook needs raw body — must be registered BEFORE express.json()
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json());
 app.use(cors({
@@ -41,6 +45,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/oauth", oauthRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

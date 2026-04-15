@@ -321,6 +321,7 @@
               <span>Car</span>
               <span>Dates</span>
               <span>Status</span>
+              <span>Payment</span>
               <span>Price</span>
               <span>Actions</span>
             </div>
@@ -340,6 +341,15 @@
                         [class.booking-status--completed]="booking.status === 'COMPLETED'"
                         [class.booking-status--cancelled]="booking.status === 'CANCELLED'">
                     {{ booking.status }}
+                  </span>
+                </span>
+                <span>
+                  <span class="payment-status"
+                        [class.payment-status--unpaid]="!booking.paymentStatus || booking.paymentStatus === 'UNPAID'"
+                        [class.payment-status--paid]="booking.paymentStatus === 'PAID'"
+                        [class.payment-status--refunded]="booking.paymentStatus === 'REFUNDED'"
+                        [class.payment-status--failed]="booking.paymentStatus === 'FAILED'">
+                    {{ booking.paymentStatus || 'UNPAID' }}
                   </span>
                 </span>
                 <span class="bookings-table__price">${{ booking.totalPrice }}</span>

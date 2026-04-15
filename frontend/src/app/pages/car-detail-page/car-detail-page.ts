@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CarService } from '../../services/car.service';
 import { BookingService } from '../../services/booking.service';
+import { PaymentService } from '../../services/payment.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { ReviewService } from '../../services/review.service';
 import { Car } from '../../models/car.model';
@@ -53,6 +54,7 @@ export class CarDetailPage implements OnInit {
     private router: Router,
     private carService: CarService,
     private bookingService: BookingService,
+    private paymentService: PaymentService,
     public favoriteService: FavoriteService,
     private reviewService: ReviewService,
     private cdr: ChangeDetectorRef
@@ -203,12 +205,25 @@ export class CarDetailPage implements OnInit {
     this.bookingService
       .createBooking(this.car.id, this.startDate, this.endDate, this.pickupLocation || undefined, this.dropoffLocation || undefined)
       .subscribe({
-        next: () => {
-          this.bookingLoading = false;
-          this.bookingSuccess = true;
-          this.bookingMessage = 'Booking submitted! Awaiting confirmation. Redirecting to dashboard...';
-          this.cdr.detectChanges();
-          setTimeout(() => this.router.navigate(['/profile']), 2500);
+        next: (booking) => {
+          this.paymentService.createPaymentIntent(booking.id).subscribe({
+            next: ({ clientSecret }) => {
+              this.bookingLoading = false;
+              this.cdr.detectChanges();
+              this.router.navigate(['/payment', booking.id], {
+                state: {
+                  clientSecret,
+                  totalPrice: this.totalPrice,
+                  carName: `${this.car!.brand} ${this.car!.model}`,
+                },
+              });
+            },
+            error: (err) => {
+              this.bookingLoading = false;
+              this.bookingError = err.error?.message || 'Failed to initialize payment. Please try again.';
+              this.cdr.detectChanges();
+            },
+          });
         },
         error: (err) => {
           this.bookingLoading = false;

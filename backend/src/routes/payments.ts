@@ -1,0 +1,193 @@
+import { Router, Request, Response } from "express";
+import prisma from "../db/prisma";
+import { sendSuccess, sendError } from "../utils/response";
+import { authenticate, AuthRequest } from "../middleware/auth";
+import { sendBookingConfirmationEmail } from "../utils/email";
+
+const router = Router();
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const stripe = new (require("stripe"))(process.env.STRIPE_SECRET_KEY as string);
+
+// POST /api/payments/create-intent
+// Creates a Stripe PaymentIntent for an existing PENDING booking
+router.post("/create-intent", authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { bookingId } = req.body;
+
+    if (!bookingId) {
+      return sendError(res, "bookingId is required", 400);
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { car: true, user: true },
+    });
+
+    if (!booking) {
+      return sendError(res, "Booking not found", 404);
+    }
+
+    if (booking.userId !== req.userId) {
+      return sendError(res, "Not authorized", 403);
+    }
+
+    if (booking.paymentStatus === "PAID") {
+      return sendError(res, "Booking is already paid", 400);
+    }
+
+    // Create Stripe PaymentIntent (amount in cents)
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(booking.totalPrice * 100),
+      currency: "usd",
+      metadata: {
+        bookingId: booking.id,
+        userId: booking.userId,
+      },
+    });
+
+    // Save the paymentIntentId on the booking
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { paymentIntentId: paymentIntent.id },
+    });
+
+    return sendSuccess(res, { clientSecret: paymentIntent.client_secret });
+  } catch (err) {
+    console.error("create-intent error:", err);
+    return sendError(res, "Failed to create payment intent", 500);
+  }
+});
+
+// POST /api/payments/confirm
+// Called by the frontend after Stripe.confirmCardPayment succeeds
+// Verifies the payment directly with Stripe and confirms the booking
+router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { bookingId } = req.body;
+
+    if (!bookingId) {
+      return sendError(res, "bookingId is required", 400);
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { car: true, user: true },
+    });
+
+    if (!booking) {
+      return sendError(res, "Booking not found", 404);
+    }
+
+    if (booking.userId !== req.userId) {
+      return sendError(res, "Not authorized", 403);
+    }
+
+    if (booking.paymentStatus === "PAID") {
+      return sendSuccess(res, { message: "Already confirmed" });
+    }
+
+    if (!booking.paymentIntentId) {
+      return sendError(res, "No payment found for this booking", 400);
+    }
+
+    // Verify directly with Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(booking.paymentIntentId);
+
+    if (paymentIntent.status !== "succeeded") {
+      return sendError(res, "Payment has not succeeded", 400);
+    }
+
+    // Confirm the booking
+    const updated = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: "CONFIRMED", paymentStatus: "PAID" },
+    });
+
+    const startDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    sendBookingConfirmationEmail(
+      booking.user.email,
+      booking.user.name,
+      `${booking.car.brand} ${booking.car.model}`,
+      startDate.toLocaleDateString(),
+      endDate.toLocaleDateString(),
+      days,
+      booking.totalPrice
+    ).catch((err) => console.error("Failed to send booking email:", err));
+
+    return sendSuccess(res, { booking: updated });
+  } catch (err) {
+    console.error("confirm error:", err);
+    return sendError(res, "Failed to confirm booking", 500);
+  }
+});
+
+// POST /api/payments/webhook
+// Stripe calls this to notify payment outcomes
+// Note: raw body is set in app.ts for this route
+router.post("/webhook", async (req: Request, res: Response) => {
+  const sig = req.headers["stripe-signature"] as string;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let event: any;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err: any) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object;
+    const bookingId = paymentIntent.metadata.bookingId;
+
+    try {
+      const booking = await prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: "CONFIRMED", paymentStatus: "PAID" },
+        include: { car: true, user: true },
+      });
+
+      const startDate = new Date(booking.startDate);
+      const endDate = new Date(booking.endDate);
+      const days = Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      sendBookingConfirmationEmail(
+        booking.user.email,
+        booking.user.name,
+        `${booking.car.brand} ${booking.car.model}`,
+        startDate.toLocaleDateString(),
+        endDate.toLocaleDateString(),
+        days,
+        booking.totalPrice
+      ).catch((err) => console.error("Failed to send booking email:", err));
+    } catch (err) {
+      console.error("Failed to confirm booking after payment:", err);
+    }
+  }
+
+  if (event.type === "payment_intent.payment_failed") {
+    const paymentIntent = event.data.object;
+    const bookingId = paymentIntent.metadata.bookingId;
+
+    try {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: { paymentStatus: "FAILED" },
+      });
+    } catch (err) {
+      console.error("Failed to mark booking payment as failed:", err);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+export default router;

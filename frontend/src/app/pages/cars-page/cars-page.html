@@ -87,6 +87,14 @@
         }
       </select>
 
+      <label class="filters__label">Color</label>
+      <select class="filters__select" [(ngModel)]="filters.color">
+        <option [ngValue]="undefined">All Colors</option>
+        @for (c of colors; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+
       <label class="filters__label">Seats</label>
       <select class="filters__select" [(ngModel)]="filters.seats">
         <option [ngValue]="undefined">Any</option>
@@ -94,6 +102,24 @@
           <option [value]="s">{{ s }} seats</option>
         }
       </select>
+
+      <label class="filters__label">Min Horsepower</label>
+      <input
+        class="filters__input"
+        type="number"
+        placeholder="Any"
+        [(ngModel)]="filters.minHorsepower"
+        min="0"
+      />
+
+      <label class="filters__label">Max Used Kilometers</label>
+      <input
+        class="filters__input"
+        type="number"
+        placeholder="Any"
+        [(ngModel)]="filters.maxMileageKm"
+        min="0"
+      />
 
       <button class="filters__btn filters__btn--apply" (click)="applyFilters()">
         Apply Filters

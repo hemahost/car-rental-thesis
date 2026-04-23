@@ -169,7 +169,10 @@
                 <div class="form-group"><label>Price / Day ($)</label><input type="number" [(ngModel)]="carForm.pricePerDay" min="1" /></div>
                 <div class="form-group form-group--full"><label>Image URL (optional)</label><input type="text" [(ngModel)]="carForm.imageUrl" placeholder="https://..." /></div>
                 <div class="form-group"><label>City / Location (optional)</label><input type="text" [(ngModel)]="carForm.city" placeholder="e.g. Budapest" /></div>
+                <div class="form-group"><label>Color (optional)</label><input type="text" [(ngModel)]="carForm.color" placeholder="e.g. Pearl White" /></div>
                 <div class="form-group"><label>Year (optional)</label><input type="number" [(ngModel)]="carForm.year" placeholder="e.g. 2022" min="1990" max="2030" /></div>
+                <div class="form-group"><label>Horsepower (optional)</label><input type="number" [(ngModel)]="carForm.horsepower" placeholder="e.g. 203" min="1" max="2000" /></div>
+                <div class="form-group"><label>Used Kilometers (optional)</label><input type="number" [(ngModel)]="carForm.mileageKm" placeholder="e.g. 18500" min="0" max="300000" /></div>
                 <div class="form-group"><label>Seats (optional)</label><input type="number" [(ngModel)]="carForm.seats" placeholder="e.g. 5" min="1" max="20" /></div>
                 <div class="form-group"><label>Transmission (optional)</label><select [(ngModel)]="carForm.transmission"><option value="">-- Select --</option><option value="Manual">Manual</option><option value="Automatic">Automatic</option></select></div>
                 <div class="form-group"><label>Fuel Type (optional)</label><select [(ngModel)]="carForm.fuelType"><option value="">-- Select --</option><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="Electric">Electric</option><option value="Hybrid">Hybrid</option></select></div>
@@ -186,13 +189,16 @@
           @if (!carsLoading && cars.length > 0) {
             <div class="table-wrap">
               <table class="data-table">
-                <thead><tr><th>Car</th><th>Type</th><th>City</th><th>Price/Day</th><th class="th-actions">Actions</th></tr></thead>
+                <thead><tr><th>Car</th><th>Type</th><th>City</th><th>Color</th><th>Power</th><th>Used</th><th>Price/Day</th><th class="th-actions">Actions</th></tr></thead>
                 <tbody>
                   @for (car of cars; track car.id) {
                     <tr>
                       <td><div class="cell-car">@if (car.imageUrl) {<img class="cell-car__img" [src]="car.imageUrl" [alt]="car.brand" />} @else {<div class="cell-car__placeholder">&#128663;</div>}<div class="cell-car__name">{{ car.brand }} {{ car.model }}</div></div></td>
                       <td><span class="tag">{{ car.type }}</span></td>
                       <td class="cell-muted">{{ car.city || '—' }}</td>
+                      <td class="cell-muted">{{ car.color || '—' }}</td>
+                      <td class="cell-muted">{{ car.horsepower ? car.horsepower + ' hp' : '—' }}</td>
+                      <td class="cell-muted">{{ car.mileageKm ? (car.mileageKm | number) + ' km' : '—' }}</td>
                       <td class="cell-price">${{ car.pricePerDay }}<span>/day</span></td>
                       <td class="actions"><button class="btn btn--small btn--outline" (click)="openEditCar(car)">Edit</button><button class="btn btn--small btn--danger" (click)="deleteCar(car)">Delete</button></td>
                     </tr>

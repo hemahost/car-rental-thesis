@@ -26,6 +26,19 @@
       <div class="card__rating card__rating--empty">No reviews yet</div>
     }
     <p class="card__desc">{{ car.description }}</p>
+    @if (car.horsepower || car.mileageKm || car.color) {
+      <div class="card__specs">
+        @if (car.horsepower) {
+          <span>{{ car.horsepower }} hp</span>
+        }
+        @if (car.mileageKm) {
+          <span>{{ car.mileageKm | number }} km</span>
+        }
+        @if (car.color) {
+          <span>{{ car.color }}</span>
+        }
+      </div>
+    }
     <div class="card__footer">
       <span class="card__price">${{ car.pricePerDay }}/day</span>
       <a class="card__btn" [routerLink]="['/cars', car.id]">View Details</a>

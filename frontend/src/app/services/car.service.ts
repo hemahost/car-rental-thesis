@@ -12,6 +12,11 @@ export interface CarFilters {
   transmission?: string;
   fuelType?: string;
   seats?: number;
+  minHorsepower?: number;
+  maxHorsepower?: number;
+  minMileageKm?: number;
+  maxMileageKm?: number;
+  color?: string;
 }
 
 interface CarsResponse {
@@ -40,6 +45,11 @@ export class CarService {
     if (filters?.transmission) params = params.set('transmission', filters.transmission);
     if (filters?.fuelType) params = params.set('fuelType', filters.fuelType);
     if (filters?.seats != null) params = params.set('seats', filters.seats.toString());
+    if (filters?.minHorsepower != null) params = params.set('minHorsepower', filters.minHorsepower.toString());
+    if (filters?.maxHorsepower != null) params = params.set('maxHorsepower', filters.maxHorsepower.toString());
+    if (filters?.minMileageKm != null) params = params.set('minMileageKm', filters.minMileageKm.toString());
+    if (filters?.maxMileageKm != null) params = params.set('maxMileageKm', filters.maxMileageKm.toString());
+    if (filters?.color) params = params.set('color', filters.color);
 
     return this.http.get<CarsResponse>(this.apiUrl, { params }).pipe(
       map((res) => res.cars)

@@ -11,6 +11,9 @@ export interface Car {
   transmission?: string;
   fuelType?: string;
   year?: number;
+  horsepower?: number;
+  mileageKm?: number;
+  color?: string;
   avgRating?: number;
   reviewCount?: number;
 }

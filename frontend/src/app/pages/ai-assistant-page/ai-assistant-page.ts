@@ -6,6 +6,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -21,7 +22,7 @@ export interface ChatMessage {
 
 @Component({
   selector: 'app-ai-assistant-page',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DecimalPipe],
   templateUrl: './ai-assistant-page.html',
   styleUrl: './ai-assistant-page.scss',
 })
@@ -34,7 +35,7 @@ export class AIAssistantPage implements OnInit, AfterViewChecked {
   private shouldScroll = false;
 
   readonly chips = [
-    'Hello!',
+    'Find me a 7-seat car',
     'SUV under $80/day',
     '⚡ Electric cars',
     'Cheapest available car',
@@ -50,7 +51,7 @@ export class AIAssistantPage implements OnInit, AfterViewChecked {
   ngOnInit(): void {
     this.messages.push({
       role: 'bot',
-      text: 'Hi! 👋 I\'m your AI car rental assistant. Ask me anything — I can help you find the perfect car, answer questions, or just chat!',
+      text: 'Hi! I am your AI car rental assistant. Ask me about our cars, prices, availability, or the rental process.',
     });
   }
 
@@ -117,7 +118,7 @@ export class AIAssistantPage implements OnInit, AfterViewChecked {
   clearChat(): void {
     this.messages = [{
       role: 'bot',
-      text: 'Hi! 👋 I\'m your AI car rental assistant. Ask me anything — I can help you find the perfect car, answer questions, or just chat!',
+      text: 'Hi! I am your AI car rental assistant. Ask me about our cars, prices, availability, or the rental process.',
     }];
     this.message = '';
     this.loading = false;

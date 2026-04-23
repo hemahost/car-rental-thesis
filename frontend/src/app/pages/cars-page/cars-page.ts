@@ -23,6 +23,7 @@ export class CarsPage implements OnInit {
   types = ['SUV', 'Sedan', 'Hatchback', 'Coupe', 'Electric'];
   transmissions = ['Manual', 'Automatic'];
   fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid'];
+  colors = ['Black', 'Blue', 'Grey', 'Red', 'Silver', 'White', 'Yellow'];
   seatOptions = [2, 4, 5, 7, 8];
 
   filters: CarFilters = {};
@@ -66,6 +67,7 @@ export class CarsPage implements OnInit {
         c.brand.toLowerCase().includes(q) ||
         c.model.toLowerCase().includes(q) ||
         c.description.toLowerCase().includes(q) ||
+        (c.color?.toLowerCase().includes(q) ?? false) ||
         (c.city?.toLowerCase().includes(q) ?? false)
       );
     }

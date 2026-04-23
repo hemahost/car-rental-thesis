@@ -27,9 +27,9 @@ export class AdminDashboardPage implements OnInit {
   editingCar: Car | null = null;
   carForm: {
     brand: string; model: string; type: string; pricePerDay: number;
-    description: string; imageUrl: string; city: string;
-    seats: number | null; transmission: string; fuelType: string; year: number | null;
-  } = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', seats: null, transmission: '', fuelType: '', year: null };
+    description: string; imageUrl: string; city: string; color: string;
+    seats: number | null; transmission: string; fuelType: string; year: number | null; horsepower: number | null; mileageKm: number | null;
+  } = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', color: '', seats: null, transmission: '', fuelType: '', year: null, horsepower: null, mileageKm: null };
   carFormLoading = false;
   carFormError = '';
   carFormSuccess = '';
@@ -181,7 +181,7 @@ export class AdminDashboardPage implements OnInit {
 
   openAddCar(): void {
     this.editingCar = null;
-    this.carForm = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', seats: null, transmission: '', fuelType: '', year: null };
+    this.carForm = { brand: '', model: '', type: '', pricePerDay: 0, description: '', imageUrl: '', city: '', color: '', seats: null, transmission: '', fuelType: '', year: null, horsepower: null, mileageKm: null };
     this.carFormError = '';
     this.carFormSuccess = '';
     this.showCarForm = true;
@@ -197,10 +197,13 @@ export class AdminDashboardPage implements OnInit {
       description: car.description,
       imageUrl: car.imageUrl || '',
       city: car.city || '',
+      color: car.color || '',
       seats: car.seats || null,
       transmission: car.transmission || '',
       fuelType: car.fuelType || '',
       year: car.year || null,
+      horsepower: car.horsepower || null,
+      mileageKm: car.mileageKm || null,
     };
     this.carFormError = '';
     this.carFormSuccess = '';
@@ -228,10 +231,13 @@ export class AdminDashboardPage implements OnInit {
       description: this.carForm.description,
       imageUrl: this.carForm.imageUrl || undefined,
       city: this.carForm.city || undefined,
+      color: this.carForm.color || undefined,
       seats: this.carForm.seats || undefined,
       transmission: this.carForm.transmission || undefined,
       fuelType: this.carForm.fuelType || undefined,
       year: this.carForm.year || undefined,
+      horsepower: this.carForm.horsepower || undefined,
+      mileageKm: this.carForm.mileageKm || undefined,
     };
 
     const obs = this.editingCar

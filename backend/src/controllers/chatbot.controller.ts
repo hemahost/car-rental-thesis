@@ -20,7 +20,7 @@ export async function postChatbotMessage(req: Request, res: Response) {
         if (
           item &&
           typeof item === 'object' &&
-          (item as Record<string, unknown>).role === 'user' || (item as Record<string, unknown>).role === 'bot'
+          ((item as Record<string, unknown>).role === 'user' || (item as Record<string, unknown>).role === 'bot')
         ) {
           const h = item as Record<string, unknown>;
           if (typeof h.text === 'string' && h.text.trim().length > 0) {

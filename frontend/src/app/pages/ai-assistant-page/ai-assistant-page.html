@@ -67,6 +67,15 @@
                         <div class="chat-car-card__type">{{ car.type }}</div>
                         <h4 class="chat-car-card__name">{{ car.brand }} {{ car.model }}</h4>
                         <p class="chat-car-card__desc">{{ car.description }}</p>
+                        @if (car.horsepower) {
+                          <div class="chat-car-card__type">{{ car.horsepower }} hp</div>
+                        }
+                        @if (car.mileageKm) {
+                          <div class="chat-car-card__type">{{ car.mileageKm | number }} km used</div>
+                        }
+                        @if (car.color) {
+                          <div class="chat-car-card__type">{{ car.color }}</div>
+                        }
                         <div class="chat-car-card__footer">
                           <span class="chat-car-card__price">${{ car.pricePerDay }}<span>/day</span></span>
                           <span class="chat-car-card__btn">View Details →</span>

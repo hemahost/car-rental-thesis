@@ -16,8 +16,14 @@ interface ChatbotResult {
   aiResponse: string;
 }
 
-const VALID_CAR_TYPES = new Set(["suv", "sedan", "electric", "hatchback"]);
+const VALID_CAR_TYPES = new Set(["suv", "sedan", "electric", "hatchback", "coupe"]);
 const ACTIVE_BOOKING_STATUSES = ["PENDING", "CONFIRMED", "ACTIVE"];
+const OFF_TOPIC_RESPONSE =
+  "Sorry, I can only help with your questions related to our cars and the process of rental!";
+const GREETING_RESPONSE =
+  "Hello! I'm happy to help you find a rental car, compare our vehicles, or explain the booking process. What kind of car are you looking for?";
+const EXTERNAL_CAR_INFO_PATTERN =
+  /\b(horsepower|hp|engine|torque|acceleration|0[- ]?60|0[- ]?100|top speed|range|battery|charging|fuel economy|mpg|consumption|l\/100|dimensions|length|width|height|trunk|boot|cargo|safety rating|euro ncap|ncap|spec|specs|technical|power|performance)\b/i;
 
 function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
   const minPrice = filters.minPrice != null && filters.minPrice >= 0 ? filters.minPrice : null;
@@ -32,6 +38,18 @@ function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
     durationDays: filters.durationDays != null && filters.durationDays > 0 ? filters.durationDays : null,
     sortByPrice: filters.sortByPrice ?? null,
     location: filters.location ?? null,
+    brand: filters.brand ?? null,
+    model: filters.model ?? null,
+    minSeats: filters.minSeats != null && filters.minSeats > 0 ? Math.ceil(filters.minSeats) : null,
+    transmission: filters.transmission ?? null,
+    fuelType: filters.fuelType ?? null,
+    yearMin: filters.yearMin != null && filters.yearMin > 1900 ? Math.round(filters.yearMin) : null,
+    yearMax: filters.yearMax != null && filters.yearMax > 1900 ? Math.round(filters.yearMax) : null,
+    minHorsepower: filters.minHorsepower != null && filters.minHorsepower > 0 ? Math.round(filters.minHorsepower) : null,
+    maxHorsepower: filters.maxHorsepower != null && filters.maxHorsepower > 0 ? Math.round(filters.maxHorsepower) : null,
+    minMileageKm: filters.minMileageKm != null && filters.minMileageKm > 0 ? Math.round(filters.minMileageKm) : null,
+    maxMileageKm: filters.maxMileageKm != null && filters.maxMileageKm > 0 ? Math.round(filters.maxMileageKm) : null,
+    color: filters.color ?? null,
   };
 }
 
@@ -120,6 +138,132 @@ function safeCreateConversationLog(data: {
     });
 }
 
+function shouldUseExternalCarInfo(message: string): boolean {
+  return EXTERNAL_CAR_INFO_PATTERN.test(message);
+}
+
+function isLikelyCarOrRentalQuestion(message: string): boolean {
+  return /\b(car|cars|vehicle|vehicles|rental|rent|booking|book|fleet|suv|sedan|hatchback|coupe|electric|toyota|bmw|audi|tesla|mercedes|volkswagen|honda|ford|porsche)\b/i.test(message);
+}
+
+function isGreetingOrPleasantry(message: string): boolean {
+  const normalized = message.trim().toLowerCase().replace(/[.!?]+$/g, "");
+  return /^(hi|hello|hey|good morning|good afternoon|good evening|howdy|yo|thanks|thank you|ok|okay)$/.test(normalized);
+}
+
+function extractHorsepowerThreshold(message: string): { minHorsepower: number | null; maxHorsepower: number | null } {
+  const normalized = message.toLowerCase();
+  const hpMatch = normalized.match(/(\d{2,4})\s*(?:horsepower|hp|bhp)/);
+  if (!hpMatch) {
+    return { minHorsepower: null, maxHorsepower: null };
+  }
+
+  const horsepower = Number(hpMatch[1]);
+  if (!Number.isFinite(horsepower) || horsepower <= 0) {
+    return { minHorsepower: null, maxHorsepower: null };
+  }
+
+  const matchIndex = hpMatch.index ?? 0;
+  const before = normalized.slice(Math.max(0, matchIndex - 30), matchIndex);
+  if (/\b(under|below|less than|lower than|maximum|max|up to)\b/.test(before)) {
+    return { minHorsepower: null, maxHorsepower: horsepower };
+  }
+
+  if (/\b(over|more than|above|greater than|at least|minimum|min)\b/.test(before)) {
+    return { minHorsepower: horsepower, maxHorsepower: null };
+  }
+
+  return { minHorsepower: horsepower, maxHorsepower: null };
+}
+
+function extractMileageThreshold(message: string): { minMileageKm: number | null; maxMileageKm: number | null } {
+  const normalized = message.toLowerCase().replace(/,/g, "");
+  if (/\b(low mileage|not used much|less used|newer condition)\b/.test(normalized)) {
+    return { minMileageKm: null, maxMileageKm: 25000 };
+  }
+
+  const kmMatch = normalized.match(/(\d{3,6})\s*(?:km|kilometer|kilometers|kms|mileage)/);
+  if (!kmMatch) {
+    return { minMileageKm: null, maxMileageKm: null };
+  }
+
+  const mileageKm = Number(kmMatch[1]);
+  if (!Number.isFinite(mileageKm) || mileageKm <= 0) {
+    return { minMileageKm: null, maxMileageKm: null };
+  }
+
+  const matchIndex = kmMatch.index ?? 0;
+  const before = normalized.slice(Math.max(0, matchIndex - 30), matchIndex);
+  if (/\b(under|below|less than|lower than|maximum|max|up to|not more than)\b/.test(before)) {
+    return { minMileageKm: null, maxMileageKm: mileageKm };
+  }
+
+  if (/\b(over|more than|above|greater than|at least|minimum|min)\b/.test(before)) {
+    return { minMileageKm: mileageKm, maxMileageKm: null };
+  }
+
+  return { minMileageKm: null, maxMileageKm: mileageKm };
+}
+
+function extractColor(message: string): string | null {
+  const normalized = message.toLowerCase();
+  const colors = ["black", "blue", "grey", "gray", "red", "silver", "white", "yellow"];
+  const match = colors.find((color) => new RegExp(`\\b${color}\\b`).test(normalized));
+  if (!match) {
+    return null;
+  }
+
+  return match === "gray" ? "Grey" : match.charAt(0).toUpperCase() + match.slice(1);
+}
+
+function toShortlistCar(car: {
+  id: string;
+  brand: string;
+  model: string;
+  type: string;
+  pricePerDay: number;
+  imageUrl: string | null;
+  description: string | null;
+  city: string | null;
+  seats: number | null;
+  transmission: string | null;
+  fuelType: string | null;
+  year: number | null;
+  horsepower: number | null;
+  mileageKm: number | null;
+  color: string | null;
+}): ShortlistCar {
+  return {
+    id: car.id,
+    brand: car.brand,
+    model: car.model,
+    type: car.type,
+    pricePerDay: car.pricePerDay,
+    imageUrl: car.imageUrl ?? null,
+    description: car.description ?? "",
+    city: car.city ?? null,
+    seats: car.seats ?? null,
+    transmission: car.transmission ?? null,
+    fuelType: car.fuelType ?? null,
+    year: car.year ?? null,
+    horsepower: car.horsepower ?? null,
+    mileageKm: car.mileageKm ?? null,
+    color: car.color ?? null,
+  };
+}
+
+function uniqueCarsByModel(cars: ShortlistCar[]): ShortlistCar[] {
+  const seen = new Set<string>();
+  return cars.filter((car) => {
+    const key = `${car.brand.toLowerCase()}-${car.model.toLowerCase()}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
 export class ChatbotService {
   private readonly aiService: AIService;
 
@@ -129,9 +273,18 @@ export class ChatbotService {
 
   async handleChat({ message, history, authorizationHeader }: ChatbotInput): Promise<ChatbotResult> {
     const extracted = await this.aiService.extractPreferences(message, history);
+    const needsExternalCarInfo = shouldUseExternalCarInfo(message);
 
-    if (!extracted.isCarRentalQuery) {
-      console.log("[chatbot] non-rental query detected, generating conversational response");
+    if (!extracted.isCarRentalQuery && isGreetingOrPleasantry(message)) {
+      return {
+        filters: normalizeFilters(extracted),
+        recommendations: [],
+        aiResponse: GREETING_RESPONSE,
+      };
+    }
+
+    if (!extracted.isCarRentalQuery && !isLikelyCarOrRentalQuestion(message)) {
+      console.log("[chatbot] non-rental query detected");
       const aiResponse = await this.aiService.generateConversationalResponse(message, history);
       return {
         filters: normalizeFilters(extracted),
@@ -140,7 +293,30 @@ export class ChatbotService {
       };
     }
 
-    const filters = normalizeFilters(extracted);
+    const horsepowerThreshold = extractHorsepowerThreshold(message);
+    const mileageThreshold = extractMileageThreshold(message);
+    const color = extractColor(message);
+    const filters = normalizeFilters(
+      !extracted.isCarRentalQuery && isLikelyCarOrRentalQuestion(message)
+        ? { ...extracted, isCarRentalQuery: true }
+        : extracted
+    );
+
+    if (horsepowerThreshold.minHorsepower != null) {
+      filters.minHorsepower = horsepowerThreshold.minHorsepower;
+    }
+    if (horsepowerThreshold.maxHorsepower != null) {
+      filters.maxHorsepower = horsepowerThreshold.maxHorsepower;
+    }
+    if (mileageThreshold.minMileageKm != null) {
+      filters.minMileageKm = mileageThreshold.minMileageKm;
+    }
+    if (mileageThreshold.maxMileageKm != null) {
+      filters.maxMileageKm = mileageThreshold.maxMileageKm;
+    }
+    if (color) {
+      filters.color = color;
+    }
 
     console.log("[chatbot] extracted filters:", filters);
 
@@ -152,9 +328,21 @@ export class ChatbotService {
       (filters.features == null || filters.features.length === 0) &&
       filters.durationDays == null &&
       filters.sortByPrice == null &&
-      filters.location == null;
+      filters.location == null &&
+      filters.brand == null &&
+      filters.model == null &&
+      filters.minSeats == null &&
+      filters.transmission == null &&
+      filters.fuelType == null &&
+      filters.yearMin == null &&
+      filters.yearMax == null &&
+      filters.minHorsepower == null &&
+      filters.maxHorsepower == null &&
+      filters.minMileageKm == null &&
+      filters.maxMileageKm == null &&
+      filters.color == null;
 
-    if (hasNoFilters) {
+    if (hasNoFilters && !needsExternalCarInfo) {
       const aiResponse = await this.aiService.generateClarifyingQuestion(message, history);
       return {
         filters,
@@ -171,6 +359,60 @@ export class ChatbotService {
 
     if (filters.location) {
       where.city = { contains: filters.location, mode: "insensitive" };
+    }
+
+    if (filters.brand) {
+      where.brand = { contains: filters.brand, mode: "insensitive" };
+    }
+
+    if (filters.model) {
+      where.model = { contains: filters.model, mode: "insensitive" };
+    }
+
+    if (filters.minSeats != null) {
+      where.seats = { gte: filters.minSeats };
+    }
+
+    if (filters.transmission) {
+      where.transmission = { equals: filters.transmission, mode: "insensitive" };
+    }
+
+    if (filters.fuelType) {
+      where.fuelType = { equals: filters.fuelType, mode: "insensitive" };
+    }
+
+    if (filters.color) {
+      where.color = { contains: filters.color, mode: "insensitive" };
+    }
+
+    if (filters.yearMin != null || filters.yearMax != null) {
+      where.year = {};
+      if (filters.yearMin != null) {
+        where.year.gte = filters.yearMin;
+      }
+      if (filters.yearMax != null) {
+        where.year.lte = filters.yearMax;
+      }
+    }
+
+    if (filters.minHorsepower != null || filters.maxHorsepower != null) {
+      where.horsepower = {};
+      if (filters.minHorsepower != null) {
+        where.horsepower.gte = filters.minHorsepower;
+      }
+      if (filters.maxHorsepower != null) {
+        where.horsepower.lte = filters.maxHorsepower;
+      }
+    }
+
+    if (filters.minMileageKm != null || filters.maxMileageKm != null) {
+      where.mileageKm = {};
+      if (filters.minMileageKm != null) {
+        where.mileageKm.gte = filters.minMileageKm;
+      }
+      if (filters.maxMileageKm != null) {
+        where.mileageKm.lte = filters.maxMileageKm;
+      }
     }
 
     if (filters.minPrice != null || filters.maxPrice != null) {
@@ -213,17 +455,31 @@ export class ChatbotService {
 
     console.log("[chatbot] DB results count:", availableCars.length);
 
-    const recommendations: ShortlistCar[] = availableCars.slice(0, 3).map((car) => ({
-      id: car.id,
-      brand: car.brand,
-      model: car.model,
-      type: car.type,
-      pricePerDay: car.pricePerDay,
-      imageUrl: car.imageUrl ?? null,
-      description: car.description ?? "",
-    }));
+    const recommendationLimit = needsExternalCarInfo ? 12 : 3;
+    const recommendations: ShortlistCar[] = uniqueCarsByModel(
+      availableCars.slice(0, recommendationLimit).map(toShortlistCar)
+    );
 
-    const aiResponse = await this.aiService.generateRecommendation(message, recommendations, durationDays);
+    if (needsExternalCarInfo && recommendations.some((car) => car.horsepower == null)) {
+      const aiResponse = await this.aiService.answerCarQuestionWithWebSearch(message, recommendations, filters);
+      const userId = getOptionalUserIdFromToken(authorizationHeader);
+
+      safeCreateConversationLog({
+        userId,
+        message,
+        filters,
+        recommendations,
+        aiResponse,
+      });
+
+      return {
+        filters,
+        recommendations,
+        aiResponse,
+      };
+    }
+
+    const aiResponse = await this.aiService.generateRecommendation(message, recommendations, durationDays, filters);
 
     console.log("[chatbot] AI response:", aiResponse);
 

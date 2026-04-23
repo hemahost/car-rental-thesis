@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "build": "tsc",
-    "seed": "ts-node-dev --transpile-only src/seed.ts"
+    "seed": "ts-node-dev --transpile-only src/seed.ts",
+    "update:horsepower": "ts-node-dev --transpile-only src/update-horsepower.ts",
+    "update:car-specs": "ts-node-dev --transpile-only src/update-horsepower.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

@@ -41,6 +41,9 @@ model Car {
   transmission String?
   fuelType     String?
   year         Int?
+  horsepower   Int?
+  mileageKm    Int?
+  color        String?
   createdAt    DateTime   @default(now())
   bookings    Booking[]
   favorites   Favorite[]

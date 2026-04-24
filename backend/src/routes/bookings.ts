@@ -2,15 +2,59 @@ import { Router, Response } from "express";
 import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
+import { expirePendingBookings } from "../utils/bookingExpiration";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const stripe = new (require("stripe"))(process.env.STRIPE_SECRET_KEY as string);
 
 const router = Router();
+const MAX_BOOKING_ADVANCE_DAYS = 365;
+const MAX_BOOKING_DURATION_DAYS = 30;
+
+function parseDateOnly(value: string): Date {
+  return new Date(`${value}T00:00:00`);
+}
+
+function getBookingDateValidation(start: Date, end: Date): string | null {
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return "Invalid date format";
+  }
+
+  if (start >= end) {
+    return "Start date must be before end date";
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (start < today) {
+    return "Start date cannot be in the past";
+  }
+
+  if (end < today) {
+    return "End date cannot be in the past";
+  }
+
+  const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  if (durationDays > MAX_BOOKING_DURATION_DAYS) {
+    return `Bookings cannot be longer than ${MAX_BOOKING_DURATION_DAYS} days`;
+  }
+
+  const latestAllowedStart = new Date(today);
+  latestAllowedStart.setDate(latestAllowedStart.getDate() + MAX_BOOKING_ADVANCE_DAYS);
+
+  if (start > latestAllowedStart || end > latestAllowedStart) {
+    return `Bookings can only be made up to ${MAX_BOOKING_ADVANCE_DAYS} days in advance`;
+  }
+
+  return null;
+}
 
 // GET /api/bookings/me
 router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   try {
+    await expirePendingBookings({ userId: req.userId! });
+
     const bookings = await prisma.booking.findMany({
       where: { userId: req.userId },
       include: {
@@ -37,16 +81,14 @@ router.get("/availability", async (req, res) => {
       return sendError(res, "carId, startDate, and endDate are required", 400);
     }
 
-    const start = new Date(startDate as string);
-    const end = new Date(endDate as string);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return sendError(res, "Invalid date format", 400);
+    const start = parseDateOnly(startDate as string);
+    const end = parseDateOnly(endDate as string);
+    const validationError = getBookingDateValidation(start, end);
+    if (validationError) {
+      return sendError(res, validationError, 400);
     }
 
-    if (start >= end) {
-      return sendError(res, "Start date must be before end date", 400);
-    }
+    await expirePendingBookings({ carId: carId as string });
 
     // Find overlapping pending/confirmed/active bookings
     const conflicting = await prisma.booking.findMany({
@@ -60,10 +102,47 @@ router.get("/availability", async (req, res) => {
 
     const available = conflicting.length === 0;
 
-    return sendSuccess(res, { available, conflictingBookings: conflicting.length });
+    return sendSuccess(res, {
+      available,
+      conflictingBookings: conflicting.length,
+      conflictingRanges: conflicting.map((booking) => ({
+        id: booking.id,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        status: booking.status,
+      })),
+    });
   } catch (err) {
     console.error(err);
     return sendError(res, "Failed to check availability", 500);
+  }
+});
+
+// GET /api/bookings/unavailable/:carId
+router.get("/unavailable/:carId", async (req, res) => {
+  try {
+    const { carId } = req.params;
+
+    await expirePendingBookings({ carId });
+
+    const unavailableBookings = await prisma.booking.findMany({
+      where: {
+        carId,
+        status: { in: ["PENDING", "CONFIRMED", "ACTIVE"] },
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        status: true,
+      },
+      orderBy: { startDate: "asc" },
+    });
+
+    return sendSuccess(res, { unavailableBookings });
+  } catch (err) {
+    console.error(err);
+    return sendError(res, "Failed to fetch unavailable booking dates", 500);
   }
 });
 
@@ -76,21 +155,22 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "carId, startDate, and endDate are required", 400);
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return sendError(res, "Invalid date format", 400);
+    const start = parseDateOnly(startDate);
+    const end = parseDateOnly(endDate);
+    const validationError = getBookingDateValidation(start, end);
+    if (validationError) {
+      return sendError(res, validationError, 400);
     }
 
-    if (start >= end) {
-      return sendError(res, "Start date must be before end date", 400);
-    }
+    await expirePendingBookings({ carId });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (start < today) {
-      return sendError(res, "Start date cannot be in the past", 400);
+    const normalizedPickupLocation =
+      typeof pickupLocation === "string" ? pickupLocation.trim().replace(/\s+/g, " ") : "";
+    const normalizedDropoffLocation =
+      typeof dropoffLocation === "string" ? dropoffLocation.trim().replace(/\s+/g, " ") : "";
+
+    if (!normalizedPickupLocation || !normalizedDropoffLocation) {
+      return sendError(res, "Pick-up and drop-off locations are required", 400);
     }
 
     // Check car exists
@@ -125,8 +205,8 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
         endDate: end,
         totalPrice,
         status: "PENDING",
-        pickupLocation: pickupLocation || null,
-        dropoffLocation: dropoffLocation || null,
+        pickupLocation: normalizedPickupLocation,
+        dropoffLocation: normalizedDropoffLocation,
       },
       include: {
         car: {

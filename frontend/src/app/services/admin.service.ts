@@ -25,6 +25,8 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
+  address?: string | null;
   role: string;
   provider: string;
   avatarUrl: string | null;
@@ -53,6 +55,19 @@ export interface AdminUserDetail {
     dropoffLocation: string | null;
     car: { brand: string; model: string; imageUrl: string | null };
   }[];
+}
+
+export interface AdminUserUpdateResult {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  avatarUrl: string | null;
+  role: string;
+  provider: string;
+  twoFactorEnabled: boolean;
+  createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -124,6 +139,15 @@ export class AdminService {
     return this.http
       .get<{ success: boolean; users: AdminUser[] }>(`${this.apiUrl}/users`)
       .pipe(map((res) => res.users));
+  }
+
+  updateUser(
+    id: string,
+    payload: { name: string; email: string; phone?: string | null; address?: string | null; role?: string }
+  ): Observable<AdminUserUpdateResult> {
+    return this.http
+      .put<{ success: boolean; user: AdminUserUpdateResult }>(`${this.apiUrl}/users/${id}`, payload)
+      .pipe(map((res) => res.user));
   }
 
   updateUserRole(id: string, role: string): Observable<{ id: string; name: string; email: string; role: string }> {

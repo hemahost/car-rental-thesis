@@ -49,12 +49,25 @@ export class AdminDashboardPage implements OnInit {
   users: AdminUser[] = [];
   usersLoading = false;
   usersError = '';
+  readonly protectedAdminEmail = 'admin@test.com';
 
   // ── User Detail Modal ──
   selectedUser: AdminUserDetail | null = null;
   userDetailLoading = false;
   userDetailError = '';
   showUserDetail = false;
+  editingUser: AdminUser | AdminUserDetail | null = null;
+  showUserEdit = false;
+  userForm = {
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    role: 'USER',
+  };
+  userFormLoading = false;
+  userFormError = '';
+  userFormSuccess = '';
 
   readonly statusOrder = ['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
   readonly statusColors: Record<string, string> = {
@@ -135,8 +148,98 @@ export class AdminDashboardPage implements OnInit {
     this.userDetailError = '';
   }
 
+  openEditUser(user: AdminUser | AdminUserDetail): void {
+    this.editingUser = user;
+    this.userForm = {
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      address: user.address || '',
+      role: user.role,
+    };
+    this.userFormError = '';
+    this.userFormSuccess = '';
+    this.showUserEdit = true;
+  }
+
+  closeUserEdit(): void {
+    this.showUserEdit = false;
+    this.editingUser = null;
+    this.userFormError = '';
+    this.userFormSuccess = '';
+    this.userFormLoading = false;
+  }
+
+  isProtectedAdmin(user: { email: string }): boolean {
+    return user.email.toLowerCase() === this.protectedAdminEmail;
+  }
+
+  submitUserForm(): void {
+    if (!this.editingUser) return;
+
+    this.userFormLoading = true;
+    this.userFormError = '';
+    this.userFormSuccess = '';
+
+    const payload = {
+      name: this.userForm.name.trim(),
+      email: this.userForm.email.trim().toLowerCase(),
+      phone: this.userForm.phone.trim(),
+      address: this.userForm.address.trim(),
+      role: this.isProtectedAdmin(this.editingUser) ? 'ADMIN' : this.userForm.role,
+    };
+
+    this.adminService
+      .updateUser(this.editingUser.id, payload)
+      .pipe(finalize(() => { this.userFormLoading = false; this.cdr.detectChanges(); }))
+      .subscribe({
+        next: (updated) => {
+          const idx = this.users.findIndex((u) => u.id === updated.id);
+          if (idx !== -1) {
+            this.users[idx] = {
+              ...this.users[idx],
+              name: updated.name,
+              email: updated.email,
+              phone: updated.phone,
+              address: updated.address,
+              role: updated.role,
+              avatarUrl: updated.avatarUrl,
+              provider: updated.provider,
+              createdAt: updated.createdAt,
+            };
+          }
+
+          if (this.selectedUser?.id === updated.id) {
+            this.selectedUser = {
+              ...this.selectedUser,
+              name: updated.name,
+              email: updated.email,
+              phone: updated.phone,
+              address: updated.address,
+              role: updated.role,
+              avatarUrl: updated.avatarUrl,
+              provider: updated.provider,
+              twoFactorEnabled: updated.twoFactorEnabled,
+              createdAt: updated.createdAt,
+            };
+          }
+
+          this.userFormSuccess = 'User updated successfully';
+          setTimeout(() => this.closeUserEdit(), 800);
+        },
+        error: (err) => {
+          this.userFormError = err?.error?.error?.message || 'Failed to update user';
+        },
+      });
+  }
+
   promoteUser(user: AdminUser): void {
     const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    if (this.isProtectedAdmin(user) && newRole === 'USER') {
+      this.usersError = 'The original admin account cannot be demoted.';
+      return;
+    }
+
     const label = newRole === 'ADMIN' ? 'promote to Admin' : 'demote to User';
     if (!confirm(`Are you sure you want to ${label} "${user.name}"?`)) return;
 
@@ -154,6 +257,11 @@ export class AdminDashboardPage implements OnInit {
   }
 
   deleteUser(user: AdminUser): void {
+    if (this.isProtectedAdmin(user)) {
+      this.usersError = 'The original admin account cannot be deleted.';
+      return;
+    }
+
     if (!confirm(`Delete account "${user.name}" (${user.email})? This cannot be undone.`)) return;
 
     this.adminService.deleteUser(user.id).subscribe({

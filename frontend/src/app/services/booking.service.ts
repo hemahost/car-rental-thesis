@@ -4,6 +4,19 @@ import { Observable, map } from 'rxjs';
 import { Booking } from '../models/booking.model';
 import { AuthService } from './auth.service';
 
+export interface UnavailableBookingRange {
+  id: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
+export interface AvailabilityCheckResult {
+  available: boolean;
+  conflictingBookings: number;
+  conflictingRanges: UnavailableBookingRange[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   private readonly apiUrl = 'http://localhost:3000/api/bookings';
@@ -26,12 +39,13 @@ export class BookingService {
     carId: string,
     startDate: string,
     endDate: string
-  ): Observable<{ available: boolean; conflictingBookings: number }> {
+  ): Observable<AvailabilityCheckResult> {
     return this.http
       .get<{
         success: boolean;
         available: boolean;
         conflictingBookings: number;
+        conflictingRanges?: UnavailableBookingRange[];
       }>(
         `${this.apiUrl}/availability?carId=${carId}&startDate=${startDate}&endDate=${endDate}`
       )
@@ -39,8 +53,17 @@ export class BookingService {
         map((res) => ({
           available: res.available,
           conflictingBookings: res.conflictingBookings,
+          conflictingRanges: res.conflictingRanges || [],
         }))
       );
+  }
+
+  getUnavailableBookings(carId: string): Observable<UnavailableBookingRange[]> {
+    return this.http
+      .get<{ success: boolean; unavailableBookings: UnavailableBookingRange[] }>(
+        `${this.apiUrl}/unavailable/${carId}`
+      )
+      .pipe(map((res) => res.unavailableBookings));
   }
 
   createBooking(

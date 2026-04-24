@@ -23,10 +23,9 @@
   flex-direction: column;
   position: sticky;
   top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
+  align-self: flex-start;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .dash-brand {
@@ -712,6 +711,7 @@
   margin-bottom: 18px;
   &--error   { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
   &--success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+  &--info    { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(59, 130, 246, 0.2); }
 }
 
 /* ── Stats ── */
@@ -806,6 +806,15 @@
   .dash-quick-stats { display: none; }
 }
 
+@media (max-height: 820px) and (min-width: 641px) {
+  .dash-sidebar {
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+}
+
 @media (max-width: 640px) {
   .dash { flex-direction: column; }
 
@@ -854,6 +863,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.modal--compact {
+  max-width: 720px;
 }
 
 .modal-header {

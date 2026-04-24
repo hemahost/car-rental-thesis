@@ -691,6 +691,10 @@
     margin-bottom: 24px;
   }
 
+  &__date-help {
+    grid-column: 1 / -1;
+  }
+
   &__field {
     label {
       display: block;
@@ -750,11 +754,90 @@
     }
   }
 
+  &__hint {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
   &__summary {
     background: #f8f9fa;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 24px;
+  }
+
+  &__unavailable {
+    margin-bottom: 24px;
+    padding: 20px 22px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+      var(--bg-input);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    &--inline {
+      margin-bottom: 0;
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.04)),
+        var(--bg-input);
+      border-color: rgba(96, 165, 250, 0.14);
+    }
+  }
+
+  &__unavailable-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+  }
+
+  &__unavailable-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    &--conflicts {
+      margin-top: 10px;
+    }
+  }
+
+  &__unavailable-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(248, 113, 113, 0.14), rgba(239, 68, 68, 0.08));
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    color: #fca5a5;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    &--conflict {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #b45309;
+    }
+  }
+
+  &__unavailable-empty {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
   }
 
   &__summary-row {
@@ -853,6 +936,21 @@
       background: #ecfdf5;
       color: #059669;
       border: 1px solid #a7f3d0;
+      font-weight: 600;
+    }
+  }
+
+  &__selected-conflicts {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+
+    p {
+      margin: 0;
+      color: #b45309;
+      font-size: 0.9rem;
       font-weight: 600;
     }
   }

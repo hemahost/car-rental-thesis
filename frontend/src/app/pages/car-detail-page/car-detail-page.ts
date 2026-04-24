@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CarService } from '../../services/car.service';
-import { BookingService } from '../../services/booking.service';
+import { BookingService, UnavailableBookingRange } from '../../services/booking.service';
 import { PaymentService } from '../../services/payment.service';
 import { FavoriteService } from '../../services/favorite.service';
 import { ReviewService } from '../../services/review.service';
@@ -20,6 +20,8 @@ import { CarCard } from '../../components/car-card/car-card';
   styleUrl: './car-detail-page.scss',
 })
 export class CarDetailPage implements OnInit {
+  readonly maxBookingAdvanceDays = 365;
+  readonly maxRentalDays = 30;
   car: Car | null = null;
   loading = true;
   error = '';
@@ -36,6 +38,9 @@ export class CarDetailPage implements OnInit {
   bookingError = '';
   bookingLoading = false;
   bookingSuccess = false;
+  unavailableBookings: UnavailableBookingRange[] = [];
+  availabilityConflictRanges: UnavailableBookingRange[] = [];
+  unavailableBookingsLoading = false;
 
   // Reviews
   reviews: Review[] = [];
@@ -83,6 +88,9 @@ export class CarDetailPage implements OnInit {
       this.bookingMessage = '';
       this.pickupLocation = '';
       this.dropoffLocation = '';
+      this.unavailableBookings = [];
+      this.availabilityConflictRanges = [];
+      this.unavailableBookingsLoading = false;
 
       const today = new Date();
       this.startDate = this.formatDate(today);
@@ -101,6 +109,7 @@ export class CarDetailPage implements OnInit {
             this.pickupLocation = car.city;
             this.dropoffLocation = car.city;
           }
+          this.loadUnavailableBookings(car.id);
           this.loadReviews(id);
           this.carService.getCars({ type: car.type }).subscribe({
             next: (cars) => {
@@ -125,15 +134,127 @@ export class CarDetailPage implements OnInit {
 
   get minEndDate(): string {
     if (this.startDate) {
-      const d = new Date(this.startDate);
+      const d = this.parseDateInput(this.startDate);
       d.setDate(d.getDate() + 1);
       return this.formatDate(d);
     }
     return this.todayStr;
   }
 
+  get maxBookingDate(): string {
+    const latest = new Date();
+    latest.setDate(latest.getDate() + this.maxBookingAdvanceDays);
+    return this.formatDate(latest);
+  }
+
   private formatDate(d: Date): string {
-    return d.toISOString().split('T')[0];
+    const year = d.getFullYear();
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private parseDateInput(value: string): Date {
+    if (!value) {
+      return new Date(NaN);
+    }
+
+    // Booking APIs return ISO timestamps, while date inputs use YYYY-MM-DD.
+    if (value.includes('T')) {
+      return new Date(value);
+    }
+
+    return new Date(`${value}T00:00:00`);
+  }
+
+  private formatDateRange(startDate: string, endDate: string): string {
+    const start = this.parseDateInput(startDate);
+    const end = this.parseDateInput(endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 'Unavailable dates could not be loaded';
+    }
+
+    return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+  }
+
+  get unavailableDateRanges(): string[] {
+    return this.unavailableBookings.map((booking) =>
+      this.formatDateRange(booking.startDate, booking.endDate)
+    );
+  }
+
+  get selectedConflictRanges(): string[] {
+    return this.availabilityConflictRanges.map((booking) =>
+      this.formatDateRange(booking.startDate, booking.endDate)
+    );
+  }
+
+  get hasValidDateRange(): boolean {
+    return !this.getValidationError();
+  }
+
+  get canConfirmBooking(): boolean {
+    return (
+      this.hasValidDateRange &&
+      this.availabilityStatus === 'available' &&
+      !this.bookingLoading
+    );
+  }
+
+  private getNormalizedLocation(value: string): string {
+    return value.trim().replace(/\s+/g, ' ');
+  }
+
+  private getValidationError(): string {
+    if (!this.startDate || !this.endDate) {
+      return 'Pick-up and return dates are required.';
+    }
+
+    const start = this.parseDateInput(this.startDate);
+    const end = this.parseDateInput(this.endDate);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return 'Please enter valid booking dates.';
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (start < today) {
+      return 'Pick-up date cannot be in the past.';
+    }
+
+    if (end < today) {
+      return 'Return date cannot be in the past.';
+    }
+
+    if (end <= start) {
+      return 'Return date must be after the pick-up date.';
+    }
+
+    const latestAllowed = this.parseDateInput(this.maxBookingDate);
+    if (start > latestAllowed || end > latestAllowed) {
+      return `Bookings can only be made up to ${this.maxBookingAdvanceDays} days in advance.`;
+    }
+
+    const rentalDays = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (rentalDays > this.maxRentalDays) {
+      return `Bookings cannot be longer than ${this.maxRentalDays} days.`;
+    }
+
+    if (!this.getNormalizedLocation(this.pickupLocation)) {
+      return 'Pick-up location is required.';
+    }
+
+    if (!this.getNormalizedLocation(this.dropoffLocation)) {
+      return 'Drop-off location is required.';
+    }
+
+    return '';
   }
 
   onDateChange(): void {
@@ -141,25 +262,42 @@ export class CarDetailPage implements OnInit {
     this.bookingMessage = '';
     this.bookingError = '';
     this.bookingSuccess = false;
-
-    if (this.startDate && this.endDate) {
-      const start = new Date(this.startDate);
-      const end = new Date(this.endDate);
-      if (end > start) {
-        this.totalDays = Math.ceil(
-          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        this.totalPrice = this.totalDays * (this.car?.pricePerDay || 0);
-      } else {
-        this.totalDays = 0;
-        this.totalPrice = 0;
-      }
+    this.availabilityConflictRanges = [];
+    const validationError = this.getValidationError();
+    if (validationError) {
+      this.totalDays = 0;
+      this.totalPrice = 0;
+      this.bookingError = validationError;
+      this.cdr.detectChanges();
+      return;
     }
+
+    const start = this.parseDateInput(this.startDate);
+    const end = this.parseDateInput(this.endDate);
+    this.totalDays = Math.ceil(
+      (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    this.totalPrice = this.totalDays * (this.car?.pricePerDay || 0);
+
+    if (this.car) {
+      this.checkAvailability();
+      return;
+    }
+
     this.cdr.detectChanges();
   }
 
   checkAvailability(): void {
     if (!this.car || !this.startDate || !this.endDate) return;
+
+    const validationError = this.getValidationError();
+    if (validationError) {
+      this.bookingError = validationError;
+      this.availabilityStatus = 'idle';
+      this.availabilityConflictRanges = [];
+      this.cdr.detectChanges();
+      return;
+    }
 
     this.availabilityStatus = 'checking';
     this.bookingError = '';
@@ -170,14 +308,32 @@ export class CarDetailPage implements OnInit {
       .subscribe({
         next: (res) => {
           this.availabilityStatus = res.available ? 'available' : 'unavailable';
+          this.availabilityConflictRanges = res.conflictingRanges;
           this.cdr.detectChanges();
         },
-        error: () => {
-          this.bookingError = 'Failed to check availability. Please try again.';
+        error: (err) => {
+          this.bookingError = err.error?.message || 'Failed to check availability. Please try again.';
+          this.availabilityConflictRanges = [];
           this.availabilityStatus = 'idle';
           this.cdr.detectChanges();
         },
       });
+  }
+
+  loadUnavailableBookings(carId: string): void {
+    this.unavailableBookingsLoading = true;
+    this.bookingService.getUnavailableBookings(carId).subscribe({
+      next: (bookings) => {
+        this.unavailableBookings = bookings;
+        this.unavailableBookingsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.unavailableBookings = [];
+        this.unavailableBookingsLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   get isLiked(): boolean {
@@ -198,12 +354,34 @@ export class CarDetailPage implements OnInit {
   confirmBooking(): void {
     if (!this.car || !this.startDate || !this.endDate) return;
 
+    const validationError = this.getValidationError();
+    if (validationError) {
+      this.bookingError = validationError;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (this.availabilityStatus !== 'available') {
+      this.bookingError = 'Please choose an available date range before confirming.';
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.bookingLoading = true;
     this.bookingError = '';
     this.cdr.detectChanges();
 
+    const pickupLocation = this.getNormalizedLocation(this.pickupLocation);
+    const dropoffLocation = this.getNormalizedLocation(this.dropoffLocation);
+
     this.bookingService
-      .createBooking(this.car.id, this.startDate, this.endDate, this.pickupLocation || undefined, this.dropoffLocation || undefined)
+      .createBooking(
+        this.car.id,
+        this.startDate,
+        this.endDate,
+        pickupLocation || undefined,
+        dropoffLocation || undefined
+      )
       .subscribe({
         next: (booking) => {
           this.paymentService.createPaymentIntent(booking.id).subscribe({

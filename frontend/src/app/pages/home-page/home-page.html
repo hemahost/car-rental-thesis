@@ -50,12 +50,16 @@
           class="quick-search__input"
           type="date"
           [(ngModel)]="quickSearch.pickupDate"
+          (ngModelChange)="clampSearchDate('pickupDate')"
+          [min]="minDate"
           name="pickupDate"
         />
         <input
           class="quick-search__input"
           type="date"
           [(ngModel)]="quickSearch.returnDate"
+          (ngModelChange)="clampSearchDate('returnDate')"
+          [min]="minDate"
           name="returnDate"
         />
       </div>
@@ -84,7 +88,7 @@
   <h2 class="categories__heading">Browse By Category</h2>
   <div class="categories__grid">
     @for (category of featuredCategories; track category.title) {
-      <button class="categories__card" (click)="browseCategory(category.type)">
+      <button class="categories__card" (click)="browseCategory(category)">
         <h3>{{ category.title }}</h3>
         <p>{{ category.description }}</p>
       </button>

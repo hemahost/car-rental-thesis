@@ -3,6 +3,7 @@ import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import { sendBookingConfirmationEmail } from "../utils/email";
+import { BOOKING_HOLD_MINUTES, expirePendingBookings, isPendingBookingExpired } from "../utils/bookingExpiration";
 
 const router = Router();
 
@@ -19,6 +20,8 @@ router.post("/create-intent", authenticate, async (req: AuthRequest, res: Respon
       return sendError(res, "bookingId is required", 400);
     }
 
+    await expirePendingBookings({ bookingId });
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { car: true, user: true },
@@ -30,6 +33,22 @@ router.post("/create-intent", authenticate, async (req: AuthRequest, res: Respon
 
     if (booking.userId !== req.userId) {
       return sendError(res, "Not authorized", 403);
+    }
+
+    if (isPendingBookingExpired(booking)) {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: "CANCELLED" },
+      });
+      return sendError(
+        res,
+        `This reservation expired after ${BOOKING_HOLD_MINUTES} minutes. Please book again.`,
+        409
+      );
+    }
+
+    if (booking.status !== "PENDING") {
+      return sendError(res, "Booking is no longer awaiting payment", 400);
     }
 
     if (booking.paymentStatus === "PAID") {
@@ -70,6 +89,8 @@ router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) =>
       return sendError(res, "bookingId is required", 400);
     }
 
+    await expirePendingBookings({ bookingId });
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { car: true, user: true },
@@ -81,6 +102,18 @@ router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) =>
 
     if (booking.userId !== req.userId) {
       return sendError(res, "Not authorized", 403);
+    }
+
+    if (isPendingBookingExpired(booking)) {
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: { status: "CANCELLED" },
+      });
+      return sendError(
+        res,
+        `This reservation expired after ${BOOKING_HOLD_MINUTES} minutes. Please book again.`,
+        409
+      );
     }
 
     if (booking.paymentStatus === "PAID") {

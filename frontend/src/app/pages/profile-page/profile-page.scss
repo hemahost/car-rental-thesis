@@ -161,6 +161,24 @@
   position: sticky;
   top: 80px;
   align-self: flex-start;
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--bg-card);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    background: var(--bg-card);
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 8px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-hover);
+  }
 
   &__avatar-card {
     background: #fff;
@@ -246,7 +264,7 @@
     padding: 14px 20px;
     border: none;
     background: none;
-    color: #555;
+    color: var(--text-primary);
     font-size: 0.92rem;
     font-weight: 500;
     cursor: pointer;
@@ -267,7 +285,7 @@
     }
 
     &--danger {
-      color: #e63946;
+      color: var(--danger);
       &:hover {
         background: rgba(230, 57, 70, 0.04);
         color: #c1121f;
@@ -1074,8 +1092,8 @@
 
   .sidebar {
     flex: none;
-    position: static;
     width: 100%;
+    position: static;
 
     &__avatar-card { flex-direction: row; text-align: left; flex-wrap: wrap; }
   }

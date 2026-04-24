@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CarCard } from '../../components/car-card/car-card';
 import { CarService, CarFilters } from '../../services/car.service';
 import { Car } from '../../models/car.model';
@@ -20,7 +20,7 @@ export class CarsPage implements OnInit {
   error = '';
 
   brands = ['Toyota', 'BMW', 'Audi', 'Tesla', 'Mercedes', 'Volkswagen', 'Honda', 'Ford', 'Porsche'];
-  types = ['SUV', 'Sedan', 'Hatchback', 'Coupe', 'Electric'];
+  types = ['SUV', 'Sedan', 'Hatchback', 'Coupe'];
   transmissions = ['Manual', 'Automatic'];
   fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid'];
   colors = ['Black', 'Blue', 'Grey', 'Red', 'Silver', 'White', 'Yellow'];
@@ -33,10 +33,31 @@ export class CarsPage implements OnInit {
   currentPage = 1;
   readonly pageSize = 12;
 
-  constructor(public auth: AuthService, public theme: ThemeService, private carService: CarService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    public auth: AuthService,
+    public theme: ThemeService,
+    private carService: CarService,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.loadCars();
+    this.route.queryParamMap.subscribe((params) => {
+      const type = params.get('type');
+      const fuelType = params.get('fuelType');
+
+      if (type && this.types.includes(type)) {
+        this.filters.type = type;
+      } else if (type === 'Electric') {
+        this.filters.fuelType = 'Electric';
+      }
+
+      if (fuelType && this.fuelTypes.includes(fuelType)) {
+        this.filters.fuelType = fuelType;
+      }
+
+      this.loadCars();
+    });
   }
 
   loadCars(): void {
@@ -63,13 +84,7 @@ export class CarsPage implements OnInit {
     let result = this.cars;
     const q = this.searchTerm.toLowerCase().trim();
     if (q) {
-      result = result.filter(c =>
-        c.brand.toLowerCase().includes(q) ||
-        c.model.toLowerCase().includes(q) ||
-        c.description.toLowerCase().includes(q) ||
-        (c.color?.toLowerCase().includes(q) ?? false) ||
-        (c.city?.toLowerCase().includes(q) ?? false)
-      );
+      result = result.filter((c) => `${c.brand} ${c.model}`.toLowerCase().includes(q));
     }
     switch (this.sortBy) {
       case 'price-asc':  return [...result].sort((a, b) => a.pricePerDay - b.pricePerDay);
@@ -93,11 +108,35 @@ export class CarsPage implements OnInit {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
+  get activeFilterCount(): number {
+    return Object.values(this.filters).filter((value) => value !== undefined && value !== null && value !== '').length;
+  }
+
   onSearchOrSortChange(): void {
     this.currentPage = 1;
   }
 
+  onPriceChange(changedField: 'minPrice' | 'maxPrice'): void {
+    this.normalizeNumberFilter('minPrice');
+    this.normalizeNumberFilter('maxPrice');
+
+    const minPrice = this.filters.minPrice;
+    const maxPrice = this.filters.maxPrice;
+
+    if (minPrice == null || maxPrice == null || minPrice <= maxPrice) {
+      return;
+    }
+
+    if (changedField === 'minPrice') {
+      this.filters.maxPrice = minPrice;
+      return;
+    }
+
+    this.filters.minPrice = maxPrice;
+  }
+
   applyFilters(): void {
+    this.normalizeFilters();
     this.filtersOpen = false;
     this.loadCars();
   }
@@ -108,5 +147,39 @@ export class CarsPage implements OnInit {
     this.sortBy = 'default';
     this.currentPage = 1;
     this.loadCars();
+  }
+
+  private normalizeFilters(): void {
+    this.normalizeNumberFilter('minPrice');
+    this.normalizeNumberFilter('maxPrice');
+    this.normalizeNumberFilter('seats');
+    this.normalizeNumberFilter('minHorsepower');
+    this.normalizeNumberFilter('maxMileageKm');
+
+    if (
+      this.filters.minPrice != null &&
+      this.filters.maxPrice != null &&
+      this.filters.minPrice > this.filters.maxPrice
+    ) {
+      this.filters.maxPrice = this.filters.minPrice;
+    }
+  }
+
+  private normalizeNumberFilter(field: keyof Pick<CarFilters, 'minPrice' | 'maxPrice' | 'seats' | 'minHorsepower' | 'maxMileageKm'>): void {
+    const value = this.filters[field] as number | string | undefined;
+
+    if (value == null || value === '') {
+      delete this.filters[field];
+      return;
+    }
+
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      delete this.filters[field];
+      return;
+    }
+
+    this.filters[field] = numericValue;
   }
 }

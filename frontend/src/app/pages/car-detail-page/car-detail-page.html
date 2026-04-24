@@ -255,8 +255,10 @@
                 id="startDate"
                 [(ngModel)]="startDate"
                 [min]="todayStr"
+                [max]="maxBookingDate"
                 (change)="onDateChange()"
               />
+              <small class="booking-form__hint">Pick-up must be today or later.</small>
             </div>
             <div class="booking-form__field">
               <label for="endDate">Return Date</label>
@@ -265,8 +267,29 @@
                 id="endDate"
                 [(ngModel)]="endDate"
                 [min]="minEndDate"
+                [max]="maxBookingDate"
                 (change)="onDateChange()"
               />
+              <small class="booking-form__hint">Return must be after pick-up and within {{ maxRentalDays }} days.</small>
+            </div>
+            <div class="booking-form__date-help">
+              <div class="booking-form__unavailable booking-form__unavailable--inline">
+                <div class="booking-form__unavailable-header">
+                  <h3>Booked Dates</h3>
+                </div>
+
+                @if (unavailableBookingsLoading) {
+                  <p class="booking-form__unavailable-empty">Loading booked dates...</p>
+                } @else if (unavailableDateRanges.length > 0) {
+                  <div class="booking-form__unavailable-list">
+                    @for (range of unavailableDateRanges; track range) {
+                      <span class="booking-form__unavailable-chip">{{ range }}</span>
+                    }
+                  </div>
+                } @else {
+                  <p class="booking-form__unavailable-empty">No booked dates right now.</p>
+                }
+              </div>
             </div>
             <div class="booking-form__field">
               <label for="pickupLocation">Pick-up Location</label>
@@ -276,6 +299,7 @@
                 [(ngModel)]="pickupLocation"
                 [readonly]="!!car.city"
                 placeholder="e.g. Tirana Airport"
+                (input)="onDateChange()"
               />
             </div>
             <div class="booking-form__field">
@@ -286,6 +310,7 @@
                 [(ngModel)]="dropoffLocation"
                 [readonly]="!!car.city"
                 placeholder="e.g. City Center"
+                (input)="onDateChange()"
               />
             </div>
           </div>
@@ -307,15 +332,9 @@
             </div>
           }
 
-          @if (availabilityStatus === 'idle' && totalDays > 0) {
-            <button class="booking-form__check-btn" (click)="checkAvailability()">
-              Check Availability
-            </button>
-          }
-
           @if (availabilityStatus === 'checking') {
             <div class="booking-form__status booking-form__status--checking">
-              Checking availability...
+              Checking availability automatically...
             </div>
           }
 
@@ -327,7 +346,7 @@
               <button
                 class="booking-form__confirm-btn"
                 (click)="confirmBooking()"
-                [disabled]="bookingLoading"
+                [disabled]="!canConfirmBooking"
               >
                 {{ bookingLoading ? 'Confirming...' : 'Confirm Booking' }}
               </button>
@@ -338,6 +357,16 @@
             <div class="booking-form__status booking-form__status--unavailable">
               Car is not available for the selected dates. Please choose different dates.
             </div>
+            @if (selectedConflictRanges.length > 0) {
+              <div class="booking-form__selected-conflicts">
+                <p>Conflicts with these bookings:</p>
+                <div class="booking-form__unavailable-list booking-form__unavailable-list--conflicts">
+                  @for (range of selectedConflictRanges; track range) {
+                    <span class="booking-form__unavailable-chip booking-form__unavailable-chip--conflict">{{ range }}</span>
+                  }
+                </div>
+              </div>
+            }
           }
 
           @if (bookingError) {

@@ -15,14 +15,15 @@ import { ThemeService } from '../../services/theme.service';
 })
 export class HomePage implements OnInit {
   popularCars: Car[] = [];
+  readonly minDate = this.formatDate(new Date());
 
   quickSearch = {
     type: '',
-    pickupDate: '',
-    returnDate: '',
+    pickupDate: this.minDate,
+    returnDate: this.minDate,
   };
 
-  readonly carTypes = ['SUV', 'Sedan', 'Electric', 'Hatchback'];
+  readonly carTypes = ['SUV', 'Sedan', 'Hatchback', 'Coupe'];
 
   readonly howItWorks = [
     {
@@ -42,7 +43,7 @@ export class HomePage implements OnInit {
   readonly featuredCategories = [
     { title: 'SUV', description: 'Comfort and space for family or group travel.', type: 'SUV' },
     { title: 'Sedan', description: 'Smooth city rides with excellent efficiency.', type: 'Sedan' },
-    { title: 'Electric', description: 'Modern, clean, and cost-efficient driving.', type: 'Electric' },
+    { title: 'Electric', description: 'Modern, clean, and cost-efficient driving.', fuelType: 'Electric' },
     { title: 'Hatchback', description: 'Compact and practical for daily mobility.', type: 'Hatchback' },
   ];
 
@@ -67,6 +68,9 @@ export class HomePage implements OnInit {
   }
 
   quickSearchCars(): void {
+    this.clampSearchDate('pickupDate');
+    this.clampSearchDate('returnDate');
+
     const type = this.quickSearch.type.trim();
 
     void this.router.navigate(['/cars'], {
@@ -76,9 +80,23 @@ export class HomePage implements OnInit {
     });
   }
 
-  browseCategory(type: string): void {
+  browseCategory(category: { type?: string; fuelType?: string }): void {
     void this.router.navigate(['/cars'], {
-      queryParams: { type },
+      queryParams: category,
     });
+  }
+
+  clampSearchDate(field: 'pickupDate' | 'returnDate'): void {
+    if (!this.quickSearch[field] || this.quickSearch[field] < this.minDate) {
+      this.quickSearch[field] = this.minDate;
+    }
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

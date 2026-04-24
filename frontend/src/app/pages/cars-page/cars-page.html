@@ -35,76 +35,85 @@
   <!-- Sidebar Filters -->
   <aside class="filters" [class.filters--open]="filtersOpen">
     <div class="filters__card">
-      <h3 class="filters__title">Filters</h3>
+      <div class="filters__header">
+        <h3 class="filters__title">Filters</h3>
+        @if (activeFilterCount > 0) {
+          <span class="filters__count">{{ activeFilterCount }} active</span>
+        }
+      </div>
 
-      <label class="filters__label">Brand</label>
-      <select class="filters__select" [(ngModel)]="filters.brand">
+      <label class="filters__label" for="brandFilter">Brand</label>
+      <select id="brandFilter" class="filters__select" [(ngModel)]="filters.brand">
         <option [ngValue]="undefined">All Brands</option>
         @for (b of brands; track b) {
           <option [value]="b">{{ b }}</option>
         }
       </select>
 
-      <label class="filters__label">Type</label>
-      <select class="filters__select" [(ngModel)]="filters.type">
-        <option [ngValue]="undefined">All Types</option>
+      <label class="filters__label" for="typeFilter">Type</label>
+      <select id="typeFilter" class="filters__select" [(ngModel)]="filters.type">
+        <option [ngValue]="undefined">All Body Types</option>
         @for (t of types; track t) {
           <option [value]="t">{{ t }}</option>
         }
       </select>
 
-      <label class="filters__label">Min Price ($/day)</label>
-      <input
-        class="filters__input"
-        type="number"
-        placeholder="0"
-        [(ngModel)]="filters.minPrice"
-        min="0"
-      />
+      <label class="filters__label">Price Per Day</label>
+      <div class="filters__range">
+        <input
+          class="filters__input"
+          type="number"
+          placeholder="Min"
+          [(ngModel)]="filters.minPrice"
+          (ngModelChange)="onPriceChange('minPrice')"
+          min="0"
+          [attr.max]="filters.maxPrice ?? null"
+        />
+        <input
+          class="filters__input"
+          type="number"
+          placeholder="Max"
+          [(ngModel)]="filters.maxPrice"
+          (ngModelChange)="onPriceChange('maxPrice')"
+          [attr.min]="filters.minPrice ?? 0"
+        />
+      </div>
 
-      <label class="filters__label">Max Price ($/day)</label>
-      <input
-        class="filters__input"
-        type="number"
-        placeholder="Any"
-        [(ngModel)]="filters.maxPrice"
-        min="0"
-      />
-
-      <label class="filters__label">Transmission</label>
-      <select class="filters__select" [(ngModel)]="filters.transmission">
+      <label class="filters__label" for="transmissionFilter">Transmission</label>
+      <select id="transmissionFilter" class="filters__select" [(ngModel)]="filters.transmission">
         <option [ngValue]="undefined">All</option>
         @for (t of transmissions; track t) {
           <option [value]="t">{{ t }}</option>
         }
       </select>
 
-      <label class="filters__label">Fuel Type</label>
-      <select class="filters__select" [(ngModel)]="filters.fuelType">
-        <option [ngValue]="undefined">All</option>
+      <label class="filters__label" for="fuelFilter">Fuel Type</label>
+      <select id="fuelFilter" class="filters__select" [(ngModel)]="filters.fuelType">
+        <option [ngValue]="undefined">All Fuel Types</option>
         @for (f of fuelTypes; track f) {
           <option [value]="f">{{ f }}</option>
         }
       </select>
 
-      <label class="filters__label">Color</label>
-      <select class="filters__select" [(ngModel)]="filters.color">
+      <label class="filters__label" for="colorFilter">Color</label>
+      <select id="colorFilter" class="filters__select" [(ngModel)]="filters.color">
         <option [ngValue]="undefined">All Colors</option>
         @for (c of colors; track c) {
           <option [value]="c">{{ c }}</option>
         }
       </select>
 
-      <label class="filters__label">Seats</label>
-      <select class="filters__select" [(ngModel)]="filters.seats">
+      <label class="filters__label" for="seatsFilter">Seats</label>
+      <select id="seatsFilter" class="filters__select" [(ngModel)]="filters.seats">
         <option [ngValue]="undefined">Any</option>
         @for (s of seatOptions; track s) {
-          <option [value]="s">{{ s }} seats</option>
+          <option [ngValue]="s">{{ s }} seats</option>
         }
       </select>
 
-      <label class="filters__label">Min Horsepower</label>
+      <label class="filters__label" for="horsepowerFilter">Min Horsepower</label>
       <input
+        id="horsepowerFilter"
         class="filters__input"
         type="number"
         placeholder="Any"
@@ -112,8 +121,9 @@
         min="0"
       />
 
-      <label class="filters__label">Max Used Kilometers</label>
+      <label class="filters__label" for="mileageFilter">Max Used Kilometers</label>
       <input
+        id="mileageFilter"
         class="filters__input"
         type="number"
         placeholder="Any"
@@ -135,13 +145,13 @@
     <!-- Search + Sort Toolbar -->
     <div class="toolbar">
       <div class="toolbar__search">
-        <span class="toolbar__search-icon">🔍</span>
+        <span class="toolbar__search-icon" aria-hidden="true"></span>
         <input
           class="toolbar__search-input"
           type="text"
           [(ngModel)]="searchTerm"
           (ngModelChange)="onSearchOrSortChange()"
-          placeholder="Search by brand, model, city..."
+          placeholder="Search by car name..."
         />
         @if (searchTerm) {
           <button class="toolbar__clear-btn" (click)="searchTerm = ''; onSearchOrSortChange()">✕</button>

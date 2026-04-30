@@ -7,6 +7,8 @@ import { Car } from '../models/car.model';
 export interface CarFilters {
   brand?: string;
   type?: string;
+  pickupDate?: string;
+  returnDate?: string;
   minPrice?: number;
   maxPrice?: number;
   transmission?: string;
@@ -40,6 +42,8 @@ export class CarService {
 
     if (filters?.brand) params = params.set('brand', filters.brand);
     if (filters?.type) params = params.set('type', filters.type);
+    if (filters?.pickupDate) params = params.set('pickupDate', filters.pickupDate);
+    if (filters?.returnDate) params = params.set('returnDate', filters.returnDate);
     if (filters?.minPrice != null) params = params.set('minPrice', filters.minPrice.toString());
     if (filters?.maxPrice != null) params = params.set('maxPrice', filters.maxPrice.toString());
     if (filters?.transmission) params = params.set('transmission', filters.transmission);

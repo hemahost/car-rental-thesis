@@ -7,7 +7,22 @@ const router = Router();
 // GET /api/cars
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { brand, type, minPrice, maxPrice, transmission, fuelType, seats, minHorsepower, maxHorsepower, minMileageKm, maxMileageKm, color } = req.query;
+    const {
+      brand,
+      type,
+      pickupDate,
+      returnDate,
+      minPrice,
+      maxPrice,
+      transmission,
+      fuelType,
+      seats,
+      minHorsepower,
+      maxHorsepower,
+      minMileageKm,
+      maxMileageKm,
+      color,
+    } = req.query;
 
     const where: any = {};
 
@@ -51,6 +66,31 @@ router.get("/", async (req: Request, res: Response) => {
       where.mileageKm = {};
       if (minMileageKm) where.mileageKm.gte = parseInt(minMileageKm as string, 10);
       if (maxMileageKm) where.mileageKm.lte = parseInt(maxMileageKm as string, 10);
+    }
+
+    if (pickupDate || returnDate) {
+      if (!pickupDate || !returnDate) {
+        return sendError(res, "pickupDate and returnDate must be provided together", 400);
+      }
+
+      const requestedStart = new Date(`${pickupDate as string}T00:00:00`);
+      const requestedEnd = new Date(`${returnDate as string}T00:00:00`);
+
+      if (isNaN(requestedStart.getTime()) || isNaN(requestedEnd.getTime())) {
+        return sendError(res, "Invalid availability date format", 400);
+      }
+
+      if (requestedEnd <= requestedStart) {
+        return sendError(res, "Return date must be after pick-up date", 400);
+      }
+
+      where.bookings = {
+        none: {
+          status: { in: ["PENDING", "CONFIRMED", "ACTIVE"] },
+          startDate: { lt: requestedEnd },
+          endDate: { gt: requestedStart },
+        },
+      };
     }
 
     const carsRaw = await prisma.car.findMany({

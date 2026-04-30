@@ -59,10 +59,13 @@
           type="date"
           [(ngModel)]="quickSearch.returnDate"
           (ngModelChange)="clampSearchDate('returnDate')"
-          [min]="minDate"
+          [min]="getMinReturnDate()"
           name="returnDate"
         />
       </div>
+      @if (searchError) {
+        <p class="quick-search__error">{{ searchError }}</p>
+      }
       <button class="quick-search__btn" type="submit">Find Cars</button>
     </form>
   </div>

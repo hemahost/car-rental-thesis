@@ -37,7 +37,7 @@
       <a routerLink="/cars" class="state__btn">Back to Cars</a>
     </div>
   } @else if (car) {
-    <a routerLink="/cars" class="back-link">← Back to Cars</a>
+    <a routerLink="/cars" queryParamsHandling="preserve" class="back-link">← Back to Cars</a>
 
     <div class="detail">
       <!-- Image -->
@@ -270,7 +270,7 @@
                 [max]="maxBookingDate"
                 (change)="onDateChange()"
               />
-              <small class="booking-form__hint">Return must be after pick-up and within {{ maxRentalDays }} days.</small>
+              <small class="booking-form__hint">Return must be at least {{ minRentalDays }} days after pick-up and within {{ maxRentalDays }} days.</small>
             </div>
             <div class="booking-form__date-help">
               <div class="booking-form__unavailable booking-form__unavailable--inline">

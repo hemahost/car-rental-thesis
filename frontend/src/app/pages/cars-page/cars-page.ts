@@ -45,6 +45,10 @@ export class CarsPage implements OnInit {
     this.route.queryParamMap.subscribe((params) => {
       const type = params.get('type');
       const fuelType = params.get('fuelType');
+      const pickupDate = params.get('pickupDate');
+      const returnDate = params.get('returnDate');
+
+      this.filters = {};
 
       if (type && this.types.includes(type)) {
         this.filters.type = type;
@@ -54,6 +58,14 @@ export class CarsPage implements OnInit {
 
       if (fuelType && this.fuelTypes.includes(fuelType)) {
         this.filters.fuelType = fuelType;
+      }
+
+      if (pickupDate) {
+        this.filters.pickupDate = pickupDate;
+      }
+
+      if (returnDate) {
+        this.filters.returnDate = returnDate;
       }
 
       this.loadCars();

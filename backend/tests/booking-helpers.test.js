@@ -29,6 +29,15 @@ test('booking validation rejects start date after end date', () => {
   assert.equal(result, 'Start date must be before end date');
 });
 
+test('booking validation rejects rentals shorter than two days', () => {
+  const result = getBookingDateValidation(
+    new Date('2099-05-20T00:00:00'),
+    new Date('2099-05-21T00:00:00')
+  );
+
+  assert.equal(result, 'Bookings must be at least 2 days long');
+});
+
 test('booking validation rejects rentals longer than thirty days', () => {
   const result = getBookingDateValidation(
     new Date('2099-05-01T00:00:00'),

@@ -8,6 +8,7 @@ import { paymentGateway } from "../adapters/stripePayment.adapter";
 const router = Router();
 const MAX_BOOKING_ADVANCE_DAYS = 365;
 const MAX_BOOKING_DURATION_DAYS = 30;
+const MIN_BOOKING_DURATION_DAYS = 2;
 
 export function parseDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00`);
@@ -34,6 +35,9 @@ export function getBookingDateValidation(start: Date, end: Date): string | null 
   }
 
   const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  if (durationDays < MIN_BOOKING_DURATION_DAYS) {
+    return `Bookings must be at least ${MIN_BOOKING_DURATION_DAYS} days long`;
+  }
   if (durationDays > MAX_BOOKING_DURATION_DAYS) {
     return `Bookings cannot be longer than ${MAX_BOOKING_DURATION_DAYS} days`;
   }

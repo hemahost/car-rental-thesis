@@ -21,6 +21,7 @@ import { CarCard } from '../../components/car-card/car-card';
 })
 export class CarDetailPage implements OnInit, OnDestroy {
   readonly maxBookingAdvanceDays = 365;
+  readonly minRentalDays = 2;
   readonly maxRentalDays = 30;
   car: Car | null = null;
   loading = true;
@@ -95,10 +96,15 @@ export class CarDetailPage implements OnInit, OnDestroy {
       this.unavailableBookingsLoading = false;
 
       const today = new Date();
-      this.startDate = this.formatDate(today);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      this.endDate = this.formatDate(tomorrow);
+      const defaultStartDate = this.formatDate(today);
+      const defaultEndDate = this.addDays(defaultStartDate, this.minRentalDays);
+      const pickupDateParam = this.route.snapshot.queryParamMap.get('pickupDate');
+      const returnDateParam = this.route.snapshot.queryParamMap.get('returnDate');
+
+      this.startDate = pickupDateParam || defaultStartDate;
+      this.endDate = returnDateParam || defaultEndDate;
+
+      this.normalizeBookingDates();
 
       // Scroll to top on navigation
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -141,7 +147,7 @@ export class CarDetailPage implements OnInit, OnDestroy {
   get minEndDate(): string {
     if (this.startDate) {
       const d = this.parseDateInput(this.startDate);
-      d.setDate(d.getDate() + 1);
+      d.setDate(d.getDate() + this.minRentalDays);
       return this.formatDate(d);
     }
     return this.todayStr;
@@ -171,6 +177,23 @@ export class CarDetailPage implements OnInit, OnDestroy {
     }
 
     return new Date(`${value}T00:00:00`);
+  }
+
+  private addDays(dateValue: string, days: number): string {
+    const date = this.parseDateInput(dateValue);
+    date.setDate(date.getDate() + days);
+    return this.formatDate(date);
+  }
+
+  private normalizeBookingDates(): void {
+    if (!this.startDate || this.startDate < this.todayStr) {
+      this.startDate = this.todayStr;
+    }
+
+    const minimumReturnDate = this.minEndDate;
+    if (!this.endDate || this.endDate < minimumReturnDate) {
+      this.endDate = minimumReturnDate;
+    }
   }
 
   private formatDateRange(startDate: string, endDate: string): string {
@@ -287,6 +310,10 @@ export class CarDetailPage implements OnInit, OnDestroy {
       (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    if (rentalDays < this.minRentalDays) {
+      return `Bookings must be at least ${this.minRentalDays} days long.`;
+    }
+
     if (rentalDays > this.maxRentalDays) {
       return `Bookings cannot be longer than ${this.maxRentalDays} days.`;
     }
@@ -303,6 +330,7 @@ export class CarDetailPage implements OnInit, OnDestroy {
   }
 
   onDateChange(): void {
+    this.normalizeBookingDates();
     this.availabilityStatus = 'idle';
     this.bookingMessage = '';
     this.bookingError = '';

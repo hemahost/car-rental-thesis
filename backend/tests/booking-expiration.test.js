@@ -7,8 +7,8 @@ const {
   isPendingBookingExpired,
 } = require('../dist/utils/bookingExpiration.js');
 
-test('booking hold duration is ten minutes', () => {
-  assert.equal(BOOKING_HOLD_MINUTES, 10);
+test('booking hold duration matches the configured policy', () => {
+  assert.equal(BOOKING_HOLD_MINUTES, 3);
 });
 
 test('expiry cutoff is in the past', () => {
@@ -17,7 +17,7 @@ test('expiry cutoff is in the past', () => {
 });
 
 test('pending unpaid bookings older than cutoff are expired', () => {
-  const createdAt = new Date(Date.now() - 11 * 60 * 1000);
+  const createdAt = new Date(Date.now() - (BOOKING_HOLD_MINUTES + 1) * 60 * 1000);
 
   assert.equal(
     isPendingBookingExpired({
@@ -30,7 +30,7 @@ test('pending unpaid bookings older than cutoff are expired', () => {
 });
 
 test('paid pending bookings are not treated as expired', () => {
-  const createdAt = new Date(Date.now() - 11 * 60 * 1000);
+  const createdAt = new Date(Date.now() - (BOOKING_HOLD_MINUTES + 1) * 60 * 1000);
 
   assert.equal(
     isPendingBookingExpired({
@@ -43,7 +43,7 @@ test('paid pending bookings are not treated as expired', () => {
 });
 
 test('non-pending bookings are not treated as expired', () => {
-  const createdAt = new Date(Date.now() - 11 * 60 * 1000);
+  const createdAt = new Date(Date.now() - (BOOKING_HOLD_MINUTES + 1) * 60 * 1000);
 
   assert.equal(
     isPendingBookingExpired({

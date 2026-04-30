@@ -41,7 +41,7 @@
     }
     <div class="card__footer">
       <span class="card__price">${{ car.pricePerDay }}/day</span>
-      <a class="card__btn" [routerLink]="['/cars', car.id]">View Details</a>
+      <a class="card__btn" [routerLink]="['/cars', car.id]" queryParamsHandling="preserve">View Details</a>
     </div>
   </div>
 </div>

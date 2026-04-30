@@ -275,19 +275,24 @@
             <div class="booking-form__date-help">
               <div class="booking-form__unavailable booking-form__unavailable--inline">
                 <div class="booking-form__unavailable-header">
-                  <h3>Booked Dates</h3>
+                  <h3>Booked & Held Dates</h3>
                 </div>
 
                 @if (unavailableBookingsLoading) {
                   <p class="booking-form__unavailable-empty">Loading booked dates...</p>
-                } @else if (unavailableDateRanges.length > 0) {
+                } @else if (unavailableBookings.length > 0) {
                   <div class="booking-form__unavailable-list">
-                    @for (range of unavailableDateRanges; track range) {
-                      <span class="booking-form__unavailable-chip">{{ range }}</span>
+                    @for (booking of unavailableBookings; track booking.id) {
+                      <span
+                        class="booking-form__unavailable-chip"
+                        [class.booking-form__unavailable-chip--held]="booking.status === 'PENDING'"
+                      >
+                        {{ formatUnavailableBookingLabel(booking) }}
+                      </span>
                     }
                   </div>
                 } @else {
-                  <p class="booking-form__unavailable-empty">No booked dates right now.</p>
+                  <p class="booking-form__unavailable-empty">No booked or held dates right now.</p>
                 }
               </div>
             </div>
@@ -357,12 +362,17 @@
             <div class="booking-form__status booking-form__status--unavailable">
               Car is not available for the selected dates. Please choose different dates.
             </div>
-            @if (selectedConflictRanges.length > 0) {
+            @if (availabilityConflictRanges.length > 0) {
               <div class="booking-form__selected-conflicts">
                 <p>Conflicts with these bookings:</p>
                 <div class="booking-form__unavailable-list booking-form__unavailable-list--conflicts">
-                  @for (range of selectedConflictRanges; track range) {
-                    <span class="booking-form__unavailable-chip booking-form__unavailable-chip--conflict">{{ range }}</span>
+                  @for (booking of availabilityConflictRanges; track booking.id) {
+                    <span
+                      class="booking-form__unavailable-chip booking-form__unavailable-chip--conflict"
+                      [class.booking-form__unavailable-chip--held]="booking.status === 'PENDING'"
+                    >
+                      {{ formatUnavailableBookingLabel(booking) }}
+                    </span>
                   }
                 </div>
               </div>

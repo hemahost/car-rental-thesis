@@ -17,7 +17,6 @@ const USER_SELECT = {
   createdAt: true,
 } as const;
 
-// GET /api/admin/users/:id
 export async function getUserDetail(req: AuthRequest, res: Response) {
   try {
     const { id } = req.params as { id: string };
@@ -53,7 +52,6 @@ export async function getUserDetail(req: AuthRequest, res: Response) {
   }
 }
 
-// PUT /api/admin/users/:id
 export async function updateUser(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;
@@ -110,7 +108,6 @@ export async function updateUser(req: AuthRequest, res: Response) {
   }
 }
 
-// GET /api/admin/users
 export async function getAdminUsers(req: AuthRequest, res: Response) {
   try {
     const users = await prisma.user.findMany({
@@ -136,7 +133,6 @@ export async function getAdminUsers(req: AuthRequest, res: Response) {
   }
 }
 
-// PATCH /api/admin/users/:id/role
 export async function updateUserRole(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;
@@ -155,7 +151,7 @@ export async function updateUserRole(req: AuthRequest, res: Response) {
       return sendError(res, "The original admin account cannot be demoted", 400);
     }
 
-    // Prevent admin from demoting themselves
+  
     if (id === req.userId && role === "USER") {
       return sendError(res, "You cannot demote your own account", 400);
     }
@@ -173,7 +169,6 @@ export async function updateUserRole(req: AuthRequest, res: Response) {
   }
 }
 
-// DELETE /api/admin/users/:id
 export async function deleteUser(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;

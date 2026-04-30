@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "build": "tsc",
+    "test": "npm run build && node --test tests",
     "seed": "ts-node-dev --transpile-only src/seed.ts",
     "update:horsepower": "ts-node-dev --transpile-only src/update-horsepower.ts",
     "update:car-specs": "ts-node-dev --transpile-only src/update-horsepower.ts"

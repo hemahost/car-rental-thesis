@@ -39,6 +39,26 @@ const upload = multer({
 
 const router = Router();
 
+export function getPasswordPolicyError(password: string): string | null {
+  if (password.length < 8) {
+    return "Password must be at least 8 characters long";
+  }
+
+  if (!/[a-z]/.test(password)) {
+    return "Password must include at least one lowercase letter";
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return "Password must include at least one uppercase letter";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "Password must include at least one special character";
+  }
+
+  return null;
+}
+
 // POST /api/auth/register
 router.post("/register", async (req, res: Response) => {
   try {
@@ -46,6 +66,11 @@ router.post("/register", async (req, res: Response) => {
 
     if (!name || !email || !password) {
       return sendError(res, "Name, email and password are required");
+    }
+
+    const passwordError = getPasswordPolicyError(password);
+    if (passwordError) {
+      return sendError(res, passwordError, 400);
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -256,8 +281,9 @@ router.post("/reset-password", async (req, res: Response) => {
       return sendError(res, "Email, reset code, and new password are required");
     }
 
-    if (newPassword.length < 6) {
-      return sendError(res, "Password must be at least 6 characters");
+    const passwordError = getPasswordPolicyError(newPassword);
+    if (passwordError) {
+      return sendError(res, passwordError, 400);
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -307,8 +333,9 @@ router.put("/change-password", authenticate, async (req: AuthRequest, res: Respo
       return sendError(res, "Current password and new password are required");
     }
 
-    if (newPassword.length < 6) {
-      return sendError(res, "New password must be at least 6 characters");
+    const passwordError = getPasswordPolicyError(newPassword);
+    if (passwordError) {
+      return sendError(res, passwordError, 400);
     }
 
     const user = await prisma.user.findUnique({ where: { id: req.userId } });

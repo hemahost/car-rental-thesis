@@ -1,13 +1,13 @@
 import { Router, Request, Response } from "express";
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { Strategy as GitHubStrategy } from "passport-github2";
 import jwt from "jsonwebtoken";
 import prisma from "../db/prisma";
+import { createGitHubOAuthStrategy, createGoogleOAuthStrategy } from "../factories/oauthStrategy.factory";
 
 const router = Router();
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:4200";
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
 // ── Helper: find or create a user from an OAuth profile ──────────────────────
@@ -52,31 +52,10 @@ function redirectWithToken(res: Response, user: { id: string; role: string }) {
 // ── Google ────────────────────────────────────────────────────────────────────
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: `${process.env.BACKEND_URL || "http://localhost:3000"}/api/oauth/google/callback`,
-      },
-      async (_accessToken, _refreshToken, profile, done) => {
-        try {
-          const email =
-            profile.emails?.[0]?.value ?? `${profile.id}@google.oauth`;
-          const name = profile.displayName || "Google User";
-          const avatarUrl = profile.photos?.[0]?.value ?? "";
-          const user = await findOrCreateOAuthUser(
-            "google",
-            profile.id,
-            email,
-            name,
-            avatarUrl
-          );
-          done(null, user);
-        } catch (err) {
-          done(err as Error);
-        }
-      }
-    )
+    createGoogleOAuthStrategy({
+      backendUrl: BACKEND_URL,
+      findOrCreateUser: findOrCreateOAuthUser,
+    })
   );
 
   router.get(
@@ -96,32 +75,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 // ── GitHub ────────────────────────────────────────────────────────────────────
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   passport.use(
-    new GitHubStrategy(
-      {
-        clientID: process.env.GITHUB_CLIENT_ID,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: `${process.env.BACKEND_URL || "http://localhost:3000"}/api/oauth/github/callback`,
-        scope: ["user:email"],
-      },
-      async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
-        try {
-          const email =
-            profile.emails?.[0]?.value ?? `${profile.id}@github.oauth`;
-          const name = profile.displayName || profile.username || "GitHub User";
-          const avatarUrl = profile.photos?.[0]?.value ?? "";
-          const user = await findOrCreateOAuthUser(
-            "github",
-            String(profile.id),
-            email,
-            name,
-            avatarUrl
-          );
-          done(null, user);
-        } catch (err) {
-          done(err as Error);
-        }
-      }
-    )
+    createGitHubOAuthStrategy({
+      backendUrl: BACKEND_URL,
+      findOrCreateUser: findOrCreateOAuthUser,
+    })
   );
 
   router.get(

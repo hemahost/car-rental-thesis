@@ -1,6 +1,6 @@
 import prisma from "../db/prisma";
 
-export const BOOKING_HOLD_MINUTES = 10;
+export const BOOKING_HOLD_MINUTES = 3;
 
 export function getPendingBookingExpiryCutoff(): Date {
   return new Date(Date.now() - BOOKING_HOLD_MINUTES * 60 * 1000);

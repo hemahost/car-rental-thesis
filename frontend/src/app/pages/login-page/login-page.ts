@@ -47,6 +47,7 @@ export class LoginPage implements OnInit {
 
   loading = false;
   errorMessage = '';
+  errorMessages: string[] = [];
   successMessage = '';
 
   constructor(
@@ -68,6 +69,7 @@ export class LoginPage implements OnInit {
   switchTab(tab: 'login' | 'register'): void {
     this.activeTab = tab;
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
     this.forgotMode = 'hidden';
   }
@@ -78,6 +80,7 @@ export class LoginPage implements OnInit {
 
   onLogin(): void {
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
 
     if (!this.loginEmail || !this.loginPassword) {
@@ -111,8 +114,8 @@ export class LoginPage implements OnInit {
     if (!p) return { label: '', level: 0 };
     let score = 0;
     if (p.length >= 8) score++;
+    if (/[a-z]/.test(p)) score++;
     if (/[A-Z]/.test(p)) score++;
-    if (/[0-9]/.test(p)) score++;
     if (/[^A-Za-z0-9]/.test(p)) score++;
     if (score <= 1) return { label: 'Weak', level: 1 };
     if (score === 2) return { label: 'Fair', level: 2 };
@@ -120,32 +123,63 @@ export class LoginPage implements OnInit {
     return { label: 'Strong', level: 4 };
   }
 
+  private getPasswordPolicyError(password: string): string | null {
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return 'Password must include at least one lowercase letter.';
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return 'Password must include at least one uppercase letter.';
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      return 'Password must include at least one special character.';
+    }
+
+    return null;
+  }
+
   onRegister(): void {
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
 
-    if (
-      !this.registerName ||
-      !this.registerEmail ||
-      !this.registerPassword ||
-      !this.registerConfirmPassword
-    ) {
-      this.errorMessage = 'Please fill in all required fields.';
-      return;
+    if (!this.registerName.trim()) {
+      this.errorMessages.push('Full name is required.');
+    }
+
+    if (!this.registerEmail.trim()) {
+      this.errorMessages.push('Email address is required.');
+    }
+
+    if (!this.registerPassword) {
+      this.errorMessages.push('Password is required.');
+    }
+
+    if (!this.registerConfirmPassword) {
+      this.errorMessages.push('Please confirm your password.');
     }
 
     if (!this.registerAgreeTerms) {
-      this.errorMessage = 'You must agree to the Terms & Conditions.';
-      return;
+      this.errorMessages.push('You must agree to the Terms & Conditions.');
     }
 
-    if (this.registerPassword !== this.registerConfirmPassword) {
-      this.errorMessage = 'Passwords do not match.';
-      return;
+    if (this.registerPassword && this.registerConfirmPassword && this.registerPassword !== this.registerConfirmPassword) {
+      this.errorMessages.push('Passwords do not match.');
     }
 
-    if (this.registerPassword.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+    if (this.registerPassword) {
+      const registerPasswordError = this.getPasswordPolicyError(this.registerPassword);
+      if (registerPasswordError) {
+        this.errorMessages.push(registerPasswordError);
+      }
+    }
+
+    if (this.errorMessages.length > 0) {
       return;
     }
 
@@ -171,6 +205,7 @@ export class LoginPage implements OnInit {
           this.loading = false;
           this.errorMessage =
             err.error?.error?.message || 'Registration failed. Please try again.';
+          this.errorMessages = [];
           this.cdr.markForCheck();
         },
       });
@@ -180,6 +215,7 @@ export class LoginPage implements OnInit {
   showForgotPassword(): void {
     this.forgotMode = 'email';
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
     this.forgotEmail = this.loginEmail;
   }
@@ -187,6 +223,7 @@ export class LoginPage implements OnInit {
   cancelForgotPassword(): void {
     this.forgotMode = 'hidden';
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
     this.resetCode = '';
     this.newPassword = '';
@@ -196,6 +233,7 @@ export class LoginPage implements OnInit {
   // ── 2FA ──
   onVerify2FA(): void {
     this.errorMessage = '';
+    this.errorMessages = [];
     if (!this.totpCode) {
       this.errorMessage = 'Please enter the 6-digit code from your authenticator app.';
       return;
@@ -220,10 +258,12 @@ export class LoginPage implements OnInit {
     this.twoFactorToken = '';
     this.totpCode = '';
     this.errorMessage = '';
+    this.errorMessages = [];
   }
 
   onForgotSubmitEmail(): void {
     this.errorMessage = '';
+    this.errorMessages = [];
     if (!this.forgotEmail) {
       this.errorMessage = 'Please enter your email address.';
       return;
@@ -247,6 +287,7 @@ export class LoginPage implements OnInit {
 
   onResetPassword(): void {
     this.errorMessage = '';
+    this.errorMessages = [];
     this.successMessage = '';
 
     if (!this.resetCode || !this.newPassword || !this.confirmNewPassword) {
@@ -259,8 +300,9 @@ export class LoginPage implements OnInit {
       return;
     }
 
-    if (this.newPassword.length < 6) {
-      this.errorMessage = 'Password must be at least 6 characters.';
+    const resetPasswordError = this.getPasswordPolicyError(this.newPassword);
+    if (resetPasswordError) {
+      this.errorMessage = resetPasswordError;
       return;
     }
 

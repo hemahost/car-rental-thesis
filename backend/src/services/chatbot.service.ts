@@ -25,7 +25,7 @@ const GREETING_RESPONSE =
 const EXTERNAL_CAR_INFO_PATTERN =
   /\b(horsepower|hp|engine|torque|acceleration|0[- ]?60|0[- ]?100|top speed|range|battery|charging|fuel economy|mpg|consumption|l\/100|dimensions|length|width|height|trunk|boot|cargo|safety rating|euro ncap|ncap|spec|specs|technical|power|performance)\b/i;
 
-function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
+export function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
   const minPrice = filters.minPrice != null && filters.minPrice >= 0 ? filters.minPrice : null;
   const maxPrice = filters.maxPrice != null && filters.maxPrice >= 0 ? filters.maxPrice : null;
 
@@ -138,20 +138,20 @@ function safeCreateConversationLog(data: {
     });
 }
 
-function shouldUseExternalCarInfo(message: string): boolean {
+export function shouldUseExternalCarInfo(message: string): boolean {
   return EXTERNAL_CAR_INFO_PATTERN.test(message);
 }
 
-function isLikelyCarOrRentalQuestion(message: string): boolean {
+export function isLikelyCarOrRentalQuestion(message: string): boolean {
   return /\b(car|cars|vehicle|vehicles|rental|rent|booking|book|fleet|suv|sedan|hatchback|coupe|electric|toyota|bmw|audi|tesla|mercedes|volkswagen|honda|ford|porsche)\b/i.test(message);
 }
 
-function isGreetingOrPleasantry(message: string): boolean {
+export function isGreetingOrPleasantry(message: string): boolean {
   const normalized = message.trim().toLowerCase().replace(/[.!?]+$/g, "");
   return /^(hi|hello|hey|good morning|good afternoon|good evening|howdy|yo|thanks|thank you|ok|okay)$/.test(normalized);
 }
 
-function extractHorsepowerThreshold(message: string): { minHorsepower: number | null; maxHorsepower: number | null } {
+export function extractHorsepowerThreshold(message: string): { minHorsepower: number | null; maxHorsepower: number | null } {
   const normalized = message.toLowerCase();
   const hpMatch = normalized.match(/(\d{2,4})\s*(?:horsepower|hp|bhp)/);
   if (!hpMatch) {
@@ -176,7 +176,7 @@ function extractHorsepowerThreshold(message: string): { minHorsepower: number | 
   return { minHorsepower: horsepower, maxHorsepower: null };
 }
 
-function extractMileageThreshold(message: string): { minMileageKm: number | null; maxMileageKm: number | null } {
+export function extractMileageThreshold(message: string): { minMileageKm: number | null; maxMileageKm: number | null } {
   const normalized = message.toLowerCase().replace(/,/g, "");
   if (/\b(low mileage|not used much|less used|newer condition)\b/.test(normalized)) {
     return { minMileageKm: null, maxMileageKm: 25000 };
@@ -205,7 +205,7 @@ function extractMileageThreshold(message: string): { minMileageKm: number | null
   return { minMileageKm: null, maxMileageKm: mileageKm };
 }
 
-function extractColor(message: string): string | null {
+export function extractColor(message: string): string | null {
   const normalized = message.toLowerCase();
   const colors = ["black", "blue", "grey", "gray", "red", "silver", "white", "yellow"];
   const match = colors.find((color) => new RegExp(`\\b${color}\\b`).test(normalized));
@@ -252,7 +252,7 @@ function toShortlistCar(car: {
   };
 }
 
-function uniqueCarsByModel(cars: ShortlistCar[]): ShortlistCar[] {
+export function uniqueCarsByModel(cars: ShortlistCar[]): ShortlistCar[] {
   const seen = new Set<string>();
   return cars.filter((car) => {
     const key = `${car.brand.toLowerCase()}-${car.model.toLowerCase()}`;

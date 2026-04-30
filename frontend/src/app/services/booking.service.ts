@@ -9,6 +9,7 @@ export interface UnavailableBookingRange {
   startDate: string;
   endDate: string;
   status: string;
+  holdExpiresAt?: string | null;
 }
 
 export interface AvailabilityCheckResult {

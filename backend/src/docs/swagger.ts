@@ -7,7 +7,7 @@ export const openApiSpec = {
     title: "Car Rental Backend API",
     version: "1.0.0",
     description:
-      "API documentation for the Car Rental backend service. For protected endpoints, click Authorize and paste only the JWT token value without the Bearer prefix. Many Try it out errors are expected when a route needs authentication, admin access, real database IDs, or future booking dates.",
+      "API documentation for the Car Rental backend service. For protected endpoints, click Authorize and paste only the JWT token value without the Bearer prefix. Swagger UI adds the Bearer prefix automatically.",
   },
   servers: [
     {
@@ -17,12 +17,15 @@ export const openApiSpec = {
   ],
   tags: [
     { name: "Health", description: "Basic service status endpoint." },
-    { name: "Auth", description: "Authentication and profile endpoints. Login first, then use Authorize with the returned JWT token only." },
-    { name: "Cars", description: "Public car listing endpoints. Use these endpoints first to get a real car ID for favorites, reviews, and bookings." },
-    { name: "Bookings", description: "User booking endpoints. Require a logged-in user for protected operations and valid future dates for booking creation." },
-    { name: "Favorites", description: "Favorite management for the current logged-in user. Requires a real car ID from the Cars endpoints." },
-    { name: "Reviews", description: "Review endpoints. GET and POST use a car ID. DELETE uses a review ID returned from the GET response." },
-    { name: "Admin", description: "Admin-only endpoints. A regular USER token returns 403 by design." },
+    { name: "Auth", description: "Authentication, password reset, avatar, and 2FA endpoints." },
+    { name: "Cars", description: "Public car listing and single-car retrieval endpoints." },
+    { name: "Bookings", description: "Booking availability, reservation creation, and booking management endpoints." },
+    { name: "Favorites", description: "Favorite-car management for the logged-in user." },
+    { name: "Reviews", description: "Review retrieval and authenticated review submission or deletion." },
+    { name: "Payments", description: "Stripe payment intent, confirmation, and webhook endpoints." },
+    { name: "Admin", description: "Administrator-only endpoints for stats, users, cars, and bookings." },
+    { name: "Chatbot", description: "Public AI assistant recommendation endpoint." },
+    { name: "OAuth", description: "Google/GitHub OAuth routes and configured-provider status." },
   ],
   components: {
     securitySchemes: {
@@ -46,50 +49,93 @@ export const openApiSpec = {
           },
         },
       },
+      SuccessResponse: {
+        type: "object",
+        properties: {
+          success: { type: "boolean", example: true },
+        },
+      },
       User: {
         type: "object",
         properties: {
-          id: { type: "string", example: "clx123abc" },
+          id: { type: "string", example: "cmmbuser123" },
           name: { type: "string", example: "Jane Doe" },
           email: { type: "string", example: "jane@example.com" },
           role: { type: "string", example: "USER" },
-          phone: { type: "string", nullable: true, example: "+123456789" },
-          address: { type: "string", nullable: true, example: "New York" },
-          avatarUrl: { type: "string", nullable: true, example: "/uploads/avatars/abc.png" },
+          phone: { type: "string", nullable: true, example: "+36 70 123 4567" },
+          address: { type: "string", nullable: true, example: "Budapest" },
+          avatarUrl: { type: "string", nullable: true, example: "/uploads/avatars/file.png" },
+          twoFactorEnabled: { type: "boolean", example: false },
         },
       },
       Car: {
         type: "object",
         properties: {
-          id: { type: "string", example: "car_1" },
-          brand: { type: "string", example: "Toyota" },
-          model: { type: "string", example: "Corolla" },
-          type: { type: "string", example: "Sedan" },
-          pricePerDay: { type: "number", example: 59.99 },
-          description: { type: "string", example: "Reliable city car" },
+          id: { type: "string", example: "cmmb6ngzw0007bntrd52s8mn2" },
+          brand: { type: "string", example: "BMW" },
+          model: { type: "string", example: "X5" },
+          type: { type: "string", example: "SUV" },
+          pricePerDay: { type: "number", example: 120 },
+          description: { type: "string", example: "Premium family SUV" },
           imageUrl: { type: "string", nullable: true, example: "https://example.com/car.jpg" },
+          transmission: { type: "string", nullable: true, example: "Automatic" },
+          fuelType: { type: "string", nullable: true, example: "Diesel" },
+          seats: { type: "integer", nullable: true, example: 5 },
+          horsepower: { type: "integer", nullable: true, example: 335 },
+          mileageKm: { type: "integer", nullable: true, example: 25000 },
+          color: { type: "string", nullable: true, example: "Black" },
+          city: { type: "string", nullable: true, example: "Budapest" },
         },
       },
       Booking: {
         type: "object",
         properties: {
-          id: { type: "string", example: "booking_1" },
-          userId: { type: "string", example: "user_1" },
-          carId: { type: "string", example: "car_1" },
+          id: { type: "string", example: "cmmbbooking123" },
+          userId: { type: "string", example: "cmmbuser123" },
+          carId: { type: "string", example: "cmmb6ngzw0007bntrd52s8mn2" },
           startDate: { type: "string", format: "date-time" },
           endDate: { type: "string", format: "date-time" },
-          totalPrice: { type: "number", example: 179.97 },
+          totalPrice: { type: "number", example: 240 },
           status: { type: "string", example: "PENDING" },
+          paymentStatus: { type: "string", example: "UNPAID" },
+          paymentIntentId: { type: "string", nullable: true, example: "pi_123456789" },
+          pickupLocation: { type: "string", nullable: true, example: "Budapest Airport" },
+          dropoffLocation: { type: "string", nullable: true, example: "Budapest Downtown" },
         },
       },
       Review: {
         type: "object",
         properties: {
-          id: { type: "string", example: "review_1" },
-          userId: { type: "string", example: "user_1" },
-          carId: { type: "string", example: "car_1" },
+          id: { type: "string", example: "cmmbreview123" },
+          userId: { type: "string", example: "cmmbuser123" },
+          carId: { type: "string", example: "cmmb6ngzw0007bntrd52s8mn2" },
           rating: { type: "integer", minimum: 1, maximum: 5, example: 5 },
-          comment: { type: "string", example: "Excellent experience" },
+          comment: { type: "string", example: "Excellent experience and clean car." },
+        },
+      },
+      Favorite: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "cmmbfav123" },
+          userId: { type: "string", example: "cmmbuser123" },
+          carId: { type: "string", example: "cmmb6ngzw0007bntrd52s8mn2" },
+        },
+      },
+      ChatbotMessage: {
+        type: "object",
+        required: ["message"],
+        properties: {
+          message: { type: "string", example: "I need an SUV under 150 per day." },
+          history: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                role: { type: "string", enum: ["user", "assistant"] },
+                content: { type: "string", example: "Do you have any SUVs?" },
+              },
+            },
+          },
         },
       },
     },
@@ -111,6 +157,8 @@ export const openApiSpec = {
       post: {
         tags: ["Auth"],
         summary: "Register a new user",
+        description:
+          "Password policy: at least 8 characters, at least one lowercase letter, at least one uppercase letter, and at least one special character.",
         requestBody: {
           required: true,
           content: {
@@ -122,13 +170,23 @@ export const openApiSpec = {
                   name: { type: "string" },
                   email: { type: "string", format: "email" },
                   password: { type: "string", format: "password" },
+                  phone: { type: "string" },
+                  address: { type: "string" },
                 },
+              },
+              example: {
+                name: "Jane Doe",
+                email: "jane@example.com",
+                password: "Strong!Pass1",
+                phone: "+36 70 123 4567",
+                address: "Budapest",
               },
             },
           },
         },
         responses: {
           "201": { description: "User created" },
+          "400": { description: "Password policy or validation error", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
           "409": { description: "Email already in use" },
         },
       },
@@ -152,13 +210,13 @@ export const openApiSpec = {
               },
               example: {
                 email: "jane@example.com",
-                password: "password123",
+                password: "Strong!Pass1",
               },
             },
           },
         },
         responses: {
-          "200": { description: "Login successful with JWT token" },
+          "200": { description: "Login successful or 2FA required" },
           "401": { description: "Invalid credentials" },
         },
       },
@@ -169,15 +227,15 @@ export const openApiSpec = {
         summary: "Get current user profile",
         security: [{ bearerAuth: [] }],
         responses: {
-          "200": { description: "Current user", content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean" }, user: { $ref: "#/components/schemas/User" } } } } } },
-          "401": { description: "Unauthorized", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } } },
+          "200": { description: "Current user profile" },
+          "401": { description: "Unauthorized" },
         },
       },
     },
     "/api/auth/profile": {
       put: {
         tags: ["Auth"],
-        summary: "Update profile",
+        summary: "Update current user profile",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -197,7 +255,7 @@ export const openApiSpec = {
           },
         },
         responses: {
-          "200": { description: "Updated profile" },
+          "200": { description: "Profile updated" },
           "409": { description: "Email already in use" },
         },
       },
@@ -215,10 +273,7 @@ export const openApiSpec = {
                 type: "object",
                 required: ["avatar"],
                 properties: {
-                  avatar: {
-                    type: "string",
-                    format: "binary",
-                  },
+                  avatar: { type: "string", format: "binary" },
                 },
               },
             },
@@ -226,7 +281,7 @@ export const openApiSpec = {
         },
         responses: {
           "200": { description: "Avatar uploaded" },
-          "400": { description: "No file uploaded" },
+          "400": { description: "No file uploaded or invalid file type" },
         },
       },
       delete: {
@@ -257,14 +312,16 @@ export const openApiSpec = {
           },
         },
         responses: {
-          "200": { description: "Reset flow initiated" },
+          "200": { description: "Reset code flow initiated" },
         },
       },
     },
     "/api/auth/reset-password": {
       post: {
         tags: ["Auth"],
-        summary: "Reset password with code",
+        summary: "Reset password using a 6-digit reset code",
+        description:
+          "New password must follow the same policy as registration: 8+ characters, uppercase, lowercase, and special character.",
         requestBody: {
           required: true,
           content: {
@@ -283,7 +340,8 @@ export const openApiSpec = {
         },
         responses: {
           "200": { description: "Password reset successful" },
-          "401": { description: "Invalid or expired code" },
+          "400": { description: "Password policy or validation error" },
+          "401": { description: "Invalid or expired reset code" },
         },
       },
     },
@@ -292,6 +350,8 @@ export const openApiSpec = {
         tags: ["Auth"],
         summary: "Change password",
         security: [{ bearerAuth: [] }],
+        description:
+          "New password must follow the same policy as registration: 8+ characters, uppercase, lowercase, and special character.",
         requestBody: {
           required: true,
           content: {
@@ -309,7 +369,93 @@ export const openApiSpec = {
         },
         responses: {
           "200": { description: "Password changed" },
+          "400": { description: "Password policy or social-login restriction" },
           "401": { description: "Current password invalid" },
+        },
+      },
+    },
+    "/api/auth/2fa/setup": {
+      post: {
+        tags: ["Auth"],
+        summary: "Start 2FA setup and return QR code",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "2FA secret and QR code generated" },
+        },
+      },
+    },
+    "/api/auth/2fa/enable": {
+      post: {
+        tags: ["Auth"],
+        summary: "Enable 2FA using authenticator code",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["code"],
+                properties: {
+                  code: { type: "string", example: "123456" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "2FA enabled" },
+          "401": { description: "Invalid verification code" },
+        },
+      },
+    },
+    "/api/auth/2fa/disable": {
+      post: {
+        tags: ["Auth"],
+        summary: "Disable 2FA using authenticator code",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["code"],
+                properties: {
+                  code: { type: "string", example: "123456" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "2FA disabled" },
+          "401": { description: "Invalid verification code" },
+        },
+      },
+    },
+    "/api/auth/2fa/verify": {
+      post: {
+        tags: ["Auth"],
+        summary: "Exchange temporary token and TOTP code for a full JWT",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["tempToken", "code"],
+                properties: {
+                  tempToken: { type: "string" },
+                  code: { type: "string", example: "123456" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "2FA verification successful" },
+          "401": { description: "Invalid or expired session/code" },
         },
       },
     },
@@ -317,23 +463,30 @@ export const openApiSpec = {
     "/api/cars": {
       get: {
         tags: ["Cars"],
-        summary: "List cars",
+        summary: "List cars with optional filters",
         parameters: [
           { name: "brand", in: "query", schema: { type: "string" } },
           { name: "type", in: "query", schema: { type: "string" } },
           { name: "minPrice", in: "query", schema: { type: "number" } },
           { name: "maxPrice", in: "query", schema: { type: "number" } },
+          { name: "transmission", in: "query", schema: { type: "string" } },
+          { name: "fuelType", in: "query", schema: { type: "string" } },
+          { name: "seats", in: "query", schema: { type: "integer" } },
+          { name: "minHorsepower", in: "query", schema: { type: "integer" } },
+          { name: "maxHorsepower", in: "query", schema: { type: "integer" } },
+          { name: "minMileageKm", in: "query", schema: { type: "integer" } },
+          { name: "maxMileageKm", in: "query", schema: { type: "integer" } },
+          { name: "color", in: "query", schema: { type: "string" } },
         ],
         responses: {
-          "200": { description: "Cars fetched", content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean" }, cars: { type: "array", items: { $ref: "#/components/schemas/Car" } } } } } } },
+          "200": { description: "Cars fetched" },
         },
       },
     },
     "/api/cars/{id}": {
       get: {
         tags: ["Cars"],
-        summary: "Get single car",
-        description: "Use a real car ID from GET /api/cars. A placeholder value returns 404.",
+        summary: "Get single car by ID",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
         ],
@@ -358,8 +511,7 @@ export const openApiSpec = {
     "/api/bookings/availability": {
       get: {
         tags: ["Bookings"],
-        summary: "Check booking availability",
-        description: "Use a real car ID from GET /api/cars and future dates in YYYY-MM-DD format.",
+        summary: "Check whether a car is available for a date range",
         parameters: [
           { name: "carId", in: "query", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
           { name: "startDate", in: "query", required: true, schema: { type: "string", format: "date" }, example: "2099-03-20" },
@@ -371,11 +523,22 @@ export const openApiSpec = {
         },
       },
     },
+    "/api/bookings/unavailable/{carId}": {
+      get: {
+        tags: ["Bookings"],
+        summary: "Get unavailable booking ranges for a car",
+        parameters: [
+          { name: "carId", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
+        ],
+        responses: {
+          "200": { description: "Unavailable booking ranges fetched" },
+        },
+      },
+    },
     "/api/bookings": {
       post: {
         tags: ["Bookings"],
         summary: "Create booking",
-        description: "Requires a logged-in user, a real car ID from GET /api/cars, and future dates. Past dates or invalid IDs return errors by design.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -383,24 +546,30 @@ export const openApiSpec = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["carId", "startDate", "endDate"],
+                required: ["carId", "startDate", "endDate", "pickupLocation", "dropoffLocation"],
                 properties: {
                   carId: { type: "string" },
                   startDate: { type: "string", format: "date" },
                   endDate: { type: "string", format: "date" },
+                  pickupLocation: { type: "string" },
+                  dropoffLocation: { type: "string" },
                 },
               },
               example: {
                 carId: "cmmb6ngzw0007bntrd52s8mn2",
                 startDate: "2099-03-20",
                 endDate: "2099-03-22",
+                pickupLocation: "Budapest Airport",
+                dropoffLocation: "Budapest Downtown",
               },
             },
           },
         },
         responses: {
           "201": { description: "Booking created" },
+          "400": { description: "Validation error" },
           "401": { description: "Unauthorized" },
+          "404": { description: "Car not found" },
           "409": { description: "Car not available" },
         },
       },
@@ -414,7 +583,7 @@ export const openApiSpec = {
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
-          "200": { description: "Booking cancelled" },
+          "200": { description: "Booking cancelled or refunded" },
           "403": { description: "Not authorized" },
           "404": { description: "Booking not found" },
         },
@@ -435,28 +604,24 @@ export const openApiSpec = {
       post: {
         tags: ["Favorites"],
         summary: "Add car to favorites",
-        description: "Requires a logged-in user. Use a real car ID from GET /api/cars.",
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: "carId", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
         ],
         responses: {
           "201": { description: "Added to favorites" },
-          "401": { description: "Unauthorized" },
           "404": { description: "Car not found" },
         },
       },
       delete: {
         tags: ["Favorites"],
         summary: "Remove car from favorites",
-        description: "Requires a logged-in user. Use the same car ID previously added to favorites.",
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: "carId", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
         ],
         responses: {
           "200": { description: "Removed from favorites" },
-          "401": { description: "Unauthorized" },
           "404": { description: "Favorite not found" },
         },
       },
@@ -465,8 +630,7 @@ export const openApiSpec = {
     "/api/reviews/{id}": {
       get: {
         tags: ["Reviews"],
-        summary: "Get reviews for a car",
-        description: "Pass a real car ID in the `id` path parameter. Use GET /api/cars first if needed.",
+        summary: "Get all reviews for a car",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
         ],
@@ -476,8 +640,7 @@ export const openApiSpec = {
       },
       post: {
         tags: ["Reviews"],
-        summary: "Create or update current user review",
-        description: "Pass a real car ID in the `id` path parameter and authorize first.",
+        summary: "Create or update current user review for a car",
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
@@ -503,43 +666,210 @@ export const openApiSpec = {
         },
         responses: {
           "201": { description: "Review submitted" },
-          "401": { description: "Unauthorized" },
+          "400": { description: "Validation error" },
           "404": { description: "Car not found" },
         },
       },
       delete: {
         tags: ["Reviews"],
-        summary: "Delete own review",
-        description: "Pass a review ID in the `id` path parameter, not a car ID. Get the review ID from GET /api/reviews/{carId}.",
+        summary: "Delete own review by review ID",
         security: [{ bearerAuth: [] }],
+        description: "Pass a review ID here, not a car ID.",
         parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "review_1" },
+          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmbreview123" },
         ],
         responses: {
           "200": { description: "Review deleted" },
-          "401": { description: "Unauthorized" },
           "403": { description: "Not authorized" },
           "404": { description: "Review not found" },
         },
       },
     },
 
+    "/api/payments/create-intent": {
+      post: {
+        tags: ["Payments"],
+        summary: "Create Stripe payment intent for an existing pending booking",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["bookingId"],
+                properties: {
+                  bookingId: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Payment intent created" },
+          "400": { description: "Invalid booking or payment state" },
+          "403": { description: "Not authorized" },
+          "404": { description: "Booking not found" },
+          "409": { description: "Booking expired" },
+        },
+      },
+    },
+    "/api/payments/confirm": {
+      post: {
+        tags: ["Payments"],
+        summary: "Confirm successful payment and finalize booking",
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["bookingId"],
+                properties: {
+                  bookingId: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Payment confirmed and booking updated" },
+          "400": { description: "Invalid booking or payment state" },
+          "403": { description: "Not authorized" },
+          "404": { description: "Booking not found" },
+          "409": { description: "Booking expired" },
+        },
+      },
+    },
+    "/api/payments/webhook": {
+      post: {
+        tags: ["Payments"],
+        summary: "Stripe webhook endpoint",
+        description:
+          "Consumes raw request body and should normally be called by Stripe, not manually from Swagger UI.",
+        requestBody: {
+          required: false,
+        },
+        responses: {
+          "200": { description: "Webhook received" },
+          "400": { description: "Webhook signature verification failed" },
+        },
+      },
+    },
+
+    "/api/admin/stats": {
+      get: {
+        tags: ["Admin"],
+        summary: "Get admin dashboard statistics",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Stats fetched" },
+          "403": { description: "Admin access required" },
+        },
+      },
+    },
+    "/api/admin/users": {
+      get: {
+        tags: ["Admin"],
+        summary: "List all users",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "Users fetched" },
+          "403": { description: "Admin access required" },
+        },
+      },
+    },
+    "/api/admin/users/{id}": {
+      get: {
+        tags: ["Admin"],
+        summary: "Get single user detail",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "User fetched" },
+          "404": { description: "User not found" },
+        },
+      },
+      put: {
+        tags: ["Admin"],
+        summary: "Update user profile fields",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  email: { type: "string", format: "email" },
+                  phone: { type: "string" },
+                  address: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "User updated" },
+          "404": { description: "User not found" },
+          "409": { description: "Email already in use" },
+        },
+      },
+      delete: {
+        tags: ["Admin"],
+        summary: "Delete a user account",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          "200": { description: "User deleted" },
+          "400": { description: "Protected admin restriction" },
+          "404": { description: "User not found" },
+        },
+      },
+    },
+    "/api/admin/users/{id}/role": {
+      patch: {
+        tags: ["Admin"],
+        summary: "Update user role",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["role"],
+                properties: {
+                  role: { type: "string", enum: ["USER", "ADMIN"] },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Role updated" },
+          "400": { description: "Protected admin restriction or invalid role" },
+          "404": { description: "User not found" },
+        },
+      },
+    },
     "/api/admin/cars": {
       get: {
         tags: ["Admin"],
         summary: "Admin list cars",
-        description: "Requires an ADMIN token. A normal USER token returns 403.",
         security: [{ bearerAuth: [] }],
         responses: {
           "200": { description: "Cars fetched" },
-          "401": { description: "Unauthorized" },
           "403": { description: "Admin access required" },
         },
       },
       post: {
         tags: ["Admin"],
         summary: "Admin create car",
-        description: "Requires an ADMIN token. A normal USER token returns 403.",
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
@@ -552,25 +882,16 @@ export const openApiSpec = {
                   brand: { type: "string" },
                   model: { type: "string" },
                   type: { type: "string" },
-                  pricePerDay: { type: "number", minimum: 0.01 },
+                  pricePerDay: { type: "number" },
                   description: { type: "string" },
                   imageUrl: { type: "string", nullable: true },
                 },
-              },
-              example: {
-                brand: "Toyota",
-                model: "Camry",
-                type: "Sedan",
-                pricePerDay: 75,
-                description: "Comfortable midsize sedan",
-                imageUrl: "https://example.com/camry.jpg",
               },
             },
           },
         },
         responses: {
           "201": { description: "Car created" },
-          "401": { description: "Unauthorized" },
           "403": { description: "Admin access required" },
         },
       },
@@ -579,11 +900,8 @@ export const openApiSpec = {
       put: {
         tags: ["Admin"],
         summary: "Admin update car",
-        description: "Requires an ADMIN token and a real car ID.",
         security: [{ bearerAuth: [] }],
-        parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
-        ],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         requestBody: {
           required: true,
           content: {
@@ -595,41 +913,26 @@ export const openApiSpec = {
                   brand: { type: "string" },
                   model: { type: "string" },
                   type: { type: "string" },
-                  pricePerDay: { type: "number", minimum: 0.01 },
+                  pricePerDay: { type: "number" },
                   description: { type: "string" },
                   imageUrl: { type: "string", nullable: true },
                 },
-              },
-              example: {
-                brand: "Toyota",
-                model: "Camry",
-                type: "Sedan",
-                pricePerDay: 80,
-                description: "Updated car description",
-                imageUrl: "https://example.com/camry.jpg",
               },
             },
           },
         },
         responses: {
           "200": { description: "Car updated" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Admin access required" },
           "404": { description: "Car not found" },
         },
       },
       delete: {
         tags: ["Admin"],
         summary: "Admin delete car",
-        description: "Requires an ADMIN token and a real car ID.",
         security: [{ bearerAuth: [] }],
-        parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "cmmb6ngzw0007bntrd52s8mn2" },
-        ],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         responses: {
           "200": { description: "Car deleted" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Admin access required" },
           "404": { description: "Car not found" },
         },
       },
@@ -638,7 +941,6 @@ export const openApiSpec = {
       get: {
         tags: ["Admin"],
         summary: "Admin list bookings",
-        description: "Requires an ADMIN token. A normal USER token returns 403.",
         security: [{ bearerAuth: [] }],
         parameters: [
           {
@@ -648,13 +950,10 @@ export const openApiSpec = {
               type: "string",
               enum: ["PENDING", "CONFIRMED", "ACTIVE", "COMPLETED", "CANCELLED"],
             },
-            example: "PENDING",
           },
         ],
         responses: {
           "200": { description: "Bookings fetched" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Admin access required" },
         },
       },
     },
@@ -662,11 +961,8 @@ export const openApiSpec = {
       patch: {
         tags: ["Admin"],
         summary: "Admin update booking status",
-        description: "Requires an ADMIN token and a real booking ID from the admin bookings list.",
         security: [{ bearerAuth: [] }],
-        parameters: [
-          { name: "id", in: "path", required: true, schema: { type: "string" }, example: "booking_1" },
-        ],
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         requestBody: {
           required: true,
           content: {
@@ -681,17 +977,80 @@ export const openApiSpec = {
                   },
                 },
               },
-              example: {
-                status: "CONFIRMED",
-              },
             },
           },
         },
         responses: {
           "200": { description: "Booking status updated" },
-          "401": { description: "Unauthorized" },
-          "403": { description: "Admin access required" },
           "404": { description: "Booking not found" },
+        },
+      },
+    },
+
+    "/api/chatbot": {
+      post: {
+        tags: ["Chatbot"],
+        summary: "Send a recommendation or car-related question to the AI assistant",
+        description: "Public endpoint. Authorization header is optional and only used for conversation linkage if present.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ChatbotMessage" },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Chatbot response generated" },
+          "400": { description: "Message is required" },
+        },
+      },
+    },
+
+    "/api/oauth/providers": {
+      get: {
+        tags: ["OAuth"],
+        summary: "Get configured OAuth providers",
+        responses: {
+          "200": { description: "Provider availability returned" },
+        },
+      },
+    },
+    "/api/oauth/google": {
+      get: {
+        tags: ["OAuth"],
+        summary: "Start Google OAuth login flow",
+        responses: {
+          "302": { description: "Redirects to Google" },
+        },
+      },
+    },
+    "/api/oauth/google/callback": {
+      get: {
+        tags: ["OAuth"],
+        summary: "Google OAuth callback",
+        description: "Browser redirect endpoint used by Google OAuth flow.",
+        responses: {
+          "302": { description: "Redirects to frontend with JWT token" },
+        },
+      },
+    },
+    "/api/oauth/github": {
+      get: {
+        tags: ["OAuth"],
+        summary: "Start GitHub OAuth login flow",
+        responses: {
+          "302": { description: "Redirects to GitHub" },
+        },
+      },
+    },
+    "/api/oauth/github/callback": {
+      get: {
+        tags: ["OAuth"],
+        summary: "GitHub OAuth callback",
+        description: "Browser redirect endpoint used by GitHub OAuth flow.",
+        responses: {
+          "302": { description: "Redirects to frontend with JWT token" },
         },
       },
     },

@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
@@ -19,7 +19,7 @@ import { CarCard } from '../../components/car-card/car-card';
   templateUrl: './car-detail-page.html',
   styleUrl: './car-detail-page.scss',
 })
-export class CarDetailPage implements OnInit {
+export class CarDetailPage implements OnInit, OnDestroy {
   readonly maxBookingAdvanceDays = 365;
   readonly maxRentalDays = 30;
   car: Car | null = null;
@@ -41,6 +41,7 @@ export class CarDetailPage implements OnInit {
   unavailableBookings: UnavailableBookingRange[] = [];
   availabilityConflictRanges: UnavailableBookingRange[] = [];
   unavailableBookingsLoading = false;
+  private holdRefreshTimer?: ReturnType<typeof setTimeout>;
 
   // Reviews
   reviews: Review[] = [];
@@ -75,6 +76,7 @@ export class CarDetailPage implements OnInit {
       }
 
       // Reset state on each navigation
+      this.clearHoldRefreshTimer();
       this.car = null;
       this.loading = true;
       this.error = '';
@@ -128,6 +130,10 @@ export class CarDetailPage implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.clearHoldRefreshTimer();
+  }
+
   get todayStr(): string {
     return this.formatDate(new Date());
   }
@@ -178,18 +184,6 @@ export class CarDetailPage implements OnInit {
     return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
   }
 
-  get unavailableDateRanges(): string[] {
-    return this.unavailableBookings.map((booking) =>
-      this.formatDateRange(booking.startDate, booking.endDate)
-    );
-  }
-
-  get selectedConflictRanges(): string[] {
-    return this.availabilityConflictRanges.map((booking) =>
-      this.formatDateRange(booking.startDate, booking.endDate)
-    );
-  }
-
   get hasValidDateRange(): boolean {
     return !this.getValidationError();
   }
@@ -204,6 +198,57 @@ export class CarDetailPage implements OnInit {
 
   private getNormalizedLocation(value: string): string {
     return value.trim().replace(/\s+/g, ' ');
+  }
+
+  formatUnavailableBookingLabel(booking: UnavailableBookingRange): string {
+    const dateRange = this.formatDateRange(booking.startDate, booking.endDate);
+
+    if (booking.status !== 'PENDING' || !booking.holdExpiresAt) {
+      return dateRange;
+    }
+
+    const expiresAt = new Date(booking.holdExpiresAt);
+    if (isNaN(expiresAt.getTime())) {
+      return `${dateRange} - temporarily held`;
+    }
+
+    return `${dateRange} - held until ${expiresAt.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`;
+  }
+
+  private clearHoldRefreshTimer(): void {
+    if (this.holdRefreshTimer) {
+      clearTimeout(this.holdRefreshTimer);
+      this.holdRefreshTimer = undefined;
+    }
+  }
+
+  private schedulePendingHoldRefresh(): void {
+    this.clearHoldRefreshTimer();
+
+    const nextExpiry = [...this.unavailableBookings, ...this.availabilityConflictRanges]
+      .filter((booking) => booking.status === 'PENDING' && booking.holdExpiresAt)
+      .map((booking) => new Date(booking.holdExpiresAt as string).getTime())
+      .filter((time) => !isNaN(time) && time > Date.now())
+      .sort((a, b) => a - b)[0];
+
+    if (!nextExpiry) {
+      return;
+    }
+
+    this.holdRefreshTimer = setTimeout(() => {
+      const carId = this.car?.id;
+      if (!carId) {
+        return;
+      }
+
+      this.loadUnavailableBookings(carId);
+      if (this.availabilityStatus !== 'idle' && !this.getValidationError()) {
+        this.checkAvailability();
+      }
+    }, Math.max(1000, nextExpiry - Date.now() + 1000));
   }
 
   private getValidationError(): string {
@@ -309,6 +354,7 @@ export class CarDetailPage implements OnInit {
         next: (res) => {
           this.availabilityStatus = res.available ? 'available' : 'unavailable';
           this.availabilityConflictRanges = res.conflictingRanges;
+          this.schedulePendingHoldRefresh();
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -326,11 +372,13 @@ export class CarDetailPage implements OnInit {
       next: (bookings) => {
         this.unavailableBookings = bookings;
         this.unavailableBookingsLoading = false;
+        this.schedulePendingHoldRefresh();
         this.cdr.detectChanges();
       },
       error: () => {
         this.unavailableBookings = [];
         this.unavailableBookingsLoading = false;
+        this.schedulePendingHoldRefresh();
         this.cdr.detectChanges();
       },
     });
@@ -397,6 +445,9 @@ export class CarDetailPage implements OnInit {
               });
             },
             error: (err) => {
+              this.bookingService.cancelBooking(booking.id).subscribe({
+                error: () => {},
+              });
               this.bookingLoading = false;
               this.bookingError = err.error?.message || 'Failed to initialize payment. Please try again.';
               this.cdr.detectChanges();

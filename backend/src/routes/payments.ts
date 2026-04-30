@@ -4,14 +4,10 @@ import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
 import { sendBookingConfirmationEmail } from "../utils/email";
 import { BOOKING_HOLD_MINUTES, expirePendingBookings, isPendingBookingExpired } from "../utils/bookingExpiration";
+import { paymentGateway } from "../adapters/stripePayment.adapter";
 
 const router = Router();
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const stripe = new (require("stripe"))(process.env.STRIPE_SECRET_KEY as string);
-
-// POST /api/payments/create-intent
-// Creates a Stripe PaymentIntent for an existing PENDING booking
 router.post("/create-intent", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { bookingId } = req.body;
@@ -55,8 +51,7 @@ router.post("/create-intent", authenticate, async (req: AuthRequest, res: Respon
       return sendError(res, "Booking is already paid", 400);
     }
 
-    // Create Stripe PaymentIntent (amount in cents)
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await paymentGateway.createPaymentIntent({
       amount: Math.round(booking.totalPrice * 100),
       currency: "usd",
       metadata: {
@@ -65,22 +60,20 @@ router.post("/create-intent", authenticate, async (req: AuthRequest, res: Respon
       },
     });
 
-    // Save the paymentIntentId on the booking
+    
     await prisma.booking.update({
       where: { id: bookingId },
       data: { paymentIntentId: paymentIntent.id },
     });
 
-    return sendSuccess(res, { clientSecret: paymentIntent.client_secret });
+    return sendSuccess(res, { clientSecret: paymentIntent.clientSecret });
   } catch (err) {
     console.error("create-intent error:", err);
     return sendError(res, "Failed to create payment intent", 500);
   }
 });
 
-// POST /api/payments/confirm
-// Called by the frontend after Stripe.confirmCardPayment succeeds
-// Verifies the payment directly with Stripe and confirms the booking
+
 router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { bookingId } = req.body;
@@ -124,10 +117,9 @@ router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) =>
       return sendError(res, "No payment found for this booking", 400);
     }
 
-    // Verify directly with Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(booking.paymentIntentId);
+    const paymentStatus = await paymentGateway.getPaymentIntentStatus(booking.paymentIntentId);
 
-    if (paymentIntent.status !== "succeeded") {
+    if (paymentStatus !== "succeeded") {
       return sendError(res, "Payment has not succeeded", 400);
     }
 
@@ -158,18 +150,15 @@ router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) =>
   }
 });
 
-// POST /api/payments/webhook
-// Stripe calls this to notify payment outcomes
-// Note: raw body is set in app.ts for this route
 router.post("/webhook", async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   let event: any;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    event = paymentGateway.constructWebhookEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);

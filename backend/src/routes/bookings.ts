@@ -2,20 +2,18 @@ import { Router, Response } from "express";
 import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { authenticate, AuthRequest } from "../middleware/auth";
-import { expirePendingBookings } from "../utils/bookingExpiration";
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const stripe = new (require("stripe"))(process.env.STRIPE_SECRET_KEY as string);
+import { BOOKING_HOLD_MINUTES, expirePendingBookings } from "../utils/bookingExpiration";
+import { paymentGateway } from "../adapters/stripePayment.adapter";
 
 const router = Router();
 const MAX_BOOKING_ADVANCE_DAYS = 365;
 const MAX_BOOKING_DURATION_DAYS = 30;
 
-function parseDateOnly(value: string): Date {
+export function parseDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00`);
 }
 
-function getBookingDateValidation(start: Date, end: Date): string | null {
+export function getBookingDateValidation(start: Date, end: Date): string | null {
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     return "Invalid date format";
   }
@@ -110,6 +108,10 @@ router.get("/availability", async (req, res) => {
         startDate: booking.startDate,
         endDate: booking.endDate,
         status: booking.status,
+        holdExpiresAt:
+          booking.status === "PENDING"
+            ? new Date(booking.createdAt.getTime() + BOOKING_HOLD_MINUTES * 60 * 1000)
+            : null,
       })),
     });
   } catch (err) {
@@ -135,11 +137,23 @@ router.get("/unavailable/:carId", async (req, res) => {
         startDate: true,
         endDate: true,
         status: true,
+        createdAt: true,
       },
       orderBy: { startDate: "asc" },
     });
 
-    return sendSuccess(res, { unavailableBookings });
+    return sendSuccess(res, {
+      unavailableBookings: unavailableBookings.map((booking) => ({
+        id: booking.id,
+        startDate: booking.startDate,
+        endDate: booking.endDate,
+        status: booking.status,
+        holdExpiresAt:
+          booking.status === "PENDING"
+            ? new Date(booking.createdAt.getTime() + BOOKING_HOLD_MINUTES * 60 * 1000)
+            : null,
+      })),
+    });
   } catch (err) {
     console.error(err);
     return sendError(res, "Failed to fetch unavailable booking dates", 500);
@@ -241,7 +255,7 @@ router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
     // If already paid, issue a Stripe refund
     if (booking.paymentStatus === "PAID" && booking.paymentIntentId) {
       try {
-        await stripe.refunds.create({ payment_intent: booking.paymentIntentId });
+        await paymentGateway.refundPaymentIntent(booking.paymentIntentId);
         await prisma.booking.update({
           where: { id: booking.id },
           data: { status: "CANCELLED", paymentStatus: "REFUNDED" },

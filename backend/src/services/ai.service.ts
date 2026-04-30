@@ -48,12 +48,60 @@ const ALLOWED_CAR_TYPES: CarType[] = ["suv", "sedan", "electric", "hatchback", "
 const OPENAI_DEBUG = process.env.OPENAI_DEBUG !== "0";
 const OFF_TOPIC_RESPONSE =
   "Sorry, I can only help with your questions related to our cars and the process of rental!";
-const EXTRACT_PREFERENCES_SYSTEM_PROMPT =
-  "Extract rental preferences for a car-rental website and return strict JSON only with these keys: isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays, sortByPrice, location, brand, model, minSeats, transmission, fuelType, yearMin, yearMax, minHorsepower, maxHorsepower, minMileageKm, maxMileageKm, color. isCarRentalQuery must be true when the message is about renting, finding, comparing, booking, or asking facts/specifications about cars on this website. This includes questions like 'any car over 400 horsepower?', 'what is the horsepower of the BMW X5?', 'which car has less than 20000 km?', 'do you have a red car?', 'which electric car has the longest range?', or 'what is the engine size?' even when the website database does not store that exact field. Consider conversation history; a short reply like 'yes' or 'sure' after a car-rental discussion counts as true. Set false for greetings, general chat, coding, math, history, science unrelated to cars, politics, health, legal, or anything unrelated to this car rental website. Use the real car fields: brand, model, type, pricePerDay, imageUrl, description, city, seats, transmission, fuelType, year, horsepower, mileageKm, color. carType must be one of SUV, Sedan, Electric, Hatchback, Coupe or null. If the user asks for capacity like '7 people', 'seven passengers', 'family of 5', or 'fits 4', set minSeats to that passenger count because it maps to the seats field. If the user asks for horsepower, hp, power, or performance thresholds like 'more than 400 horsepower', 'over 300 hp', 'at least 250 hp', set minHorsepower to that number; for 'under 200 hp' set maxHorsepower. If the user asks for mileage or kilometers used, set maxMileageKm for phrases like 'less than 20000 km', 'under 30000 km', 'low mileage', or 'not used much'; set minMileageKm for phrases like 'over 50000 km' or 'more than 40000 km'. If they ask for a car color like red, white, black, blue, grey, silver, or yellow, set color to that color word. If they mention automatic/manual, set transmission. If they mention petrol, diesel, electric, or hybrid, set fuelType. If they mention a brand or model, set brand/model. If they mention newest/newer cars, use yearMin when possible and sortByPrice null unless price intent exists. sortByPrice must be 'desc' for most expensive, luxury, premium, highest-priced, best, or a luxury brand without budget; 'asc' for cheapest, budget, affordable, lowest price; null otherwise. When price does not matter, minPrice/maxPrice must be null. location must be the city/location name mentioned. Use null for missing values. If isCarRentalQuery is false, all other fields must be null. Return JSON only with no extra keys and no explanation.";
-const RECOMMENDATION_SYSTEM_PROMPT =
-  `You are CarRental Website Assistant for this website only. Recommend only from the provided Available cars list, which contains the real website car fields: brand, model, type, pricePerDay, imageUrl, description, city, seats, transmission, fuelType, year, horsepower, mileageKm, and color. Briefly explain which fields you checked when relevant, for example seats for passenger capacity, horsepower for power/performance, mileageKm for how much the car has been used, color for requested exterior color, fuelType for electric/diesel/petrol/hybrid, transmission for automatic/manual, city for location, and pricePerDay for budget. Never invent cars or fields. If the user asks an out-of-scope question, reply exactly: "${OFF_TOPIC_RESPONSE}" Keep the response concise in at most 3 short sentences.`;
-const WEB_SEARCH_SYSTEM_PROMPT =
-  `You are CarRental Website Assistant for this website only. Answer only car or rental-process questions. Use web search for car facts that are not stored in the website database, such as horsepower, engine specs, range, charging, fuel economy, dimensions, cargo space, or safety ratings. Only answer about cars listed in the provided Website cars JSON. If the question is outside cars or rentals, reply exactly: "${OFF_TOPIC_RESPONSE}" If a spec varies by year, trim, market, or engine, say that and give the closest commonly reported value for the listed year/model. Keep the answer concise and include source URLs when available.`;
+const EXTRACT_PREFERENCES_SYSTEM_PROMPT = [
+  "Extract rental preferences for a car-rental website and return strict JSON only with these keys:",
+  "isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays, sortByPrice, location,",
+  "brand, model, minSeats, transmission, fuelType, yearMin, yearMax, minHorsepower,",
+  "maxHorsepower, minMileageKm, maxMileageKm, color.",
+  "isCarRentalQuery must be true when the message is about renting, finding, comparing, booking,",
+  "or asking facts/specifications about cars on this website.",
+  "This includes questions like 'any car over 400 horsepower?', 'what is the horsepower of the BMW X5?',",
+  "'which car has less than 20000 km?', 'do you have a red car?', 'which electric car has the longest range?',",
+  "or 'what is the engine size?' even when the website database does not store that exact field.",
+  "Consider conversation history; a short reply like 'yes' or 'sure' after a car-rental discussion counts as true.",
+  "Set false for greetings, general chat, coding, math, history, science unrelated to cars, politics,",
+  "health, legal, or anything unrelated to this car rental website.",
+  "Use the real car fields: brand, model, type, pricePerDay, imageUrl, description, city, seats,",
+  "transmission, fuelType, year, horsepower, mileageKm, color.",
+  "carType must be one of SUV, Sedan, Electric, Hatchback, Coupe or null.",
+  "If the user asks for capacity like '7 people', 'seven passengers', 'family of 5', or 'fits 4',",
+  "set minSeats to that passenger count because it maps to the seats field.",
+  "If the user asks for horsepower, hp, power, or performance thresholds like 'more than 400 horsepower',",
+  "'over 300 hp', 'at least 250 hp', set minHorsepower to that number; for 'under 200 hp' set maxHorsepower.",
+  "If the user asks for mileage or kilometers used, set maxMileageKm for phrases like",
+  "'less than 20000 km', 'under 30000 km', 'low mileage', or 'not used much';",
+  "set minMileageKm for phrases like 'over 50000 km' or 'more than 40000 km'.",
+  "If they ask for a car color like red, white, black, blue, grey, silver, or yellow, set color to that color word.",
+  "If they mention automatic/manual, set transmission. If they mention petrol, diesel, electric, or hybrid, set fuelType.",
+  "If they mention a brand or model, set brand/model. If they mention newest/newer cars, use yearMin when possible",
+  "and sortByPrice null unless price intent exists.",
+  "sortByPrice must be 'desc' for most expensive, luxury, premium, highest-priced, best, or a luxury brand without budget;",
+  "'asc' for cheapest, budget, affordable, lowest price; null otherwise.",
+  "When price does not matter, minPrice/maxPrice must be null. location must be the city/location name mentioned.",
+  "Use null for missing values. If isCarRentalQuery is false, all other fields must be null.",
+  "Return JSON only with no extra keys and no explanation.",
+].join(" ");
+const RECOMMENDATION_SYSTEM_PROMPT = [
+  "You are CarRental Website Assistant for this website only.",
+  "Recommend only from the provided Available cars list, which contains the real website car fields:",
+  "brand, model, type, pricePerDay, imageUrl, description, city, seats, transmission, fuelType, year, horsepower, mileageKm, and color.",
+  "Briefly explain which fields you checked when relevant, for example seats for passenger capacity,",
+  "horsepower for power/performance, mileageKm for how much the car has been used, color for requested exterior color,",
+  "fuelType for electric/diesel/petrol/hybrid, transmission for automatic/manual, city for location, and pricePerDay for budget.",
+  "Never invent cars or fields.",
+  `If the user asks an out-of-scope question, reply exactly: "${OFF_TOPIC_RESPONSE}"`,
+  "Keep the response concise in at most 3 short sentences.",
+].join(" ");
+const WEB_SEARCH_SYSTEM_PROMPT = [
+  "You are CarRental Website Assistant for this website only.",
+  "Answer only car or rental-process questions.",
+  "Use web search for car facts that are not stored in the website database, such as horsepower, engine specs, range, charging,",
+  "fuel economy, dimensions, cargo space, or safety ratings.",
+  "Only answer about cars listed in the provided Website cars JSON.",
+  `If the question is outside cars or rentals, reply exactly: "${OFF_TOPIC_RESPONSE}"`,
+  "If a spec varies by year, trim, market, or engine, say that and give the closest commonly reported value for the listed year/model.",
+  "Keep the answer concise and include source URLs when available.",
+].join(" ");
 
 function debugOpenAI(message: string, meta?: Record<string, unknown>): void {
   if (!OPENAI_DEBUG) {
@@ -68,7 +116,7 @@ function debugOpenAI(message: string, meta?: Record<string, unknown>): void {
   console.log(`[openai-debug] ${message}`);
 }
 
-function maskApiKey(apiKey: string): string {
+export function maskApiKey(apiKey: string): string {
   if (apiKey.length <= 12) {
     return "***masked***";
   }
@@ -76,7 +124,7 @@ function maskApiKey(apiKey: string): string {
   return `${apiKey.slice(0, 7)}...${apiKey.slice(-4)}`;
 }
 
-function parseNumberOrNull(value: unknown): number | null {
+export function parseNumberOrNull(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
   }
@@ -91,7 +139,7 @@ function parseNumberOrNull(value: unknown): number | null {
   return null;
 }
 
-function normalizeCarType(value: unknown): CarType | null {
+export function normalizeCarType(value: unknown): CarType | null {
   if (typeof value !== "string") {
     return null;
   }
@@ -100,7 +148,7 @@ function normalizeCarType(value: unknown): CarType | null {
   return ALLOWED_CAR_TYPES.includes(normalized as CarType) ? (normalized as CarType) : null;
 }
 
-function normalizeFeatures(value: unknown): string[] | null {
+export function normalizeFeatures(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     return null;
   }
@@ -112,7 +160,7 @@ function normalizeFeatures(value: unknown): string[] | null {
   return normalized.length > 0 ? Array.from(new Set(normalized)) : null;
 }
 
-function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
+export function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
   const parsed = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 
   const minPrice = parseNumberOrNull(parsed.minPrice);
@@ -167,11 +215,11 @@ function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
   };
 }
 
-function formatCarLabel(car: ShortlistCar): string {
+export function formatCarLabel(car: ShortlistCar): string {
   return `${car.brand} ${car.model}`;
 }
 
-function formatCarDetails(car: ShortlistCar): string {
+export function formatCarDetails(car: ShortlistCar): string {
   const details = [
     car.seats != null ? `${car.seats} seats` : null,
     car.transmission,
@@ -186,12 +234,12 @@ function formatCarDetails(car: ShortlistCar): string {
   return details.length > 0 ? ` (${details.join(", ")})` : "";
 }
 
-function buildFastRecommendation(shortlist: ShortlistCar[], durationDays: number, filters?: ExtractedFilters): string {
+export function buildFastRecommendation(shortlist: ShortlistCar[], durationDays: number, filters?: ExtractedFilters): string {
   if (shortlist.length === 0) {
     return "I couldn't find a matching car right now. Try widening your budget, changing car type, or reducing duration.";
   }
 
-  // Trust the order of shortlist as passed in (caller already sorted by DB orderBy)
+  
   const top = shortlist[0];
   const alternatives = shortlist.slice(1, 3);
 
@@ -222,7 +270,7 @@ function buildFastRecommendation(shortlist: ShortlistCar[], durationDays: number
   return `Best match: ${formatCarLabel(top)}${formatCarDetails(top)} at $${top.pricePerDay}/day (about $${topTotal} total for ${durationDays} day${durationDays > 1 ? "s" : ""}).${checkedText} Alternatives: ${altText}.`;
 }
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: () => T): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: () => T): Promise<T> {
   return new Promise((resolve) => {
     let settled = false;
 
@@ -347,8 +395,15 @@ export class AIService {
       messages: [
         {
           role: "system",
-          content:
-            "You are the AI assistant for a car rental website. The current user message is outside your allowed scope unless it is about the website cars or rental process. Do not answer unrelated requests. Instead, write a natural, kind redirection that briefly acknowledges the user's topic or intent in your own words, says you are here to help with car rentals and cannot handle that request, and invites them to ask a rental question. Give 1-2 concrete examples such as finding an SUV, comparing horsepower, checking low mileage, budget, seats, or booking dates. Do not use a fixed template. Keep it to 2 short sentences.",
+          content: [
+            "You are the AI assistant for a car rental website.",
+            "The current user message is outside your allowed scope unless it is about the website cars or rental process.",
+            "Do not answer unrelated requests.",
+            "Instead, write a natural, kind redirection that briefly acknowledges the user's topic or intent in your own words,",
+            "says you are here to help with car rentals and cannot handle that request, and invites them to ask a rental question.",
+            "Give 1-2 concrete examples such as finding an SUV, comparing horsepower, checking low mileage, budget, seats, or booking dates.",
+            "Do not use a fixed template. Keep it to 2 short sentences.",
+          ].join(" "),
         },
         ...historyMessages,
         {
@@ -382,8 +437,13 @@ export class AIService {
       messages: [
         {
           role: "system",
-          content:
-            "You are a car rental assistant. The user wants to rent a car but hasn't given enough details. Ask them 2-3 short, friendly clarifying questions to understand: car type (SUV, Sedan, Hatchback, Electric), daily budget, and rental duration. Do not recommend any car yet. Keep it conversational and brief.",
+          content: [
+            "You are a car rental assistant.",
+            "The user wants to rent a car but hasn't given enough details.",
+            "Ask them 2-3 short, friendly clarifying questions to understand:",
+            "car type (SUV, Sedan, Hatchback, Electric), daily budget, and rental duration.",
+            "Do not recommend any car yet. Keep it conversational and brief.",
+          ].join(" "),
         },
         ...historyMessages,
         {

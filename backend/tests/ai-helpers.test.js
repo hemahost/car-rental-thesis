@@ -6,6 +6,8 @@ const {
   parseNumberOrNull,
   normalizeCarType,
   normalizeFeatures,
+  normalizeDateOnly,
+  getDurationDaysFromDates,
   normalizeExtractedFilters,
   formatCarLabel,
   formatCarDetails,
@@ -67,6 +69,17 @@ test('normalizeFeatures returns null for invalid input', () => {
   assert.equal(normalizeFeatures('gps'), null);
 });
 
+test('normalizeDateOnly accepts valid date-only strings', () => {
+  assert.equal(normalizeDateOnly('2026-05-10'), '2026-05-10');
+  assert.equal(normalizeDateOnly('2026-02-30'), null);
+  assert.equal(normalizeDateOnly('May 10'), null);
+});
+
+test('getDurationDaysFromDates calculates date ranges', () => {
+  assert.equal(getDurationDaysFromDates('2026-05-10', '2026-05-15'), 5);
+  assert.equal(getDurationDaysFromDates('2026-05-15', '2026-05-10'), null);
+});
+
 test('normalizeExtractedFilters converts raw model output into normalized filters', () => {
   const result = normalizeExtractedFilters({
     isCarRentalQuery: true,
@@ -75,6 +88,8 @@ test('normalizeExtractedFilters converts raw model output into normalized filter
     maxPrice: 200,
     features: ['GPS'],
     durationDays: '3',
+    pickupDate: '2026-05-10',
+    returnDate: '2026-05-15',
     sortByPrice: 'desc',
     location: 'Budapest',
     brand: 'BMW',
@@ -97,7 +112,9 @@ test('normalizeExtractedFilters converts raw model output into normalized filter
     minPrice: 50,
     maxPrice: 200,
     features: ['gps'],
-    durationDays: 3,
+    durationDays: 5,
+    pickupDate: '2026-05-10',
+    returnDate: '2026-05-15',
     sortByPrice: 'desc',
     location: 'Budapest',
     brand: 'BMW',

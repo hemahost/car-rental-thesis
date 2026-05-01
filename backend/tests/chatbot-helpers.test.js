@@ -9,6 +9,8 @@ const {
   extractHorsepowerThreshold,
   extractMileageThreshold,
   extractColor,
+  extractDateRange,
+  isDateRangeInPast,
   uniqueCarsByModel,
 } = require('../dist/services/chatbot.service.js');
 
@@ -20,6 +22,8 @@ test('normalizeFilters rounds and sanitizes extracted values', () => {
     maxPrice: 120,
     features: ['gps'],
     durationDays: 2.4,
+    pickupDate: '2026-05-10',
+    returnDate: '2026-05-15',
     sortByPrice: 'asc',
     location: 'Budapest',
     brand: 'BMW',
@@ -43,6 +47,8 @@ test('normalizeFilters rounds and sanitizes extracted values', () => {
     maxPrice: 120,
     features: ['gps'],
     durationDays: 2.4,
+    pickupDate: '2026-05-10',
+    returnDate: '2026-05-15',
     sortByPrice: 'asc',
     location: 'Budapest',
     brand: 'BMW',
@@ -100,6 +106,36 @@ test('extracts supported colors from messages', () => {
   assert.equal(extractColor('Do you have a red car?'), 'Red');
   assert.equal(extractColor('I want a gray SUV'), 'Grey');
   assert.equal(extractColor('Need something premium'), null);
+});
+
+test('extracts exact rental date ranges from natural language', () => {
+  const now = new Date('2026-05-01T12:00:00');
+
+  assert.deepEqual(extractDateRange('I need a BMW from May 10 to May 15', now), {
+    pickupDate: '2026-05-10',
+    returnDate: '2026-05-15',
+    durationDays: 5,
+  });
+
+  assert.deepEqual(extractDateRange('Need an SUV 2026-06-01 to 2026-06-04', now), {
+    pickupDate: '2026-06-01',
+    returnDate: '2026-06-04',
+    durationDays: 3,
+  });
+});
+
+test('detects exact date ranges in the past', () => {
+  const now = new Date('2026-05-01T12:00:00');
+
+  assert.deepEqual(extractDateRange('I need a BMW from April 10 to April 15', now), {
+    pickupDate: '2026-04-10',
+    returnDate: '2026-04-15',
+    durationDays: 5,
+  });
+
+  assert.equal(isDateRangeInPast('2026-04-10', '2026-04-15', now), true);
+  assert.equal(isDateRangeInPast('2026-05-01', '2026-05-03', now), false);
+  assert.equal(isDateRangeInPast('2026-05-10', '2026-05-15', now), false);
 });
 
 test('removes duplicate recommendations by brand and model', () => {

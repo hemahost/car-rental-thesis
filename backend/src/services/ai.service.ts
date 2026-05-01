@@ -10,6 +10,8 @@ export interface ExtractedFilters {
   minPrice: number | null;
   features: string[] | null;
   durationDays: number | null;
+  pickupDate: string | null;
+  returnDate: string | null;
   sortByPrice: "asc" | "desc" | null;
   location: string | null;
   brand: string | null;
@@ -50,7 +52,7 @@ const OFF_TOPIC_RESPONSE =
   "Sorry, I can only help with your questions related to our cars and the process of rental!";
 const EXTRACT_PREFERENCES_SYSTEM_PROMPT = [
   "Extract rental preferences for a car-rental website and return strict JSON only with these keys:",
-  "isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays, sortByPrice, location,",
+  "isCarRentalQuery, carType, maxPrice, minPrice, features, durationDays, pickupDate, returnDate, sortByPrice, location,",
   "brand, model, minSeats, transmission, fuelType, yearMin, yearMax, minHorsepower,",
   "maxHorsepower, minMileageKm, maxMileageKm, color.",
   "isCarRentalQuery must be true when the message is about renting, finding, comparing, booking,",
@@ -73,6 +75,9 @@ const EXTRACT_PREFERENCES_SYSTEM_PROMPT = [
   "set minMileageKm for phrases like 'over 50000 km' or 'more than 40000 km'.",
   "If they ask for a car color like red, white, black, blue, grey, silver, or yellow, set color to that color word.",
   "If they mention automatic/manual, set transmission. If they mention petrol, diesel, electric, or hybrid, set fuelType.",
+  "If they mention exact rental dates, set pickupDate and returnDate as YYYY-MM-DD. Use the provided current date",
+  "to infer the year for dates like 'May 10'; if that date already passed this year, use next year.",
+  "If they give both exact dates, calculate durationDays from pickupDate to returnDate.",
   "If they mention a brand or model, set brand/model. If they mention newest/newer cars, use yearMin when possible",
   "and sortByPrice null unless price intent exists.",
   "sortByPrice must be 'desc' for most expensive, luxury, premium, highest-priced, best, or a luxury brand without budget;",
@@ -160,12 +165,60 @@ export function normalizeFeatures(value: unknown): string[] | null {
   return normalized.length > 0 ? Array.from(new Set(normalized)) : null;
 }
 
+export function formatDateOnly(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function normalizeDateOnly(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return formatDateOnly(date);
+}
+
+export function getDurationDaysFromDates(pickupDate: string | null, returnDate: string | null): number | null {
+  if (!pickupDate || !returnDate) {
+    return null;
+  }
+
+  const start = new Date(`${pickupDate}T00:00:00`);
+  const end = new Date(`${returnDate}T00:00:00`);
+  const durationDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+  return Number.isFinite(durationDays) && durationDays > 0 ? durationDays : null;
+}
+
 export function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
   const parsed = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 
   const minPrice = parseNumberOrNull(parsed.minPrice);
   const maxPrice = parseNumberOrNull(parsed.maxPrice);
   const durationDaysValue = parseNumberOrNull(parsed.durationDays);
+  const pickupDate = normalizeDateOnly(parsed.pickupDate);
+  const returnDate = normalizeDateOnly(parsed.returnDate);
+  const dateDurationDays = getDurationDaysFromDates(pickupDate, returnDate);
   const minSeatsValue = parseNumberOrNull(parsed.minSeats);
   const yearMinValue = parseNumberOrNull(parsed.yearMin);
   const yearMaxValue = parseNumberOrNull(parsed.yearMax);
@@ -174,7 +227,8 @@ export function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
   const minMileageKmValue = parseNumberOrNull(parsed.minMileageKm);
   const maxMileageKmValue = parseNumberOrNull(parsed.maxMileageKm);
 
-  const durationDays = durationDaysValue != null && durationDaysValue > 0 ? Math.round(durationDaysValue) : null;
+  const durationDays =
+    dateDurationDays ?? (durationDaysValue != null && durationDaysValue > 0 ? Math.round(durationDaysValue) : null);
 
   function normalizeSortByPrice(value: unknown): "asc" | "desc" | null {
     if (value === "asc" || value === "desc") return value;
@@ -198,6 +252,8 @@ export function normalizeExtractedFilters(raw: unknown): ExtractedFilters {
     maxPrice,
     features: normalizeFeatures(parsed.features),
     durationDays,
+    pickupDate: dateDurationDays != null ? pickupDate : null,
+    returnDate: dateDurationDays != null ? returnDate : null,
     sortByPrice: normalizeSortByPrice(parsed.sortByPrice),
     location: normalizeLocation(parsed.location),
     brand: normalizeText(parsed.brand),
@@ -253,6 +309,7 @@ export function buildFastRecommendation(shortlist: ShortlistCar[], durationDays:
 
   const checkedFields = [
     filters?.minSeats != null ? "seats" : null,
+    filters?.pickupDate && filters?.returnDate ? "availability dates" : null,
     filters?.fuelType ? "fuel type" : null,
     filters?.minHorsepower != null || filters?.maxHorsepower != null ? "horsepower" : null,
     filters?.minMileageKm != null || filters?.maxMileageKm != null ? "mileage" : null,
@@ -350,7 +407,7 @@ export class AIService {
         ...historyMessages,
         {
           role: "user",
-          content: `Message: ${message}`,
+          content: `Current date: ${formatDateOnly(new Date())}\nMessage: ${message}`,
         },
       ] as ChatCompletionMessageParam[],
     });
@@ -489,7 +546,7 @@ export class AIService {
         },
         {
           role: "user",
-          content: `User request: ${message}\nDuration days: ${durationDays}\nExtracted filters: ${JSON.stringify(filters ?? null)}\n\nAvailable cars: ${JSON.stringify(shortlist)}`,
+          content: `User request: ${message}\nDuration days: ${durationDays}\nAvailability dates: ${filters?.pickupDate && filters?.returnDate ? `${filters.pickupDate} to ${filters.returnDate}` : "not specified"}\nExtracted filters: ${JSON.stringify(filters ?? null)}\n\nAvailable cars: ${JSON.stringify(shortlist)}`,
         },
       ],
     });

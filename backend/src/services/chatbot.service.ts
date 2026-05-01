@@ -2,7 +2,14 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
 import prisma from "../db/prisma";
-import { AIService, ExtractedFilters, ShortlistCar } from "./ai.service";
+import {
+  AIService,
+  ExtractedFilters,
+  ShortlistCar,
+  formatDateOnly,
+  getDurationDaysFromDates,
+  normalizeDateOnly,
+} from "./ai.service";
 
 interface ChatbotInput {
   message: string;
@@ -24,6 +31,35 @@ const GREETING_RESPONSE =
   "Hello! I'm happy to help you find a rental car, compare our vehicles, or explain the booking process. What kind of car are you looking for?";
 const EXTERNAL_CAR_INFO_PATTERN =
   /\b(horsepower|hp|engine|torque|acceleration|0[- ]?60|0[- ]?100|top speed|range|battery|charging|fuel economy|mpg|consumption|l\/100|dimensions|length|width|height|trunk|boot|cargo|safety rating|euro ncap|ncap|spec|specs|technical|power|performance)\b/i;
+const MONTHS: Record<string, number> = {
+  jan: 0,
+  january: 0,
+  feb: 1,
+  february: 1,
+  mar: 2,
+  march: 2,
+  apr: 3,
+  april: 3,
+  may: 4,
+  jun: 5,
+  june: 5,
+  jul: 6,
+  july: 6,
+  aug: 7,
+  august: 7,
+  sep: 8,
+  sept: 8,
+  september: 8,
+  oct: 9,
+  october: 9,
+  nov: 10,
+  november: 10,
+  dec: 11,
+  december: 11,
+};
+const MONTH_PATTERN =
+  "(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)";
+const DATE_RANGE_SEPARATOR_PATTERN = "(?:to|until|through|till|and|-|–|—)";
 
 export function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
   const minPrice = filters.minPrice != null && filters.minPrice >= 0 ? filters.minPrice : null;
@@ -36,6 +72,8 @@ export function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
     maxPrice,
     features: filters.features,
     durationDays: filters.durationDays != null && filters.durationDays > 0 ? filters.durationDays : null,
+    pickupDate: filters.pickupDate ?? null,
+    returnDate: filters.returnDate ?? null,
     sortByPrice: filters.sortByPrice ?? null,
     location: filters.location ?? null,
     brand: filters.brand ?? null,
@@ -51,6 +89,104 @@ export function normalizeFilters(filters: ExtractedFilters): ExtractedFilters {
     maxMileageKm: filters.maxMileageKm != null && filters.maxMileageKm > 0 ? Math.round(filters.maxMileageKm) : null,
     color: filters.color ?? null,
   };
+}
+
+function dateOnlyToLocalDate(value: string): Date {
+  return new Date(`${value}T00:00:00`);
+}
+
+function getTodayStart(now = new Date()): Date {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+export function isDateRangeInPast(pickupDate: string | null, returnDate: string | null, now = new Date()): boolean {
+  if (!pickupDate || !returnDate) {
+    return false;
+  }
+
+  const today = getTodayStart(now);
+  return dateOnlyToLocalDate(pickupDate) < today || dateOnlyToLocalDate(returnDate) < today;
+}
+
+function buildDateFromParts(monthName: string, dayValue: string, yearValue: string | undefined, now: Date): Date | null {
+  const month = MONTHS[monthName.toLowerCase()];
+  const day = Number(dayValue);
+  let year = yearValue ? Number(yearValue) : now.getFullYear();
+
+  if (month == null || !Number.isFinite(day) || !Number.isFinite(year) || day < 1 || day > 31) {
+    return null;
+  }
+
+  let date = new Date(year, month, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+    return null;
+  }
+
+  return date;
+}
+
+function normalizeExtractedDateRange(pickupDate: string | null, returnDate: string | null) {
+  const durationDays = getDurationDaysFromDates(pickupDate, returnDate);
+
+  return durationDays != null
+    ? { pickupDate, returnDate, durationDays }
+    : { pickupDate: null, returnDate: null, durationDays: null };
+}
+
+export function extractDateRange(
+  message: string,
+  now = new Date()
+): { pickupDate: string | null; returnDate: string | null; durationDays: number | null } {
+  const isoRangePattern = new RegExp(
+    `\\b(\\d{4}-\\d{2}-\\d{2})\\s*${DATE_RANGE_SEPARATOR_PATTERN}\\s*(\\d{4}-\\d{2}-\\d{2})\\b`,
+    "i"
+  );
+  const isoMatch = message.match(isoRangePattern);
+  if (isoMatch) {
+    return normalizeExtractedDateRange(normalizeDateOnly(isoMatch[1]), normalizeDateOnly(isoMatch[2]));
+  }
+
+  const monthFirstPattern = new RegExp(
+    `\\b(?:from\\s+|between\\s+)?${MONTH_PATTERN}\\s+(\\d{1,2})(?:,?\\s*(\\d{4}))?\\s*${DATE_RANGE_SEPARATOR_PATTERN}\\s*(?:${MONTH_PATTERN}\\s+)?(\\d{1,2})(?:,?\\s*(\\d{4}))?\\b`,
+    "i"
+  );
+  const monthFirstMatch = message.match(monthFirstPattern);
+  if (monthFirstMatch) {
+    const start = buildDateFromParts(monthFirstMatch[1], monthFirstMatch[2], monthFirstMatch[3], now);
+    const endMonth = monthFirstMatch[4] ?? monthFirstMatch[1];
+    const endYear = monthFirstMatch[6] ?? monthFirstMatch[3];
+    const end = buildDateFromParts(endMonth, monthFirstMatch[5], endYear, now);
+
+    if (start && end) {
+      if (end <= start && !endYear) {
+        end.setFullYear(end.getFullYear() + 1);
+      }
+      return normalizeExtractedDateRange(formatDateOnly(start), formatDateOnly(end));
+    }
+  }
+
+  const dayFirstPattern = new RegExp(
+    `\\b(?:from\\s+|between\\s+)?(\\d{1,2})\\s+${MONTH_PATTERN}(?:,?\\s*(\\d{4}))?\\s*${DATE_RANGE_SEPARATOR_PATTERN}\\s*(\\d{1,2})(?:\\s+${MONTH_PATTERN})?(?:,?\\s*(\\d{4}))?\\b`,
+    "i"
+  );
+  const dayFirstMatch = message.match(dayFirstPattern);
+  if (dayFirstMatch) {
+    const start = buildDateFromParts(dayFirstMatch[2], dayFirstMatch[1], dayFirstMatch[3], now);
+    const endMonth = dayFirstMatch[5] ?? dayFirstMatch[2];
+    const endYear = dayFirstMatch[6] ?? dayFirstMatch[3];
+    const end = buildDateFromParts(endMonth, dayFirstMatch[4], endYear, now);
+
+    if (start && end) {
+      if (end <= start && !endYear) {
+        end.setFullYear(end.getFullYear() + 1);
+      }
+      return normalizeExtractedDateRange(formatDateOnly(start), formatDateOnly(end));
+    }
+  }
+
+  return { pickupDate: null, returnDate: null, durationDays: null };
 }
 
 function getOptionalUserIdFromToken(authorizationHeader?: string): string | null {
@@ -318,6 +454,21 @@ export class ChatbotService {
       filters.color = color;
     }
 
+    const messageDateRange = extractDateRange(message);
+    if (messageDateRange.durationDays != null) {
+      filters.pickupDate = messageDateRange.pickupDate;
+      filters.returnDate = messageDateRange.returnDate;
+      filters.durationDays = messageDateRange.durationDays;
+    }
+
+    if (isDateRangeInPast(filters.pickupDate, filters.returnDate)) {
+      return {
+        filters,
+        recommendations: [],
+        aiResponse: "Those dates are in the past. Please choose future pickup and return dates.",
+      };
+    }
+
     console.log("[chatbot] extracted filters:", filters);
 
     const hasNoFilters =
@@ -326,6 +477,8 @@ export class ChatbotService {
       filters.maxPrice == null &&
       (filters.features == null || filters.features.length === 0) &&
       filters.durationDays == null &&
+      filters.pickupDate == null &&
+      filters.returnDate == null &&
       filters.sortByPrice == null &&
       filters.location == null &&
       filters.brand == null &&
@@ -424,13 +577,16 @@ export class ChatbotService {
       }
     }
 
-    const requestedStart = new Date();
+    const durationDays = filters.durationDays || 1;
+    const hasExactDates = filters.pickupDate != null && filters.returnDate != null;
+    const requestedStart = hasExactDates ? dateOnlyToLocalDate(filters.pickupDate as string) : new Date();
     requestedStart.setHours(0, 0, 0, 0);
 
-    const requestedEnd = new Date(requestedStart);
-    const durationDays = filters.durationDays || 1;
-    requestedEnd.setDate(requestedEnd.getDate() + durationDays);
-    requestedEnd.setHours(23, 59, 59, 999);
+    const requestedEnd = hasExactDates ? dateOnlyToLocalDate(filters.returnDate as string) : new Date(requestedStart);
+    if (!hasExactDates) {
+      requestedEnd.setDate(requestedEnd.getDate() + durationDays);
+    }
+    requestedEnd.setHours(0, 0, 0, 0);
 
     const cars = await prisma.car.findMany({
       where,
@@ -439,8 +595,8 @@ export class ChatbotService {
         bookings: {
           where: {
             status: { in: ACTIVE_BOOKING_STATUSES },
-            startDate: { lte: requestedEnd },
-            endDate: { gte: requestedStart },
+            startDate: { lt: requestedEnd },
+            endDate: { gt: requestedStart },
           },
           select: {
             startDate: true,

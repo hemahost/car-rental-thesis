@@ -7,21 +7,21 @@ import prisma from "./db/prisma";
 const cars = [
   {
     brand: "Toyota", model: "RAV4", type: "SUV",
-    pricePerDay: 65, year: 2023, horsepower: 203, mileageKm: 18500, color: "Midnight Blue", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 65, year: 2023, horsepower: 203, mileageKm: 18500, color: "Black", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "A reliable and spacious SUV perfect for family trips and light off-road adventures. Features Toyota Safety Sense as standard.",
     imageUrl: "https://i.pinimg.com/736x/77/43/f3/7743f3056b6b0d98556f2826826df9e0.jpg",
   },
   {
     brand: "Toyota", model: "Corolla", type: "Sedan",
-    pricePerDay: 45, year: 2022, horsepower: 139, mileageKm: 34200, color: "Silver", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 45, year: 2022, horsepower: 139, mileageKm: 34200, color: "White", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "Fuel-efficient sedan with a smooth and comfortable ride. Ideal for city driving and longer highway journeys.",
     imageUrl: "https://i.pinimg.com/1200x/8c/6b/7b/8c6b7b1cb1dda7121cc3ddc1771047e9.jpg",
   },
   {
     brand: "Toyota", model: "Camry", type: "Sedan",
-    pricePerDay: 55, year: 2023, horsepower: 203, mileageKm: 22100, color: "Pearl White", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 55, year: 2023, horsepower: 203, mileageKm: 22100, color: "White and Black", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Debrecen",
     description: "Mid-size sedan with a spacious cabin, refined ride quality, and Toyota legendary reliability.",
     imageUrl: "https://i.pinimg.com/1200x/73/15/29/731529e3438114b42d5cf0b2675663b1.jpg",
@@ -35,7 +35,7 @@ const cars = [
   },
   {
     brand: "Toyota", model: "Yaris", type: "Hatchback",
-    pricePerDay: 35, year: 2022, horsepower: 125, mileageKm: 37100, color: "Red", seats: 5, transmission: "Manual", fuelType: "Petrol",
+    pricePerDay: 35, year: 2022, horsepower: 125, mileageKm: 37100, color: "Silver", seats: 5, transmission: "Manual", fuelType: "Petrol",
     city: "Pecs",
     description: "Compact and nimble city car. Easy to park and economical to run - the perfect urban companion.",
     imageUrl: "https://i.pinimg.com/736x/04/bb/1e/04bb1e68c0a342c1a3249858d4f490e3.jpg",
@@ -43,7 +43,7 @@ const cars = [
 
   {
     brand: "BMW", model: "X5", type: "SUV",
-    pricePerDay: 120, year: 2023, horsepower: 335, mileageKm: 16400, color: "Alpine White", seats: 5, transmission: "Automatic", fuelType: "Diesel",
+    pricePerDay: 120, year: 2023, horsepower: 335, mileageKm: 16400, color: "Blue", seats: 5, transmission: "Automatic", fuelType: "Diesel",
     city: "Budapest",
     description: "Premium luxury SUV with powerful xDrive AWD, adaptive air suspension, and a commanding road presence.",
     imageUrl: "https://i.pinimg.com/736x/55/72/f1/5572f10de71e32a60aaa9fa872178ac4.jpg",
@@ -64,14 +64,14 @@ const cars = [
   },
   {
     brand: "BMW", model: "X3", type: "SUV",
-    pricePerDay: 100, year: 2023, horsepower: 248, mileageKm: 14300, color: "Phytonic Blue", seats: 5, transmission: "Automatic", fuelType: "Diesel",
+    pricePerDay: 100, year: 2023, horsepower: 248, mileageKm: 14300, color: "Silver", seats: 5, transmission: "Automatic", fuelType: "Diesel",
     city: "Debrecen",
     description: "A sporty and versatile SUV that excels on road and light off-road with xDrive AWD.",
     imageUrl: "https://i.pinimg.com/1200x/05/64/7a/05647a834b5709ec40ac970af2eb4605.jpg",
   },
   {
     brand: "BMW", model: "M4", type: "Coupe",
-    pricePerDay: 180, year: 2023, horsepower: 473, mileageKm: 9700, color: "Sao Paulo Yellow", seats: 4, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 180, year: 2023, horsepower: 473, mileageKm: 9700, color: "White", seats: 4, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "Race-bred high-performance coupe with M TwinPower Turbo engine and Competition chassis.",
     imageUrl: "https://i.pinimg.com/1200x/2e/ce/7b/2ece7b46c38d2ce0df1fbd6993b8bb64.jpg",
@@ -86,14 +86,14 @@ const cars = [
   },
   {
     brand: "Audi", model: "Q7", type: "SUV",
-    pricePerDay: 130, year: 2022, horsepower: 335, mileageKm: 33700, color: "Mythos Black", seats: 7, transmission: "Automatic", fuelType: "Diesel",
+    pricePerDay: 130, year: 2022, horsepower: 335, mileageKm: 33700, color: "Silver", seats: 7, transmission: "Automatic", fuelType: "Diesel",
     city: "Budapest",
     description: "Full-size luxury SUV with three-row seating, air suspension, and a sophisticated virtual cockpit.",
     imageUrl: "https://i.pinimg.com/1200x/59/0b/45/590b4513444ec66b9d0dc43391fdd1c4.jpg",
   },
   {
     brand: "Audi", model: "A6", type: "Sedan",
-    pricePerDay: 110, year: 2022, horsepower: 335, mileageKm: 29800, color: "Glacier White", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 110, year: 2022, horsepower: 335, mileageKm: 29800, color: "Silver", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "Executive sedan with sophisticated progressive design, MHEV technology, and a tech-rich MMI cockpit.",
     imageUrl: "https://i.pinimg.com/1200x/fa/c8/fe/fac8fe7685d794a2b09215a9252319e7.jpg",
@@ -115,14 +115,14 @@ const cars = [
 
   {
     brand: "Tesla", model: "Model 3", type: "Electric",
-    pricePerDay: 90, year: 2023, horsepower: 271, mileageKm: 15200, color: "Pearl White", seats: 5, transmission: "Automatic", fuelType: "Electric",
+    pricePerDay: 90, year: 2023, horsepower: 271, mileageKm: 15200, color: "White", seats: 5, transmission: "Automatic", fuelType: "Electric",
     city: "Budapest",
     description: "All-electric sedan with Autopilot, 500+ km range, and instant 0-100 acceleration in under 6 seconds.",
     imageUrl: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&auto=format&fit=crop",
   },
   {
     brand: "Tesla", model: "Model Y", type: "Electric",
-    pricePerDay: 110, year: 2023, horsepower: 425, mileageKm: 12800, color: "Deep Blue", seats: 5, transmission: "Automatic", fuelType: "Electric",
+    pricePerDay: 110, year: 2023, horsepower: 425, mileageKm: 12800, color: "White", seats: 5, transmission: "Automatic", fuelType: "Electric",
     city: "Budapest",
     description: "Electric crossover with panoramic roof, spacious cargo area, and Supercharger network access.",
     imageUrl: "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&auto=format&fit=crop",
@@ -144,7 +144,7 @@ const cars = [
 
   {
     brand: "Mercedes", model: "C-Class", type: "Sedan",
-    pricePerDay: 105, year: 2023, horsepower: 255, mileageKm: 16900, color: "Obsidian Black", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 105, year: 2023, horsepower: 255, mileageKm: 16900, color: "Silver", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "Refined luxury sedan with an opulent Mercedes interior, MBUX infotainment, and silky smooth ride.",
     imageUrl: "https://i.pinimg.com/736x/20/af/d0/20afd06eaddc7b5b68b8c0d711276ef5.jpg",
@@ -180,7 +180,7 @@ const cars = [
 
   {
     brand: "Volkswagen", model: "Golf", type: "Hatchback",
-    pricePerDay: 50, year: 2022, horsepower: 147, mileageKm: 38900, color: "Atlantic Blue", seats: 5, transmission: "Manual", fuelType: "Petrol",
+    pricePerDay: 50, year: 2022, horsepower: 147, mileageKm: 38900, color: "Grey", seats: 5, transmission: "Manual", fuelType: "Petrol",
     city: "Budapest",
     description: "Europe best-selling hatchback - practical, fun to drive, well-built, and great value for money.",
     imageUrl: "https://i.pinimg.com/736x/27/14/83/2714838c0a95fffb71683439b95e0065.jpg",
@@ -194,14 +194,14 @@ const cars = [
   },
   {
     brand: "Volkswagen", model: "Tiguan", type: "SUV",
-    pricePerDay: 75, year: 2023, horsepower: 184, mileageKm: 21400, color: "Pure White", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 75, year: 2023, horsepower: 184, mileageKm: 21400, color: "Silver", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Gyor",
     description: "VW best-selling SUV with great practicality, safety assistant features, and a premium feel.",
     imageUrl: "https://i.pinimg.com/1200x/e1/21/a6/e121a6d90594f18115e39a1ad1cc6fd7.jpg",
   },
   {
     brand: "Volkswagen", model: "Polo", type: "Hatchback",
-    pricePerDay: 38, year: 2022, horsepower: 95, mileageKm: 35300, color: "Flash Red", seats: 5, transmission: "Manual", fuelType: "Petrol",
+    pricePerDay: 38, year: 2022, horsepower: 95, mileageKm: 35300, color: "Grey", seats: 5, transmission: "Manual", fuelType: "Petrol",
     city: "Pecs",
     description: "Small yet premium city hatchback with punchy TSI engine, perfect for urban commutes on a budget.",
     imageUrl: "https://i.pinimg.com/1200x/0f/8a/a3/0f8aa34302a19b423ee63cfc6020b89a.jpg",
@@ -209,7 +209,7 @@ const cars = [
 
   {
     brand: "Honda", model: "Civic", type: "Sedan",
-    pricePerDay: 50, year: 2022, horsepower: 158, mileageKm: 33100, color: "Sonic Grey", seats: 5, transmission: "Manual", fuelType: "Petrol",
+    pricePerDay: 50, year: 2022, horsepower: 158, mileageKm: 33100, color: "Light gray", seats: 5, transmission: "Manual", fuelType: "Petrol",
     city: "Miskolc",
     description: "Sporty and reliable compact sedan with Honda trusted build quality and fun-to-drive character.",
     imageUrl: "https://i.pinimg.com/736x/e6/25/b2/e625b2e0e78a5cd2c7a930d270e72659.jpg",
@@ -223,7 +223,7 @@ const cars = [
   },
   {
     brand: "Honda", model: "HR-V", type: "SUV",
-    pricePerDay: 60, year: 2022, horsepower: 131, mileageKm: 27600, color: "Platinum White", seats: 5, transmission: "Automatic", fuelType: "Hybrid",
+    pricePerDay: 60, year: 2022, horsepower: 131, mileageKm: 27600, color: "red", seats: 5, transmission: "Automatic", fuelType: "Hybrid",
     city: "Pecs",
     description: "Compact hybrid SUV with Honda e:HEV two-motor system for efficient and responsive city driving.",
     imageUrl: "https://i.pinimg.com/736x/06/1f/40/061f4092d723efbee368f969a05eabc9.jpg",
@@ -238,7 +238,7 @@ const cars = [
   },
   {
     brand: "Ford", model: "Mustang", type: "Coupe",
-    pricePerDay: 150, year: 2023, horsepower: 470, mileageKm: 11200, color: "Race Red", seats: 4, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 150, year: 2023, horsepower: 470, mileageKm: 11200, color: "Black", seats: 4, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "The iconic American muscle car with available V8 engine, signature roar, and head-turning style.",
     imageUrl: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&auto=format&fit=crop",
@@ -253,7 +253,7 @@ const cars = [
 
   {
     brand: "Porsche", model: "Cayenne", type: "SUV",
-    pricePerDay: 200, year: 2023, horsepower: 453, mileageKm: 8900, color: "Carrara White", seats: 5, transmission: "Automatic", fuelType: "Petrol",
+    pricePerDay: 200, year: 2023, horsepower: 453, mileageKm: 8900, color: "Black edition", seats: 5, transmission: "Automatic", fuelType: "Petrol",
     city: "Budapest",
     description: "The ultimate performance SUV. Supercar soul with everyday practicality - 0-100 km/h in 4.1 seconds.",
     imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop",

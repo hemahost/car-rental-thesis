@@ -318,23 +318,43 @@ export class AdminDashboardPage implements OnInit {
     this.carFormSuccess = '';
   }
 
+  private getCarFormValidationError(): string | null {
+    if (!this.carForm.brand.trim() || !this.carForm.model.trim() || !this.carForm.type.trim() || !this.carForm.description.trim()) {
+      return 'Please fill in brand, model, type, and description.';
+    }
+
+    if (!Number.isFinite(Number(this.carForm.pricePerDay)) || Number(this.carForm.pricePerDay) <= 0) {
+      return 'Please enter a valid price per day greater than 0.';
+    }
+
+    return null;
+  }
+
   submitCarForm(): void {
+    const validationError = this.getCarFormValidationError();
+    if (validationError) {
+      this.carFormError = validationError;
+      this.carFormSuccess = '';
+      this.carFormLoading = false;
+      return;
+    }
+
     this.carFormLoading = true;
     this.carFormError = '';
     this.carFormSuccess = '';
 
     const payload = {
-      brand: this.carForm.brand,
-      model: this.carForm.model,
-      type: this.carForm.type,
+      brand: this.carForm.brand.trim(),
+      model: this.carForm.model.trim(),
+      type: this.carForm.type.trim(),
       pricePerDay: Number(this.carForm.pricePerDay),
-      description: this.carForm.description,
-      imageUrl: this.carForm.imageUrl || undefined,
-      city: this.carForm.city || undefined,
-      color: this.carForm.color || undefined,
+      description: this.carForm.description.trim(),
+      imageUrl: this.carForm.imageUrl.trim() || undefined,
+      city: this.carForm.city.trim() || undefined,
+      color: this.carForm.color.trim() || undefined,
       seats: this.carForm.seats || undefined,
-      transmission: this.carForm.transmission || undefined,
-      fuelType: this.carForm.fuelType || undefined,
+      transmission: this.carForm.transmission.trim() || undefined,
+      fuelType: this.carForm.fuelType.trim() || undefined,
       year: this.carForm.year || undefined,
       horsepower: this.carForm.horsepower || undefined,
       mileageKm: this.carForm.mileageKm || undefined,
@@ -351,7 +371,7 @@ export class AdminDashboardPage implements OnInit {
         setTimeout(() => this.cancelCarForm(), 1200);
       },
       error: (err) => {
-        this.carFormError = err?.error?.error?.message || 'Failed to save car';
+        this.carFormError = err?.error?.error?.message || err?.error?.message || 'Failed to save car';
       },
     });
   }

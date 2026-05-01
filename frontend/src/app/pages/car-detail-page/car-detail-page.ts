@@ -113,6 +113,7 @@ export class CarDetailPage implements OnInit, OnDestroy {
             this.pickupLocation = car.city;
             this.dropoffLocation = car.city;
           }
+          this.onDateChange();
           this.loadUnavailableBookings(car.id);
           this.loadReviews(id);
           this.carService.getCars({ type: car.type }).subscribe({

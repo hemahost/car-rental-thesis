@@ -1,4 +1,4 @@
-/* ── Navbar ── */
+
 .navbar {
   background: #fff;
   box-shadow: 0 1px 0 #e8eaed;
@@ -45,7 +45,7 @@
   }
 }
 
-/* ── Page layout ── */
+
 .payment-page {
   min-height: calc(100vh - 53px);
   display: flex;
@@ -55,7 +55,7 @@
   padding: 40px 16px;
 }
 
-/* ── Two-column wrapper ── */
+
 .payment-wrapper {
   display: grid;
   grid-template-columns: 340px 420px;
@@ -68,7 +68,7 @@
   max-width: 760px;
 }
 
-/* ── Left: Order summary ── */
+
 .order-summary {
   background: #1a1a2e;
   padding: 40px 32px;
@@ -175,7 +175,7 @@
   opacity: 0.5;
 }
 
-/* ── Right: Payment form ── */
+
 .payment-form {
   padding: 40px 36px;
   display: flex;
@@ -336,7 +336,7 @@
   }
 }
 
-/* ── Loading state ── */
+
 .loading-state {
   grid-column: 1 / -1;
   display: flex;
@@ -349,7 +349,7 @@
   font-size: 0.9rem;
 }
 
-/* ── Result cards (success / error) ── */
+
 .result-card {
   grid-column: 1 / -1;
   display: flex;
@@ -430,7 +430,7 @@
   &:hover { opacity: 0.85; }
 }
 
-/* ── Spinners ── */
+
 .spinner {
   width: 36px;
   height: 36px;
@@ -459,7 +459,7 @@
   40% { transform: scale(1); opacity: 1; }
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 720px) {
   .payment-wrapper {
     grid-template-columns: 1fr;

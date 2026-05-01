@@ -320,7 +320,6 @@ export class ChatbotService {
 
     console.log("[chatbot] extracted filters:", filters);
 
-    // If the user hasn't specified any preference, ask clarifying questions
     const hasNoFilters =
       filters.carType == null &&
       filters.minPrice == null &&
@@ -491,7 +490,6 @@ export class ChatbotService {
 
     const userId = getOptionalUserIdFromToken(authorizationHeader);
 
-    // Don't block API response on logging write.
     safeCreateConversationLog({
       userId,
       message,

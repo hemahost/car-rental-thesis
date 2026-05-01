@@ -5,7 +5,6 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// GET /api/favorites — get current user's favorite car IDs
 router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const favorites = await prisma.favorite.findMany({
@@ -33,18 +32,15 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/favorites/:carId — like a car
 router.post("/:carId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const carId = req.params.carId as string;
 
-    // Check car exists
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) {
       return sendError(res, "Car not found", 404);
     }
 
-    // Check if already favorited
     const existing = await prisma.favorite.findUnique({
       where: { userId_carId: { userId: req.userId!, carId } },
     });
@@ -64,7 +60,6 @@ router.post("/:carId", authenticate, async (req: AuthRequest, res: Response) => 
   }
 });
 
-// DELETE /api/favorites/:carId — unlike a car
 router.delete("/:carId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const carId = req.params.carId as string;

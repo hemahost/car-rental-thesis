@@ -239,7 +239,7 @@ export function buildFastRecommendation(shortlist: ShortlistCar[], durationDays:
     return "I couldn't find a matching car right now. Try widening your budget, changing car type, or reducing duration.";
   }
 
-  
+
   const top = shortlist[0];
   const alternatives = shortlist.slice(1, 3);
 

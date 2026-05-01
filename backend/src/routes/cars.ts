@@ -4,7 +4,6 @@ import { sendSuccess, sendError } from "../utils/response";
 
 const router = Router();
 
-// GET /api/cars
 router.get("/", async (req: Request, res: Response) => {
   try {
     const {
@@ -112,7 +111,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/cars/:id
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const carRaw = await prisma.car.findUnique({

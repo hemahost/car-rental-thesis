@@ -1,4 +1,4 @@
-/* ── Navbar ── */
+
 .navbar {
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -142,7 +142,7 @@
   50% { opacity: 0.75; }
 }
 
-/* ── Layout ── */
+
 .profile-layout {
   max-width: 1200px;
   margin: 0 auto;
@@ -152,7 +152,7 @@
   min-height: calc(100vh - 130px);
 }
 
-/* ── Sidebar ── */
+
 .sidebar {
   flex: 0 0 280px;
   display: flex;
@@ -293,7 +293,7 @@
   }
 }
 
-/* ── Avatar ── */
+
 .avatar {
   width: 100px;
   height: 100px;
@@ -364,13 +364,13 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Main Content ── */
+
 .main {
   flex: 1;
   min-width: 0;
 }
 
-/* ── Alerts ── */
+
 .alert {
   display: flex;
   align-items: center;
@@ -398,7 +398,7 @@
   }
 }
 
-/* ── Section ── */
+
 .section {
   &__title {
     font-size: 1.5rem;
@@ -421,7 +421,7 @@
   }
 }
 
-/* ── Stats Grid ── */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -482,7 +482,7 @@
   }
 }
 
-/* ── Info Card ── */
+
 .info-card {
   background: #fff;
   border-radius: 14px;
@@ -556,7 +556,7 @@
   }
 }
 
-/* ── Booking Items ── */
+
 .booking-list {
   display: flex;
   flex-direction: column;
@@ -639,7 +639,7 @@
   }
 }
 
-/* ── Bookings Table ── */
+
 .bookings-table {
   background: #fff;
   border-radius: 14px;
@@ -694,7 +694,7 @@
   }
 }
 
-/* ── Form ── */
+
 .form {
   display: flex;
   flex-direction: column;
@@ -748,7 +748,7 @@
   }
 }
 
-/* ── Buttons ── */
+
 .btn {
   border: none;
   padding: 10px 22px;
@@ -790,7 +790,7 @@
   }
 }
 
-/* ── Empty State ── */
+
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -815,7 +815,7 @@
   }
 }
 
-/* ── Favorites Grid ── */
+
 .favorites-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -916,7 +916,7 @@
 
   &__btn {
 
-/* Restyle v2 */
+
 .profile-layout {
   gap: 24px;
   padding-top: 40px;
@@ -1060,7 +1060,7 @@
   margin-left: auto;
 }
 
-/* ── Footer ── */
+
 .footer {
   text-align: center;
   padding: 24px;
@@ -1069,7 +1069,7 @@
   border-top: 1px solid #eee;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 900px) {
   .profile-layout {
     flex-direction: column;
@@ -1104,7 +1104,7 @@
   }
 }
 
-/* ── 2FA ── */
+
 .info-card__desc {
   font-size: 0.9rem;
   color: #666;
@@ -1161,7 +1161,7 @@
   }
 }
 
-/* Dark theme 2FA */
+
 :host-context(.dark-theme) {
   .badge--green { background: #064e3b; color: #6ee7b7; }
   .badge--gray  { background: #374151; color: #9ca3af; }

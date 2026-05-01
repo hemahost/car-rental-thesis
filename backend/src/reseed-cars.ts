@@ -1,14 +1,9 @@
-﻿/**
- * reseed-cars.ts
- * Clears all cars (cascades favorites & reviews), deletes related bookings,
- * then inserts 35 fully-detailed cars. Does NOT touch User records.
- */
+
 import dotenv from "dotenv";
 dotenv.config();
 import prisma from "./db/prisma";
 
 const cars = [
-  // === TOYOTA ===
   {
     brand: "Toyota", model: "RAV4", type: "SUV",
     pricePerDay: 65, year: 2023, horsepower: 203, mileageKm: 18500, color: "Midnight Blue", seats: 5, transmission: "Automatic", fuelType: "Petrol",
@@ -45,7 +40,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop",
   },
 
-  // === BMW ===
   {
     brand: "BMW", model: "X5", type: "SUV",
     pricePerDay: 120, year: 2023, horsepower: 335, mileageKm: 16400, color: "Alpine White", seats: 5, transmission: "Automatic", fuelType: "Diesel",
@@ -82,7 +76,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1607853554408-a3b5ccfcb44c?w=800&auto=format&fit=crop",
   },
 
-  // === AUDI ===
   {
     brand: "Audi", model: "A3", type: "Hatchback",
     pricePerDay: 70, year: 2022, horsepower: 201, mileageKm: 28600, color: "Navarra Blue", seats: 5, transmission: "Automatic", fuelType: "Petrol",
@@ -119,7 +112,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&auto=format&fit=crop",
   },
 
-  // === TESLA ===
   {
     brand: "Tesla", model: "Model 3", type: "Electric",
     pricePerDay: 90, year: 2023, horsepower: 271, mileageKm: 15200, color: "Pearl White", seats: 5, transmission: "Automatic", fuelType: "Electric",
@@ -149,7 +141,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1620891549027-942fdc95d3f5?w=800&auto=format&fit=crop",
   },
 
-  // === MERCEDES ===
   {
     brand: "Mercedes", model: "C-Class", type: "Sedan",
     pricePerDay: 105, year: 2023, horsepower: 255, mileageKm: 16900, color: "Obsidian Black", seats: 5, transmission: "Automatic", fuelType: "Petrol",
@@ -186,7 +177,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1612825173281-9a193378527e?w=800&auto=format&fit=crop",
   },
 
-  // === VOLKSWAGEN ===
   {
     brand: "Volkswagen", model: "Golf", type: "Hatchback",
     pricePerDay: 50, year: 2022, horsepower: 147, mileageKm: 38900, color: "Atlantic Blue", seats: 5, transmission: "Manual", fuelType: "Petrol",
@@ -216,7 +206,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&auto=format&fit=crop",
   },
 
-  // === HONDA ===
   {
     brand: "Honda", model: "Civic", type: "Sedan",
     pricePerDay: 50, year: 2022, horsepower: 158, mileageKm: 33100, color: "Sonic Grey", seats: 5, transmission: "Manual", fuelType: "Petrol",
@@ -239,7 +228,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&auto=format&fit=crop",
   },
 
-  // === FORD ===
   {
     brand: "Ford", model: "Focus", type: "Hatchback",
     pricePerDay: 45, year: 2021, horsepower: 125, mileageKm: 48700, color: "Magnetic Grey", seats: 5, transmission: "Manual", fuelType: "Petrol",
@@ -262,7 +250,6 @@ const cars = [
     imageUrl: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop",
   },
 
-  // === PORSCHE ===
   {
     brand: "Porsche", model: "Cayenne", type: "SUV",
     pricePerDay: 200, year: 2023, horsepower: 453, mileageKm: 8900, color: "Carrara White", seats: 5, transmission: "Automatic", fuelType: "Petrol",

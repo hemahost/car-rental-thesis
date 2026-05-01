@@ -60,7 +60,7 @@ router.post("/create-intent", authenticate, async (req: AuthRequest, res: Respon
       },
     });
 
-    
+
     await prisma.booking.update({
       where: { id: bookingId },
       data: { paymentIntentId: paymentIntent.id },
@@ -123,7 +123,6 @@ router.post("/confirm", authenticate, async (req: AuthRequest, res: Response) =>
       return sendError(res, "Payment has not succeeded", 400);
     }
 
-    // Confirm the booking
     const updated = await prisma.booking.update({
       where: { id: bookingId },
       data: { status: "CONFIRMED", paymentStatus: "PAID" },
@@ -154,7 +153,7 @@ router.post("/webhook", async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
-  
+
   let event: any;
 
   try {

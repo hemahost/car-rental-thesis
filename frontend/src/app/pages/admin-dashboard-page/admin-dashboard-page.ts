@@ -18,7 +18,6 @@ import { finalize } from 'rxjs';
 export class AdminDashboardPage implements OnInit {
   activeTab: 'stats' | 'cars' | 'bookings' | 'users' = 'stats';
 
-  // ── Cars ──
   cars: Car[] = [];
   carsLoading = false;
   carsError = '';
@@ -34,24 +33,20 @@ export class AdminDashboardPage implements OnInit {
   carFormError = '';
   carFormSuccess = '';
 
-  // ── Bookings ──
   bookings: AdminBooking[] = [];
   bookingsLoading = false;
   bookingsError = '';
   bookingsFilter = '';
 
-  // ── Stats ──
   stats: AdminStats | null = null;
   statsLoading = false;
   statsError = '';
 
-  // ── Users ──
   users: AdminUser[] = [];
   usersLoading = false;
   usersError = '';
   readonly protectedAdminEmail = 'admin@test.com';
 
-  // ── User Detail Modal ──
   selectedUser: AdminUserDetail | null = null;
   userDetailLoading = false;
   userDetailError = '';
@@ -99,7 +94,6 @@ export class AdminDashboardPage implements OnInit {
     this.loadUsers();
   }
 
-  // ── Stats ──
 
   loadStats(): void {
     this.statsLoading = true;
@@ -118,7 +112,6 @@ export class AdminDashboardPage implements OnInit {
     return Math.round((count / max) * 100);
   }
 
-  // ── Users ──
 
   loadUsers(): void {
     this.usersLoading = true;
@@ -273,7 +266,6 @@ export class AdminDashboardPage implements OnInit {
     });
   }
 
-  // ── Cars ──
 
   loadCars(): void {
     this.carsLoading = true;
@@ -372,7 +364,6 @@ export class AdminDashboardPage implements OnInit {
     });
   }
 
-  // ── Bookings ──
 
   loadBookings(): void {
     this.bookingsLoading = true;

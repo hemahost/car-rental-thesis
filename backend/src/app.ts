@@ -19,7 +19,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Stripe webhook needs raw body — must be registered BEFORE express.json()
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 
 app.use(express.json());
@@ -29,7 +28,6 @@ app.use(cors({
 }));
 app.use(passport.initialize());
 
-// Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 setupSwagger(app);
 

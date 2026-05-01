@@ -98,19 +98,16 @@ const cars = [
 async function main() {
   console.log("Seeding database...");
 
-  // Clear existing data
   await prisma.booking.deleteMany();
   await prisma.car.deleteMany();
   await prisma.user.deleteMany();
 
-  // Insert cars
   for (const car of cars) {
     await prisma.car.create({ data: car });
   }
 
   console.log(`Inserted ${cars.length} cars.`);
 
-  // Create admin user
   const adminHash = await bcrypt.hash("admin123", 10);
   await prisma.user.create({
     data: {

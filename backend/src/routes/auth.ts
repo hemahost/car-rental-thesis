@@ -13,7 +13,6 @@ import { sendSuccess, sendError } from "../utils/response";
 import { sendResetCodeEmail } from "../utils/email";
 import { authenticate, AuthRequest } from "../middleware/auth";
 
-// Configure multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, path.join(__dirname, "../../uploads/avatars"));
@@ -26,7 +25,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = /\.(jpg|jpeg|png|gif|webp)$/i;
     if (allowed.test(path.extname(file.originalname))) {
@@ -59,7 +58,6 @@ export function getPasswordPolicyError(password: string): string | null {
   return null;
 }
 
-// POST /api/auth/register
 router.post("/register", async (req, res: Response) => {
   try {
     const { name, email, password, phone, address } = req.body;
@@ -98,7 +96,6 @@ router.post("/register", async (req, res: Response) => {
   }
 });
 
-// POST /api/auth/login
 router.post("/login", async (req, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -119,7 +116,6 @@ router.post("/login", async (req, res: Response) => {
 
     const secret = process.env.JWT_SECRET || "fallback-secret";
 
-    // If 2FA is enabled, issue a short-lived pending token instead of a full JWT
     if (user.twoFactorEnabled && user.twoFactorSecret) {
       const tempToken = jwt.sign(
         { userId: user.id, twoFactorPending: true },
@@ -141,7 +137,6 @@ router.post("/login", async (req, res: Response) => {
   }
 });
 
-// GET /api/auth/me
 router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
@@ -160,7 +155,6 @@ router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// PUT /api/auth/profile
 router.put("/profile", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { name, email, phone, address } = req.body;
@@ -169,7 +163,6 @@ router.put("/profile", authenticate, async (req: AuthRequest, res: Response) => 
       return sendError(res, "Name and email are required");
     }
 
-    // Check if email is taken by another user
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing && existing.id !== req.userId) {
       return sendError(res, "Email already in use", 409);
@@ -188,7 +181,6 @@ router.put("/profile", authenticate, async (req: AuthRequest, res: Response) => 
   }
 });
 
-// POST /api/auth/avatar
 router.post("/avatar", authenticate, upload.single("avatar"), async (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
@@ -210,7 +202,6 @@ router.post("/avatar", authenticate, upload.single("avatar"), async (req: AuthRe
   }
 });
 
-// DELETE /api/auth/avatar
 router.delete("/avatar", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.update({
@@ -226,7 +217,6 @@ router.delete("/avatar", authenticate, async (req: AuthRequest, res: Response) =
   }
 });
 
-// POST /api/auth/forgot-password
 router.post("/forgot-password", async (req, res: Response) => {
   try {
     const { email } = req.body;
@@ -237,25 +227,21 @@ router.post("/forgot-password", async (req, res: Response) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      // Return success even if email doesn't exist to prevent user enumeration
       return sendSuccess(res, { message: "If an account with that email exists, a reset code has been generated." });
     }
 
-    // Invalidate any existing unused tokens for this user
     await prisma.passwordReset.updateMany({
       where: { userId: user.id, used: false },
       data: { used: true },
     });
 
-    // Generate a 6-digit reset code
     const token = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     await prisma.passwordReset.create({
       data: { userId: user.id, token, expiresAt },
     });
 
-    // Send the reset code via email
     try {
       await sendResetCodeEmail(email, token);
     } catch (emailErr) {
@@ -272,7 +258,6 @@ router.post("/forgot-password", async (req, res: Response) => {
   }
 });
 
-// POST /api/auth/reset-password
 router.post("/reset-password", async (req, res: Response) => {
   try {
     const { email, token, newPassword } = req.body;
@@ -311,7 +296,6 @@ router.post("/reset-password", async (req, res: Response) => {
       data: { passwordHash },
     });
 
-    // Mark token as used
     await prisma.passwordReset.update({
       where: { id: resetRecord.id },
       data: { used: true },
@@ -324,7 +308,6 @@ router.post("/reset-password", async (req, res: Response) => {
   }
 });
 
-// PUT /api/auth/change-password
 router.put("/change-password", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -366,7 +349,6 @@ router.put("/change-password", authenticate, async (req: AuthRequest, res: Respo
   }
 });
 
-// POST /api/auth/2fa/setup — generate secret and QR code (authenticated)
 router.post("/2fa/setup", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
@@ -377,7 +359,6 @@ router.post("/2fa/setup", authenticate, async (req: AuthRequest, res: Response) 
       length: 20,
     });
 
-    // Store the unconfirmed secret so /2fa/enable can verify it
     await prisma.user.update({
       where: { id: req.userId },
       data: { twoFactorSecret: secret.base32, twoFactorEnabled: false },
@@ -391,7 +372,6 @@ router.post("/2fa/setup", authenticate, async (req: AuthRequest, res: Response) 
   }
 });
 
-// POST /api/auth/2fa/enable — verify TOTP code and activate 2FA (authenticated)
 router.post("/2fa/enable", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { code } = req.body;
@@ -421,7 +401,6 @@ router.post("/2fa/enable", authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
-// POST /api/auth/2fa/disable — verify TOTP then disable 2FA (authenticated)
 router.post("/2fa/disable", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { code } = req.body;
@@ -453,7 +432,6 @@ router.post("/2fa/disable", authenticate, async (req: AuthRequest, res: Response
   }
 });
 
-// POST /api/auth/2fa/verify — exchange temp token + TOTP for a full JWT
 router.post("/2fa/verify", async (req, res: Response) => {
   try {
     const { tempToken, code } = req.body;

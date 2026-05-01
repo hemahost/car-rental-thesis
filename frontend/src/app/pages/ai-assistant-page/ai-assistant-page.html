@@ -27,7 +27,7 @@
 
 <div class="chat-page">
 
-  <!-- Header -->
+
   <div class="chat-header">
     <div class="chat-header__avatar">🤖</div>
     <div class="chat-header__info">
@@ -37,7 +37,7 @@
     <button class="chat-header__clear" (click)="clearChat()" title="Clear chat">🗑</button>
   </div>
 
-  <!-- Messages -->
+
   <div class="chat-body" #chatBody>
     @for (msg of messages; track $index) {
 
@@ -99,7 +99,7 @@
     }
   </div>
 
-  <!-- Footer -->
+
   <div class="chat-footer">
     <div class="chat-chips">
       @for (chip of chips; track chip) {

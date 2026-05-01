@@ -1,4 +1,4 @@
-/* ── Navbar (shared pattern) ── */
+
 .navbar {
   background: var(--navbar-bg);
   box-shadow: 0 10px 24px -18px var(--shadow-md);
@@ -143,12 +143,12 @@
   50% { opacity: 0.75; }
 }
 
-/* ── Mobile Filter Toggle (hidden on desktop) ── */
+
 .filters-toggle {
   display: none;
 }
 
-/* ── Page Layout ── */
+
 .page {
   max-width: 1200px;
   margin: 0 auto;
@@ -157,7 +157,7 @@
   padding: 36px 24px 56px;
 }
 
-/* ── Filters Sidebar ── */
+
 .filters {
   flex: 0 0 260px;
 
@@ -265,7 +265,7 @@
   }
 }
 
-/* ── Toolbar (search + sort) ── */
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -358,7 +358,7 @@
   }
 }
 
-/* ── Pagination ── */
+
 .pagination {
   display: flex;
   align-items: center;
@@ -417,7 +417,7 @@
   }
 }
 
-/* ── Car Grid ── */
+
 .content {
   flex: 1;
   min-width: 0;
@@ -429,7 +429,7 @@
   gap: 24px;
 }
 
-/* ── Loading / Error / Empty states ── */
+
 .state {
   display: flex;
   flex-direction: column;
@@ -465,7 +465,7 @@
   }
 }
 
-/* ── Footer ── */
+
 .footer {
   text-align: center;
   padding: 24px;
@@ -475,7 +475,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 1024px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

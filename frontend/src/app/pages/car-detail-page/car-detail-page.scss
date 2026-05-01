@@ -1,4 +1,4 @@
-/* ── Navbar ── */
+
 .navbar {
   background: var(--navbar-bg);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -136,7 +136,7 @@
   50% { opacity: 0.75; }
 }
 
-/* ── Detail Page ── */
+
 .detail-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -331,7 +331,7 @@
   }
 }
 
-/* ── States ── */
+
 .state {
   display: flex;
   flex-direction: column;
@@ -361,7 +361,7 @@
   }
 }
 
-/* ── Spec icon ── */
+
 .detail__spec-icon {
   flex-shrink: 0;
   display: flex;
@@ -380,7 +380,7 @@
   gap: 3px;
 }
 
-/* ── Similar Cars Section ── */
+
 .similar-section {
   background: var(--bg-input);
   border-top: 1px solid var(--border-light);
@@ -413,7 +413,7 @@
   }
 }
 
-/* ── Footer ── */
+
 .footer {
   text-align: center;
   padding: 24px;
@@ -423,7 +423,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-/* ── Reviews Section ── */
+
 .reviews-section {
   margin-top: 48px;
 
@@ -637,7 +637,7 @@
   }
 }
 
-/* ── Booking Section ── */
+
 .booking-section {
   margin-top: 48px;
   background: var(--bg-card);
@@ -976,7 +976,7 @@
   100% { transform: scale(1); }
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 768px) {
   .detail {
     flex-direction: column;
@@ -1019,7 +1019,7 @@
   }
 }
 
-/* Restyle v2 */
+
 .detail-page {
   padding-top: 42px;
 }

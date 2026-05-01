@@ -3,7 +3,6 @@ import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { AuthRequest } from "../middleware/auth";
 
-// GET /api/admin/cars
 export async function getAdminCars(req: AuthRequest, res: Response) {
   try {
     const cars = await prisma.car.findMany({ orderBy: { createdAt: "desc" } });
@@ -14,7 +13,6 @@ export async function getAdminCars(req: AuthRequest, res: Response) {
   }
 }
 
-// POST /api/admin/cars
 export async function createCar(req: AuthRequest, res: Response) {
   try {
     const { brand, model, type, pricePerDay, description, imageUrl, city, seats, transmission, fuelType, year, horsepower, mileageKm, color } = req.body;
@@ -46,7 +44,6 @@ export async function createCar(req: AuthRequest, res: Response) {
   }
 }
 
-// PUT /api/admin/cars/:id
 export async function updateCar(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;
@@ -85,7 +82,6 @@ export async function updateCar(req: AuthRequest, res: Response) {
   }
 }
 
-// DELETE /api/admin/cars/:id
 export async function deleteCar(req: AuthRequest, res: Response) {
   try {
     const id = req.params.id as string;
@@ -95,7 +91,6 @@ export async function deleteCar(req: AuthRequest, res: Response) {
       return sendError(res, "Car not found", 404);
     }
 
-    // Delete related bookings first
     await prisma.booking.deleteMany({ where: { carId: id } });
     await prisma.car.delete({ where: { id } });
 

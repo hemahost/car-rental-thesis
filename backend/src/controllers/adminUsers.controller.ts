@@ -151,7 +151,7 @@ export async function updateUserRole(req: AuthRequest, res: Response) {
       return sendError(res, "The original admin account cannot be demoted", 400);
     }
 
-  
+
     if (id === req.userId && role === "USER") {
       return sendError(res, "You cannot demote your own account", 400);
     }

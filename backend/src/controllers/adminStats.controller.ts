@@ -3,7 +3,6 @@ import prisma from "../db/prisma";
 import { sendSuccess, sendError } from "../utils/response";
 import { AuthRequest } from "../middleware/auth";
 
-// GET /api/admin/stats
 export async function getAdminStats(req: AuthRequest, res: Response) {
   try {
     const [totalUsers, totalCars, totalBookings, bookingsByStatus, revenueResult] =
@@ -21,7 +20,6 @@ export async function getAdminStats(req: AuthRequest, res: Response) {
         }),
       ]);
 
-    // Build status map
     const statusMap: Record<string, number> = {
       PENDING: 0,
       CONFIRMED: 0,
@@ -33,7 +31,6 @@ export async function getAdminStats(req: AuthRequest, res: Response) {
       statusMap[row.status] = row._count.status;
     }
 
-    // Bookings created in the last 7 days (one entry per day)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -44,7 +41,6 @@ export async function getAdminStats(req: AuthRequest, res: Response) {
       orderBy: { createdAt: "asc" },
     });
 
-    // Group by day label
     const dailyMap: Record<string, number> = {};
     for (let i = 0; i < 7; i++) {
       const d = new Date(sevenDaysAgo);

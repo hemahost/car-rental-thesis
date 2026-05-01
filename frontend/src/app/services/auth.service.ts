@@ -81,7 +81,6 @@ export class AuthService {
     ).pipe(map((res) => ({ message: res.message })));
   }
 
-  // ── 2FA methods ──
 
   setup2FA(): Observable<{ qrCode: string; secret: string }> {
     return this.http.post<{ success: boolean; qrCode: string; secret: string }>(
@@ -131,10 +130,8 @@ export class AuthService {
     );
   }
 
-  // ── OAuth ──
 
   loginWithToken(token: string): Observable<User> {
-    // Store the token first so the interceptor sends it with the /me request
     localStorage.setItem(this.TOKEN_KEY, token);
     return this.http.get<{ success: boolean; user: User }>(`${this.apiUrl}/me`).pipe(
       tap((res) => {

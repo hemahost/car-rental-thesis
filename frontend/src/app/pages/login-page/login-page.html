@@ -1,12 +1,12 @@
 <div class="login-page">
   <div class="login-container">
-    <!-- Header -->
+
     <div class="login-header">
       <a routerLink="/home" class="logo">CarRental</a>
       <p class="subtitle">Welcome back! Please sign in to your account.</p>
     </div>
 
-    <!-- Tabs -->
+
     <div class="tabs">
       <button
         class="tab-btn"
@@ -24,7 +24,7 @@
       </button>
     </div>
 
-    <!-- Messages -->
+
     <div class="message error" *ngIf="errorMessage">
       {{ errorMessage }}
     </div>
@@ -37,7 +37,7 @@
       {{ successMessage }}
     </div>
 
-    <!-- Login Form -->
+
     <form
       class="auth-form"
       *ngIf="activeTab === 'login' && forgotMode === 'hidden' && !twoFactorMode"
@@ -75,7 +75,7 @@
         {{ loading ? 'Signing in...' : 'Sign In' }}
       </button>
 
-      <!-- OAuth divider & buttons -->
+
       <div class="oauth-divider">
         <span>or continue with</span>
       </div>
@@ -100,7 +100,7 @@
       </div>
     </form>
 
-    <!-- Forgot Password: Step 1 - Enter Email -->
+
     <div class="auth-form" *ngIf="activeTab === 'login' && forgotMode === 'email' && !twoFactorMode">
       <h3 class="forgot-title">Reset Your Password</h3>
       <p class="forgot-subtitle">Enter the email address associated with your account.</p>
@@ -125,7 +125,7 @@
       </button>
     </div>
 
-    <!-- Forgot Password: Step 2 - Enter Code & New Password -->
+
     <div class="auth-form" *ngIf="activeTab === 'login' && forgotMode === 'code' && !twoFactorMode">
       <h3 class="forgot-title">Enter Reset Code</h3>
       <p class="forgot-subtitle">We sent a 6-digit code to your email. Enter it below with your new password.</p>
@@ -175,7 +175,7 @@
       </button>
     </div>
 
-    <!-- 2FA Verification Step -->
+
     <div class="auth-form" *ngIf="twoFactorMode">
       <h3 class="forgot-title">Two-Factor Authentication</h3>
       <p class="forgot-subtitle">Open your authenticator app and enter the 6-digit code shown for CarRental.</p>
@@ -202,14 +202,14 @@
       </button>
     </div>
 
-    <!-- Register Form -->
+
     <form
       class="auth-form"
       *ngIf="activeTab === 'register'"
       (ngSubmit)="onRegister()"
     >
       <div class="register-grid">
-        <!-- Full Name -->
+
         <div class="form-group">
           <label for="registerName">Full Name <span class="required">*</span></label>
           <div class="input-icon-wrap">
@@ -218,7 +218,7 @@
           </div>
         </div>
 
-        <!-- Email -->
+
         <div class="form-group">
           <label for="registerEmail">Email Address <span class="required">*</span></label>
           <div class="input-icon-wrap">
@@ -227,7 +227,7 @@
           </div>
         </div>
 
-        <!-- Phone -->
+
         <div class="form-group">
           <label for="registerPhone">Phone Number</label>
           <div class="input-icon-wrap">
@@ -236,7 +236,7 @@
           </div>
         </div>
 
-        <!-- Address -->
+
         <div class="form-group">
           <label for="registerAddress">Address</label>
           <div class="input-icon-wrap">
@@ -245,7 +245,7 @@
           </div>
         </div>
 
-        <!-- Password -->
+
         <div class="form-group">
           <label for="registerPassword">Password <span class="required">*</span></label>
           <div class="input-icon-wrap input-icon-wrap--toggle">
@@ -269,7 +269,7 @@
           }
         </div>
 
-        <!-- Confirm Password -->
+
         <div class="form-group">
           <label for="registerConfirmPassword">Confirm Password <span class="required">*</span></label>
           <div class="input-icon-wrap input-icon-wrap--toggle">
@@ -283,7 +283,7 @@
         </div>
       </div>
 
-      <!-- Terms -->
+
       <label class="terms-check">
         <input type="checkbox" [(ngModel)]="registerAgreeTerms" name="registerAgreeTerms" />
         <span>I agree to the <a href="#" (click)="$event.preventDefault()">Terms & Conditions</a> and <a href="#" (click)="$event.preventDefault()">Privacy Policy</a></span>
@@ -294,7 +294,7 @@
       </button>
     </form>
 
-    <!-- Footer link -->
+
     <div class="footer-link">
       <a routerLink="/home">← Continue as Guest</a>
     </div>

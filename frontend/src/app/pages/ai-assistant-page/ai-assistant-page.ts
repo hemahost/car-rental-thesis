@@ -79,10 +79,9 @@ export class AIAssistantPage implements OnInit, AfterViewChecked {
     const loadingIdx = this.messages.length;
     this.messages.push({ role: 'bot', text: '', isLoading: true });
 
-    // Build history from the last 8 non-loading messages (4 exchanges) for context
     const history: ChatHistoryItem[] = this.messages
       .filter(m => !m.isLoading && m.text)
-      .slice(-9, -1) // exclude the user message just pushed and the loading bubble
+      .slice(-9, -1)
       .map(m => ({ role: m.role, text: m.text }));
 
     this.chatbotService.sendMessage(trimmed, history).subscribe({
@@ -131,5 +130,4 @@ export class AIAssistantPage implements OnInit, AfterViewChecked {
     } catch {}
   }
 }
-
 

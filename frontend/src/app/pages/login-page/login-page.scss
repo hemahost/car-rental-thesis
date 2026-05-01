@@ -34,7 +34,7 @@
   }
 }
 
-/* Tabs */
+
 .tabs {
   display: flex;
   border-bottom: 2px solid #e2e8f0;
@@ -63,7 +63,7 @@
   }
 }
 
-/* Messages */
+
 .message {
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -83,7 +83,7 @@
   }
 }
 
-/* Form */
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -158,7 +158,7 @@
   }
 }
 
-/* Forgot Password */
+
 .forgot-link {
   text-align: right;
   margin-top: -0.5rem;
@@ -206,7 +206,7 @@
   }
 }
 
-/* Restyle v2 */
+
 .login-page {
   background:
     radial-gradient(560px 340px at 18% 0%, var(--hero-glow-1), transparent 65%),
@@ -251,7 +251,7 @@
   color: var(--accent);
 }
 
-/* OAuth */
+
 .oauth-divider {
   display: flex;
   align-items: center;
@@ -308,7 +308,7 @@
   }
 }
 
-/* ── Register Grid ── */
+
 .register-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -320,7 +320,7 @@
   }
 }
 
-/* ── Input with icon ── */
+
 .input-icon-wrap {
   position: relative;
   display: flex;
@@ -360,7 +360,7 @@
   }
 }
 
-/* ── Password Strength ── */
+
 .pw-strength {
   display: flex;
   align-items: center;
@@ -401,13 +401,13 @@
   }
 }
 
-/* ── Required asterisk ── */
+
 .required {
   color: #ef4444;
   margin-left: 2px;
 }
 
-/* ── Terms checkbox ── */
+
 .terms-check {
   display: flex;
   align-items: flex-start;

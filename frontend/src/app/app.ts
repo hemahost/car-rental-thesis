@@ -11,6 +11,5 @@ import { FavoriteService } from './services/favorite.service';
 export class App {
   protected readonly title = signal('frontend');
 
-  // Inject to ensure the service is created and subscribes to auth changes
   constructor(private _favoriteService: FavoriteService) {}
 }

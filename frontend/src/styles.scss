@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 
-/* Global reset */
+
 *,
 *::before,
 *::after {
@@ -15,7 +15,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Theme Variables ── */
+
 :root {
   --bg-primary: #f4f8ff;
   --bg-secondary: #e8f0fb;
@@ -88,7 +88,7 @@ a, button {
   transition: all 0.2s ease;
 }
 
-/* ── Dark Mode Toggle Button (global) ── */
+
 .theme-toggle {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -107,7 +107,7 @@ a, button {
   }
 }
 
-/* Global visual refresh for shared page sections */
+
 .navbar,
 .topbar {
   background: var(--navbar-bg) !important;
@@ -290,12 +290,10 @@ a, button {
   border-top: 1px solid var(--border-color) !important;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   DARK MODE — Global overrides for all shared components
-   ═══════════════════════════════════════════════════════════ */
+
 body.dark-theme {
 
-  /* ── Navbar ── */
+
   .navbar {
     background: var(--navbar-bg) !important;
     box-shadow: 0 2px 8px var(--shadow-sm);
@@ -315,20 +313,20 @@ body.dark-theme {
     }
   }
 
-  /* ── Topbar (landing) ── */
+
   .topbar {
     background: var(--navbar-bg);
     box-shadow: 0 2px 8px var(--shadow-sm);
   }
 
-  /* ── Footer ── */
+
   .footer {
     background: var(--footer-bg) !important;
     color: var(--text-muted) !important;
     border-top-color: var(--border-color) !important;
   }
 
-  /* ── Car Card Component ── */
+
   .card {
     background: var(--bg-card);
     box-shadow: 0 2px 12px var(--shadow-sm);
@@ -341,15 +339,15 @@ body.dark-theme {
   .card__title { color: var(--text-primary); }
   .card__btn { background: var(--accent); &:hover { background: var(--accent-hover); } }
 
-  /* ── Hero Sections ── */
+
   .hero__title { color: var(--text-primary); }
   .hero__subtitle { color: var(--text-secondary); }
   .hero__graphic { background: var(--bg-hover); }
 
-  /* ── Popular Section ── */
+
   .popular__heading { color: var(--text-primary); }
 
-  /* ── Filters Sidebar ── */
+
   .filters__card {
     background: var(--bg-card);
     box-shadow: 0 2px 12px var(--shadow-sm);
@@ -366,7 +364,7 @@ body.dark-theme {
   .filters__btn--apply { background: var(--accent); &:hover { background: var(--accent-hover); } }
   .filters__btn--clear { background: var(--bg-hover); color: var(--text-secondary); }
 
-  /* ── Detail Page ── */
+
   .back-link { color: var(--accent); &:hover { color: var(--accent-hover); } }
   .detail__title { color: var(--text-primary); }
   .detail__price { color: var(--text-primary); span { color: var(--text-muted); } }
@@ -378,7 +376,7 @@ body.dark-theme {
   .detail__book-btn { background: var(--accent); &:hover { background: var(--accent-hover); } }
   .detail__type { color: var(--accent); background: var(--accent-bg); }
 
-  /* ── Booking Section ── */
+
   .booking-section {
     background: var(--bg-card);
     border-color: var(--border-color);
@@ -396,14 +394,14 @@ body.dark-theme {
   .booking-form__summary { background: var(--bg-input); }
   .booking-form__summary-row { color: var(--text-secondary); &--total { color: var(--text-primary); border-top-color: var(--border-color); } }
 
-  /* ── About Section ── */
+
   .about__title { color: var(--text-primary); }
   .about__card { background: var(--bg-card) !important; border-color: var(--border-color) !important; }
   .about__card-title { color: var(--text-primary) !important; }
   .about__card-text { color: var(--text-primary) !important; opacity: 0.92; }
   .about__contact-list { color: var(--text-primary) !important; opacity: 0.92; a { color: var(--accent) !important; } }
 
-  /* ── Login Page ── */
+
   .login-page {
     background:
       radial-gradient(560px 340px at 18% 0%, var(--hero-glow-1), transparent 65%),
@@ -432,7 +430,7 @@ body.dark-theme {
   .forgot-subtitle { color: var(--text-muted); }
   .back-btn { border-color: var(--border-color); color: var(--text-muted); &:hover { background: var(--bg-hover); color: var(--text-primary); } }
 
-  /* ── Profile Page ── */
+
   .sidebar__avatar-card {
     background: var(--bg-card);
     box-shadow: 0 2px 16px var(--shadow-sm);
@@ -475,10 +473,10 @@ body.dark-theme {
   .booking-item__dates { color: var(--text-muted); }
   .booking-item__price { color: var(--text-primary); }
 
-  /* ── State messages ── */
+
   .state__text { color: var(--text-secondary); }
 
-  /* ── Admin Dashboard ── */
+
   :host { background: var(--bg-secondary); }
   .admin { background: var(--bg-secondary); }
   .admin__tabs { background: var(--bg-card); box-shadow: 0 8px 32px var(--shadow-md); }
@@ -509,14 +507,14 @@ body.dark-theme {
   .empty { color: var(--text-muted); }
   .footer { background: var(--footer-bg); border-top-color: var(--border-color); color: var(--text-muted); }
 
-  /* ── Landing page ── */
+
   .landing { color: var(--text-primary); background: var(--bg-secondary); }
   .topbar__logo { color: var(--text-primary); }
   .topbar__login { color: var(--accent); &:hover { color: var(--accent-hover); } }
   .hero__title { color: var(--text-primary); }
   .hero__subtitle { color: var(--text-secondary); }
 
-  /* ── Profile page extras ── */
+
   .bookings-table {
     background: var(--bg-card);
     box-shadow: 0 2px 12px var(--shadow-sm);
@@ -555,7 +553,7 @@ body.dark-theme {
   .btn--primary { background: var(--accent); &:hover { background: var(--accent-hover); } }
   .btn--secondary { background: var(--bg-hover); color: var(--text-secondary); }
 
-  /* ── Reviews ── */
+
   .reviews-section__title { color: var(--text-primary); }
   .reviews-section__avg-number { color: var(--text-primary); }
   .reviews-section__avg-count { color: var(--text-muted); }

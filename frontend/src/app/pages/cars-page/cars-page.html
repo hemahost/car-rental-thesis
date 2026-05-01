@@ -1,4 +1,4 @@
-<!-- Navbar -->
+
 <nav class="navbar" [class.navbar--admin]="auth.currentUser?.role === 'ADMIN'">
   <div class="navbar__inner">
     <a class="navbar__logo" routerLink="/home">
@@ -26,13 +26,13 @@
   </div>
 </nav>
 
-<!-- Mobile filter toggle -->
+
 <button class="filters-toggle" (click)="filtersOpen = !filtersOpen">
   🎚 {{ filtersOpen ? 'Hide Filters' : 'Show Filters' }}
 </button>
 
 <div class="page">
-  <!-- Sidebar Filters -->
+
   <aside class="filters" [class.filters--open]="filtersOpen">
     <div class="filters__card">
       <div class="filters__header">
@@ -140,9 +140,9 @@
     </div>
   </aside>
 
-  <!-- Main Content -->
+
   <main class="content">
-    <!-- Search + Sort Toolbar -->
+
     <div class="toolbar">
       <div class="toolbar__search">
         <span class="toolbar__search-icon" aria-hidden="true"></span>
@@ -209,7 +209,7 @@
   </main>
 </div>
 
-<!-- Footer -->
+
 <footer class="footer">
   <p>&copy; 2026 Car Rental. All rights reserved.</p>
 </footer>

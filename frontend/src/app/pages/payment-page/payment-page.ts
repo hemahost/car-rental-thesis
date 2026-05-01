@@ -6,7 +6,6 @@ import { PaymentService } from '../../services/payment.service';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../services/auth.service';
 
-// Stripe publishable key (public — safe to include in frontend)
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TJyrjK6jyScMevhuDb4SLCdVJE4E9IjsyDZwUPSHlxWYwVno7dKQsBjx2lMqXgi5pBoeYH7ByiL8e39pVJRfkfS00ycNcJsnP';
 
 @Component({
@@ -69,7 +68,6 @@ export class PaymentPage implements OnInit, AfterViewInit {
     this.loading = false;
     this.cdr.markForCheck();
 
-    // Mount Stripe card element after view updates
     setTimeout(() => this.mountCard(), 50);
   }
 
@@ -118,7 +116,6 @@ export class PaymentPage implements OnInit, AfterViewInit {
       this.processing = false;
       this.cdr.markForCheck();
     } else if (result.paymentIntent?.status === 'succeeded') {
-      // Verify and confirm the booking directly with the backend
       this.paymentService.confirmBookingPayment(this.bookingId).subscribe({
         next: () => {
           this.success = true;
@@ -127,7 +124,6 @@ export class PaymentPage implements OnInit, AfterViewInit {
           setTimeout(() => this.router.navigate(['/profile']), 3000);
         },
         error: () => {
-          // Payment succeeded on Stripe — booking will be confirmed via webhook
           this.success = true;
           this.processing = false;
           this.cdr.markForCheck();

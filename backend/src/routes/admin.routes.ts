@@ -7,26 +7,21 @@ import { getAdminUsers, getUserDetail, updateUser, updateUserRole, deleteUser } 
 
 const router = Router();
 
-// All admin routes require authentication + admin role
 router.use(authenticate, requireAdmin);
 
-// Stats
 router.get("/stats", getAdminStats);
 
-// Users
 router.get("/users", getAdminUsers);
 router.get("/users/:id", getUserDetail);
 router.put("/users/:id", updateUser);
 router.patch("/users/:id/role", updateUserRole);
 router.delete("/users/:id", deleteUser);
 
-// Cars CRUD
 router.get("/cars", getAdminCars);
 router.post("/cars", createCar);
 router.put("/cars/:id", updateCar);
 router.delete("/cars/:id", deleteCar);
 
-// Bookings management
 router.get("/bookings", getAdminBookings);
 router.patch("/bookings/:id/status", updateBookingStatus);
 

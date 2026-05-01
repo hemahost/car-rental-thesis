@@ -5,7 +5,6 @@ import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
-// GET /api/reviews/:carId — get all reviews for a car
 router.get("/:carId", async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
@@ -18,7 +17,6 @@ router.get("/:carId", async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Calculate average rating
     const avgRating =
       reviews.length > 0
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
@@ -31,7 +29,6 @@ router.get("/:carId", async (req, res) => {
   }
 });
 
-// POST /api/reviews/:carId — create or update a review
 router.post("/:carId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { rating, comment } = req.body;
@@ -49,13 +46,11 @@ router.post("/:carId", authenticate, async (req: AuthRequest, res: Response) => 
       return sendError(res, "Comment must be 500 characters or less", 400);
     }
 
-    // Check car exists
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) {
       return sendError(res, "Car not found", 404);
     }
 
-    // Upsert: create or update the user's review for this car
     const review = await prisma.review.upsert({
       where: {
         userId_carId: { userId: req.userId!, carId },
@@ -84,7 +79,6 @@ router.post("/:carId", authenticate, async (req: AuthRequest, res: Response) => 
   }
 });
 
-// DELETE /api/reviews/:reviewId — delete own review
 router.delete("/:reviewId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const review = await prisma.review.findUnique({

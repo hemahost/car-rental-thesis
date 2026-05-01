@@ -51,7 +51,6 @@ export class CancelBookingStatusStrategy extends EmailBookingStatusStrategy {
 
 export class DefaultBookingStatusStrategy implements BookingStatusStrategy {
   apply(_booking: BookingStatusContext): void {
-    // Statuses without customer notifications intentionally have no side effect.
   }
 }
 

@@ -76,7 +76,6 @@ export class AdminService {
 
   constructor(private http: HttpClient) {}
 
-  // ── Stats ──
 
   getAdminStats(): Observable<AdminStats> {
     return this.http
@@ -91,7 +90,6 @@ export class AdminService {
       })));
   }
 
-  // ── Cars ──
 
   getAdminCars(): Observable<Car[]> {
     return this.http
@@ -115,7 +113,6 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/cars/${id}`);
   }
 
-  // ── Bookings ──
 
   getAdminBookings(status?: string): Observable<AdminBooking[]> {
     let params = new HttpParams();
@@ -133,7 +130,6 @@ export class AdminService {
       .pipe(map((res) => res.booking));
   }
 
-  // ── Users ──
 
   getAdminUsers(): Observable<AdminUser[]> {
     return this.http

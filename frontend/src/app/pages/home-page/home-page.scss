@@ -1,4 +1,4 @@
-/* ── Navbar ── */
+
 .navbar {
   background: var(--navbar-bg);
   box-shadow: 0 10px 24px -18px var(--shadow-md);
@@ -93,7 +93,6 @@
     animation: badgePulse 2s ease-in-out infinite;
   }
 
-  // ── Dark admin theme ──
   &--admin {
     background: linear-gradient(135deg, #0f0f23, #1a1a3e);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(245, 158, 11, 0.05);
@@ -146,7 +145,7 @@
   50% { opacity: 0.75; }
 }
 
-/* ── Hero ── */
+
 .hero {
   max-width: 1200px;
   margin: 0 auto;
@@ -343,7 +342,7 @@
   }
 }
 
-/* ── Popular Section ── */
+
 .popular {
   max-width: 1200px;
   margin: 0 auto;
@@ -433,7 +432,7 @@
   }
 }
 
-/* ── Footer ── */
+
 .footer {
   text-align: center;
   padding: 24px;
@@ -443,7 +442,7 @@
   border-top: 1px solid var(--border-color);
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 900px) {
   .hero {
     flex-direction: column;

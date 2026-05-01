@@ -23,10 +23,8 @@ export class ProfilePage implements OnInit {
   bookings: Booking[] = [];
   bookingsLoading = false;
 
-  // Active section
   activeSection: 'overview' | 'personal' | 'bookings' | 'favorites' | 'security' = 'overview';
 
-  // Edit personal info
   editingPersonal = false;
   editName = '';
   editEmail = '';
@@ -34,13 +32,11 @@ export class ProfilePage implements OnInit {
   editAddress = '';
   saving = false;
 
-  // Change password
   currentPassword = '';
   newPassword = '';
   confirmNewPassword = '';
   changingPassword = false;
 
-  // 2FA
   twoFASetupMode = false;
   twoFAQrCode = '';
   twoFASecret = '';
@@ -49,10 +45,8 @@ export class ProfilePage implements OnInit {
   twoFADisableMode = false;
   twoFALoading = false;
 
-  // Avatar
   uploadingAvatar = false;
 
-  // Messages
   successMessage = '';
   errorMessage = '';
 
@@ -99,7 +93,6 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  // ── Bookings ──
   loadBookings(): void {
     this.bookingsLoading = true;
     this.bookingService.getMyBookings().subscribe({
@@ -131,13 +124,11 @@ export class ProfilePage implements OnInit {
     return this.bookings.reduce((sum, b) => sum + b.totalPrice, 0);
   }
 
-  // ── Section switching ──
   switchSection(section: 'overview' | 'personal' | 'bookings' | 'favorites' | 'security'): void {
     this.activeSection = section;
     this.clearMessages();
   }
 
-  // ── Avatar ──
   triggerAvatarUpload(): void {
     this.avatarInput.nativeElement.click();
   }
@@ -197,7 +188,6 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  // ── Personal info ──
   startEditingPersonal(): void {
     this.editingPersonal = true;
     this.editName = this.user?.name ?? '';
@@ -242,7 +232,6 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  // ── Favorites ──
   favorites: Favorite[] = [];
   favoritesLoading = false;
 
@@ -274,7 +263,6 @@ export class ProfilePage implements OnInit {
     return this.favorites.length;
   }
 
-  // ── Helpers ──
   showSuccess(msg: string): void {
     this.successMessage = msg;
     this.errorMessage = '';
@@ -309,7 +297,6 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  // ── Change Password ──
   onChangePassword(): void {
     this.clearMessages();
 
@@ -350,7 +337,6 @@ export class ProfilePage implements OnInit {
     this.auth.logout();
   }
 
-  // ── 2FA ──
   get is2FAEnabled(): boolean {
     return !!(this.user?.twoFactorEnabled);
   }

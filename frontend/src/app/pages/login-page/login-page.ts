@@ -14,15 +14,12 @@ import { AuthService } from '../../services/auth.service';
 export class LoginPage implements OnInit {
   activeTab: 'login' | 'register' = 'login';
 
-  // OAuth providers availability
   oauthGoogle = false;
   oauthGithub = false;
 
-  // Login fields
   loginEmail = '';
   loginPassword = '';
 
-  // Register fields
   registerName = '';
   registerEmail = '';
   registerPassword = '';
@@ -33,14 +30,12 @@ export class LoginPage implements OnInit {
   showRegisterPassword = false;
   showRegisterConfirmPassword = false;
 
-  // Forgot password fields
   forgotMode: 'hidden' | 'email' | 'code' = 'hidden';
   forgotEmail = '';
   resetCode = '';
   newPassword = '';
   confirmNewPassword = '';
 
-  // 2FA fields
   twoFactorMode = false;
   twoFactorToken = '';
   totpCode = '';
@@ -211,7 +206,6 @@ export class LoginPage implements OnInit {
       });
   }
 
-  // ── Forgot Password ──
   showForgotPassword(): void {
     this.forgotMode = 'email';
     this.errorMessage = '';
@@ -230,7 +224,6 @@ export class LoginPage implements OnInit {
     this.confirmNewPassword = '';
   }
 
-  // ── 2FA ──
   onVerify2FA(): void {
     this.errorMessage = '';
     this.errorMessages = [];

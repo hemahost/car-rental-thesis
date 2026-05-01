@@ -1,4 +1,4 @@
-/* ── Navbar ── */
+
 .navbar {
   background: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -141,7 +141,7 @@
   50% { opacity: 0.75; }
 }
 
-/* ── About Section ── */
+
 .about {
   max-width: 1200px;
   margin: 0 auto;
@@ -203,7 +203,7 @@
   }
 }
 
-/* ── Footer ── */
+
 .footer {
   text-align: center;
   padding: 24px;
@@ -213,7 +213,7 @@
   border-top: 1px solid #e9ecef;
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 900px) {
   .about__grid {
     grid-template-columns: 1fr;
@@ -236,7 +236,7 @@
   }
 }
 
-/* Restyle v2 */
+
 .about {
   position: relative;
   padding-top: 64px;

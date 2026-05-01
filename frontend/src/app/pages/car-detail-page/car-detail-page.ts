@@ -27,7 +27,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
   loading = true;
   error = '';
   similarCars: Car[] = [];
-  // Booking form
   startDate = '';
   endDate = '';
   pickupLocation = '';
@@ -44,7 +43,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
   unavailableBookingsLoading = false;
   private holdRefreshTimer?: ReturnType<typeof setTimeout>;
 
-  // Reviews
   reviews: Review[] = [];
   avgRating = 0;
   totalReviews = 0;
@@ -76,7 +74,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
         return;
       }
 
-      // Reset state on each navigation
       this.clearHoldRefreshTimer();
       this.car = null;
       this.loading = true;
@@ -106,7 +103,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
 
       this.normalizeBookingDates();
 
-      // Scroll to top on navigation
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       this.carService.getCarById(id).subscribe({
@@ -171,7 +167,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
       return new Date(NaN);
     }
 
-    // Booking APIs return ISO timestamps, while date inputs use YYYY-MM-DD.
     if (value.includes('T')) {
       return new Date(value);
     }
@@ -491,7 +486,6 @@ export class CarDetailPage implements OnInit, OnDestroy {
       });
   }
 
-  // ── Reviews ──
   loadReviews(carId: string): void {
     this.reviewService.getReviews(carId).subscribe({
       next: (data) => {

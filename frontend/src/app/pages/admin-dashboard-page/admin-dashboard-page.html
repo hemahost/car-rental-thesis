@@ -1,6 +1,6 @@
-﻿<div class="dash">
+<div class="dash">
 
-  <!-- ═══ Sidebar ═══ -->
+
   <aside class="dash-sidebar">
     <div class="dash-brand">
       <a class="dash-logo" routerLink="/home">
@@ -71,10 +71,10 @@
     </div>
   </aside>
 
-  <!-- ═══ Main Content ═══ -->
+
   <div class="dash-main">
 
-    <!-- Top Bar -->
+
     <header class="dash-topbar">
       <div class="dash-topbar-left">
         <h1 class="dash-topbar-title">
@@ -99,10 +99,10 @@
       </div>
     </header>
 
-    <!-- Body -->
+
     <div class="dash-body">
 
-      <!-- Stats Tab -->
+
       @if (activeTab === 'stats') {
         <section class="section">
           <div class="section-head">
@@ -150,7 +150,7 @@
         </section>
       }
 
-      <!-- Cars Tab -->
+
       @if (activeTab === 'cars') {
         <section class="section">
           <div class="section-head">
@@ -211,7 +211,7 @@
         </section>
       }
 
-      <!-- Bookings Tab -->
+
       @if (activeTab === 'bookings') {
         <section class="section">
           <div class="section-head">
@@ -255,7 +255,7 @@
         </section>
       }
 
-      <!-- Users Tab -->
+
       @if (activeTab === 'users') {
         <section class="section">
           <div class="section-head">
@@ -305,7 +305,7 @@
           @if (!usersLoading && users.length === 0 && !usersError) { <div class="empty-state"><span class="empty-state__icon">&#128101;</span><p>No users found.</p></div> }
         </section>
 
-        <!-- User Detail Modal -->
+
         @if (showUserDetail) {
           <div class="modal-backdrop" (click)="closeUserDetail()">
             <div class="modal" (click)="$event.stopPropagation()">
@@ -413,12 +413,12 @@
         </div>
       }
 
-    </div><!-- /dash-body -->
+    </div>
 
     <footer class="dash-footer">
       <p>&copy; 2026 Car Rental. All rights reserved.</p>
     </footer>
 
-  </div><!-- /dash-main -->
+  </div>
 
-</div><!-- /dash -->
+</div>

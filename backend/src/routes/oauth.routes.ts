@@ -10,7 +10,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:4200";
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3000";
 const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
 
-// ── Helper: find or create a user from an OAuth profile ──────────────────────
 async function findOrCreateOAuthUser(
   provider: string,
   providerId: string,
@@ -18,13 +17,11 @@ async function findOrCreateOAuthUser(
   name: string,
   avatarUrl: string
 ) {
-  // 1. Try to find by provider + providerId (returning user)
   let user = await prisma.user.findFirst({
     where: { provider, providerId },
   });
   if (user) return user;
 
-  // 2. Email already exists with a different provider → link the account
   user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     user = await prisma.user.update({
@@ -34,14 +31,12 @@ async function findOrCreateOAuthUser(
     return user;
   }
 
-  // 3. Brand-new user — create account (no passwordHash for OAuth users)
   user = await prisma.user.create({
     data: { name, email, provider, providerId, avatarUrl },
   });
   return user;
 }
 
-// ── Helper: build redirect URL with JWT ──────────────────────────────────────
 function redirectWithToken(res: Response, user: { id: string; role: string }) {
   const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
     expiresIn: "1d",
@@ -49,7 +44,6 @@ function redirectWithToken(res: Response, user: { id: string; role: string }) {
   return res.redirect(`${FRONTEND_URL}/oauth-callback?token=${token}`);
 }
 
-// ── Google ────────────────────────────────────────────────────────────────────
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     createGoogleOAuthStrategy({
@@ -72,7 +66,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   );
 }
 
-// ── GitHub ────────────────────────────────────────────────────────────────────
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   passport.use(
     createGitHubOAuthStrategy({
@@ -95,7 +88,6 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
   );
 }
 
-// ── Status endpoint: tells the frontend which providers are configured ────────
 router.get("/providers", (_req: Request, res: Response) => {
   res.json({
     success: true,

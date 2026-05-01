@@ -52,7 +52,6 @@ export function getBookingDateValidation(start: Date, end: Date): string | null 
   return null;
 }
 
-// GET /api/bookings/me
 router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     await expirePendingBookings({ userId: req.userId! });
@@ -74,7 +73,6 @@ router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/bookings/availability?carId=xxx&startDate=xxx&endDate=xxx
 router.get("/availability", async (req, res) => {
   try {
     const { carId, startDate, endDate } = req.query;
@@ -92,7 +90,6 @@ router.get("/availability", async (req, res) => {
 
     await expirePendingBookings({ carId: carId as string });
 
-    // Find overlapping pending/confirmed/active bookings
     const conflicting = await prisma.booking.findMany({
       where: {
         carId: carId as string,
@@ -124,7 +121,6 @@ router.get("/availability", async (req, res) => {
   }
 });
 
-// GET /api/bookings/unavailable/:carId
 router.get("/unavailable/:carId", async (req, res) => {
   try {
     const { carId } = req.params;
@@ -164,7 +160,6 @@ router.get("/unavailable/:carId", async (req, res) => {
   }
 });
 
-// POST /api/bookings
 router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { carId, startDate, endDate, pickupLocation, dropoffLocation } = req.body;
@@ -191,13 +186,11 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "Pick-up and drop-off locations are required", 400);
     }
 
-    // Check car exists
     const car = await prisma.car.findUnique({ where: { id: carId } });
     if (!car) {
       return sendError(res, "Car not found", 404);
     }
 
-    // Check availability (no overlapping confirmed/active bookings)
     const conflicting = await prisma.booking.findMany({
       where: {
         carId,
@@ -211,7 +204,6 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "Car is not available for the selected dates", 409);
     }
 
-    // Calculate total price
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     const totalPrice = days * car.pricePerDay;
 
@@ -233,7 +225,6 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Email is sent by the payment webhook on successful payment
     return sendSuccess(res, { booking }, 201);
   } catch (err) {
     console.error(err);
@@ -241,7 +232,6 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// DELETE /api/bookings/:id
 router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const booking = await prisma.booking.findUnique({
@@ -256,7 +246,6 @@ router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
       return sendError(res, "Not authorized", 403);
     }
 
-    // If already paid, issue a Stripe refund
     if (booking.paymentStatus === "PAID" && booking.paymentIntentId) {
       try {
         await paymentGateway.refundPaymentIntent(booking.paymentIntentId);
@@ -271,7 +260,6 @@ router.delete("/:id", authenticate, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // Not paid yet — just cancel
     await prisma.booking.update({
       where: { id: booking.id },
       data: { status: "CANCELLED" },
